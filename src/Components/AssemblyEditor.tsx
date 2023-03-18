@@ -1,7 +1,9 @@
 import Editor from "@monaco-editor/react";
 import { useRef } from "react";
 
-function AssemblyEditor() {
+function AssemblyEditor(props: {
+  onEditorChange: (value: string | undefined, event: any) => void;
+}) {
   const monacoRef = useRef(null);
   const keywords = [
     "add",
@@ -104,6 +106,7 @@ function AssemblyEditor() {
 
   return (
     <Editor
+      onChange={props.onEditorChange}
       height="80vh"
       defaultLanguage="mips"
       theme="vs-dark"

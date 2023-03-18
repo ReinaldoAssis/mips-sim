@@ -23,11 +23,24 @@ const HiPlayIcon = () => <Icon as={HiPlay} />;
 export default function SimulatorView() {
   //const [code, setCode] = React.useState<string>("");
 
+  const [code, setCode] = React.useState<string>("");
+  const [assemblyCode, setAssemblyCode] = React.useState<string>("");
+
   const simservice: SimulatorService = SimulatorService.getInstance();
+
+  React.useEffect(() => {
+    setAssemblyCode(simservice.assemblyCode);
+  }, [simservice.assemblyCode]);
+
+  function onEditorChange(value: string | undefined, event: any) {
+    setCode(value!);
+  }
 
   function runCode() {
     console.log("Running code");
-    console.log(simservice.assemble("test"));
+    simservice.assemblyCode = simservice.assemble(code);
+    setAssemblyCode(simservice.assemblyCode);
+    console.log(simservice.assemblyCode);
   }
 
   return (
@@ -40,21 +53,27 @@ export default function SimulatorView() {
 
       <TabPanels>
         <TabPanel>
-          <EditorView runBtn={runCode} />
+          <EditorView onEditorChange={onEditorChange} runBtn={runCode} />
         </TabPanel>
 
         <TabPanel>
-          <Textarea style={{ height: "80vh" }} />
+          <Textarea
+            style={{ height: "80vh" }}
+            value={simservice.assemblyCode}
+          />
         </TabPanel>
       </TabPanels>
     </Tabs>
   );
 }
 
-function EditorView(props: { runBtn: Function }) {
+function EditorView(props: {
+  runBtn: Function;
+  onEditorChange: (value: string | undefined, event: any) => void;
+}) {
   return (
     <Stack direction={"row"}>
-      <AssemblyEditor />
+      <AssemblyEditor onEditorChange={props.onEditorChange} />
       <Stack direction="row" spacing={4}>
         <Button
           leftIcon={<HiPlayIcon />}
