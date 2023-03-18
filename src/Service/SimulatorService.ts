@@ -14,6 +14,11 @@ export default class SimulatorService {
     return SimulatorService.instance;
   }
 
+  private convertBinaryToHex(value: string): string {
+    let hex = Number.parseInt(value, 2).toString(16);
+    return "0x" + (hex.length === 1 ? "0" + hex : hex);
+  }
+
   // clear all comments from the code
   public cleanComments(code: string): string {
     let lines = code.split("\n");
@@ -306,7 +311,11 @@ export default class SimulatorService {
     }
 
     code = tokens.join(" ");
+    let code2 = code.split(" ");
+    for (let i = 0; i < code2.length; i++) {
+      code2[i] = this.convertBinaryToHex(code2[i]);
+    }
 
-    return code;
+    return code + "\n\n" + code2.join(" ");
   }
 }
