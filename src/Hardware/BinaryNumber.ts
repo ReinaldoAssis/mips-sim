@@ -2,8 +2,14 @@ export default class BinaryNumber {
   private _value: number = 0;
   private _length: number = 0;
 
-  public constructor(size: number = 0) {
-    this._length = size;
+  public constructor(value: string = "0") {
+    if (value == "0") {
+      this._value = 0;
+      this._length = 1;
+    } else {
+      this._value = BinaryNumber.parse(value).value;
+      this._length = this._value.toString(2).length;
+    }
   }
 
   public get value(): number {
@@ -11,14 +17,15 @@ export default class BinaryNumber {
   }
 
   public set value(v: number) {
-    if (v > Math.pow(2, this._length) - 1)
-      throw new Error(
-        `[Hardware Descriptor] Value out of bounds in BinaryNumber!`
-      );
+    // if (v > Math.pow(2, this._length) - 1)
+    //   throw new Error(
+    //     `[Hardware Descriptor] Value out of bounds in BinaryNumber!`
+    //   );
     this._value = v;
   }
 
   public get length(): number {
+    this._length = this._value.toString(2).length;
     return this._length;
   }
 
@@ -26,20 +33,20 @@ export default class BinaryNumber {
     this._length = v;
   }
 
-  public toString(): string {
-    return this._value.toString(2);
+  public getBinaryValue(pad: number = this._length): string {
+    return this._value.toString(2).padStart(pad, "0");
   }
 
-  public toHex(): string {
+  public toHex(pad: number = this._length): string {
     let hex = this._value.toString(16);
-    return "0x" + (hex.length === 1 ? "0" + hex : hex);
+    return "0x" + hex.padStart(pad, "0");
   }
 
   public at(index: number): number {
-    if (index >= this._length)
-      throw new Error(
-        `[Hardware Descriptor] Index out of bounds in BinaryNumber!`
-      );
+    // if (index >= this._length)
+    //   throw new Error(
+    //     `[Hardware Descriptor] Index out of bounds in BinaryNumber!`
+    //   );
     return (this._value >> index) & 1;
   }
 
@@ -53,15 +60,17 @@ export default class BinaryNumber {
     return this._value;
   }
 
-  public static fromBinaryString(value: string): BinaryNumber {
-    let binary = new BinaryNumber(value.length);
-    binary.value = Number.parseInt(value, 2);
-    return binary;
-  }
+  public static parse(value: string): BinaryNumber {
+    let binary = new BinaryNumber();
+    if (value.startsWith("0x")) {
+      binary.value = Number.parseInt(value.substring(2), 16);
+      return binary;
+    } else if (value.startsWith("0b")) {
+      binary.value = Number.parseInt(value.substring(2), 2);
+      return binary;
+    }
 
-  public static fromHexString(value: string): BinaryNumber {
-    let binary = new BinaryNumber(value.length * 4);
-    binary.value = Number.parseInt(value, 16);
+    binary.value = Number.parseInt(value);
     return binary;
   }
 

@@ -1,3 +1,5 @@
+import BinaryNumber from "../Hardware/BinaryNumber";
+
 export default class SimulatorService {
   public editorValue: string = "";
   public assemblyCode: string = "";
@@ -35,7 +37,7 @@ export default class SimulatorService {
 
   public tokenfyCode(code: string): Array<string> {
     let tokens = new Array<string>();
-    code = this.cleanComments(code);
+    code = this.cleanComments(code).replaceAll(",", " ");
     let lines = code.split("\n");
 
     for (let i = 0; i < lines.length; i++) {
@@ -51,285 +53,181 @@ export default class SimulatorService {
 
   public assemble(code: string): string {
     //stringify the code, remove comments, remove new lines, split by spaces
-    let tokens = this.tokenfyCode(code);
+    //let tokens = this.tokenfyCode(code);
 
-    for (let i = 0; i < tokens.length; i++) {
-      console.log(JSON.stringify(tokens[i].toLowerCase()));
-      switch (tokens[i].toLowerCase()) {
+    code = this.cleanComments(code).replaceAll(",", " ");
+    let lines = code.split("\n");
+
+    let machineCode = "";
+
+    for (let i = 0; i < lines.length; i++) {
+      let tokens = lines[i].split(" ");
+      let instruction: string = "";
+      if (tokens[0] === "") continue;
+
+      switch (tokens[0].toLowerCase()) {
         case "add":
-          tokens[i] = "100000";
-          break;
+          if (tokens.length < 4)
+            throw new Error(
+              `[Assembler] Invalid number of arguments for add instruction!`
+            );
 
-        case "addu":
-          tokens[i] = "100001";
+          instruction = "000000";
+          instruction += this.assembleRegister(tokens[2]); //source register rs
+          instruction += this.assembleRegister(tokens[3]); //source register rt
+          instruction += this.assembleRegister(tokens[1]); //destination register rd
+          instruction += "00000"; //shift amount shamt
+          instruction += "100000"; //function code funct
+
           break;
 
         case "addi":
-          tokens[i] = "001000";
+          instruction = "001000";
+
+          if (tokens.length < 4)
+            throw new Error(
+              `[Assembler] Invalid number of arguments for addi instruction!`
+            );
+
+          instruction += this.assembleRegister(tokens[2]); //source register rs
+          instruction += this.assembleRegister(tokens[1]); //destination register rt
+          instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+
           break;
 
         case "addiu":
-          tokens[i] = "001001";
+          instruction = "001001";
+          break;
+
+        case "addu":
+          instruction = "000000";
           break;
 
         case "and":
-          tokens[i] = "100100";
+          instruction = "000000";
           break;
 
         case "andi":
-          tokens[i] = "001100";
+          instruction = "001100";
           break;
 
-        case "div":
-          tokens[i] = "011010";
-          break;
-
-        case "divu":
-          tokens[i] = "011011";
-          break;
-
-        case "mult":
-          tokens[i] = "011000";
-          break;
-
-        case "multu":
-          tokens[i] = "011001";
+        case "lui":
+          instruction = "001111";
           break;
 
         case "nor":
-          tokens[i] = "100111";
+          instruction = "000000";
           break;
 
         case "or":
-          tokens[i] = "100101";
+          instruction = "000000";
           break;
 
         case "ori":
-          tokens[i] = "001101";
-          break;
-
-        case "sll":
-          tokens[i] = "000000";
-          break;
-
-        case "sllv":
-          tokens[i] = "000100";
-          break;
-
-        case "sra":
-          tokens[i] = "000011";
-          break;
-
-        case "srav":
-          tokens[i] = "000111";
-          break;
-
-        case "srl":
-          tokens[i] = "000010";
-          break;
-
-        case "srlv":
-          tokens[i] = "000110";
-          break;
-
-        case "sub":
-          tokens[i] = "100010";
-          break;
-
-        case "subu":
-          tokens[i] = "100011";
-          break;
-
-        case "xor":
-          tokens[i] = "100110";
-          break;
-
-        case "xori":
-          tokens[i] = "001110";
-          break;
-
-        case "lhi":
-          tokens[i] = "011001";
-          break;
-
-        case "llo":
-          tokens[i] = "011000";
+          instruction = "001101";
           break;
 
         case "slt":
-          tokens[i] = "101010";
-          break;
-
-        case "sltu":
-          tokens[i] = "101001";
+          instruction = "000000";
           break;
 
         case "slti":
-          tokens[i] = "001010";
+          instruction = "001010";
           break;
 
         case "sltiu":
-          tokens[i] = "001001";
+          instruction = "001011";
           break;
 
-        case "beq":
-          tokens[i] = "000100";
+        case "sltu":
+          instruction = "000000";
           break;
 
-        case "bgtz":
-          tokens[i] = "000111";
+        case "sub":
+          instruction = "000000";
           break;
 
-        case "blez":
-          tokens[i] = "000110";
+        case "subu":
+          instruction = "000000";
           break;
 
-        case "bne":
-          tokens[i] = "000101";
+        case "xor":
+          instruction = "000000";
           break;
 
-        case "j":
-          tokens[i] = "000010";
+        case "xori":
+          instruction = "001110";
           break;
+      }
 
-        case "jal":
-          tokens[i] = "000011";
-          break;
+      machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
+    }
+    // let code2 = code.split(" ");
+    // for (let i = 0; i < code2.length; i++) {
+    //   code2[i] = this.convertBinaryToHex(code2[i]);
+    // }
 
-        case "jalr":
-          tokens[i] = "001001";
-          break;
+    return machineCode;
+  }
 
-        case "jr":
-          tokens[i] = "001000";
-          break;
+  private assembleRegister(register: string): string {
+    if (register.includes("$") === false) {
+      switch (register.toLowerCase()) {
+        case "zero":
+          return "00000";
 
-        case "lb":
-          tokens[i] = "100000";
-          break;
+        case "at":
+          return "00001";
 
-        case "lbu":
-          tokens[i] = "100100";
-          break;
+        case "v0":
+          return "00010";
 
-        case "lh":
-          tokens[i] = "100001";
-          break;
+        case "v1":
+          return "00011";
 
-        case "lhu":
-          tokens[i] = "100101";
-          break;
+        case "a0":
+          return "00100";
 
-        case "lw":
-          tokens[i] = "100011";
-          break;
+        case "a1":
+          return "00101";
 
-        case "sb":
-          tokens[i] = "101000";
-          break;
+        case "a2":
+          return "00110";
 
-        case "sh":
-          tokens[i] = "101001";
-          break;
+        case "a3":
+          return "00111";
 
-        case "sw":
-          tokens[i] = "101011";
-          break;
+        case "t0":
+          return "01000";
 
-        case "mfhi":
-          tokens[i] = "010000";
-          break;
+        case "t1":
+          return "01001";
 
-        case "mflo":
-          tokens[i] = "010010";
-          break;
+        case "t2":
+          return "01010";
 
-        case "mthi":
-          tokens[i] = "010001";
-          break;
+        case "t3":
+          return "01011";
 
-        case "mtlo":
-          tokens[i] = "010011";
-          break;
+        case "t4":
+          return "01100";
 
-        default:
-          // handle invalid input
-          break;
+        case "t5":
+          return "01101";
 
-        // register
+        case "t6":
+          return "01110";
 
-        case "$zero":
-          tokens[i] = "00000";
-          break;
-
-        case "$at":
-          tokens[i] = "00001";
-          break;
-
-        case "$v0":
-          tokens[i] = "00010";
-          break;
-
-        case "$v1":
-          tokens[i] = "00011";
-          break;
-
-        case "$a0":
-          tokens[i] = "00100";
-          break;
-
-        case "$a1":
-          tokens[i] = "00101";
-          break;
-
-        case "$a2":
-          tokens[i] = "00110";
-          break;
-
-        case "$a3":
-          tokens[i] = "00111";
-          break;
-
-        case "$t0":
-          tokens[i] = "01000";
-          break;
-
-        case "$t1":
-          tokens[i] = "01001";
-          break;
-
-        case "$t2":
-          tokens[i] = "01010";
-          break;
-
-        case "$t3":
-          tokens[i] = "01011";
-          break;
-
-        case "$t4":
-          tokens[i] = "01100";
-          break;
-
-        case "$t5":
-          tokens[i] = "01101";
-          break;
-
-        case "$t6":
-          tokens[i] = "01110";
-          break;
-
-        case "$t7":
-          tokens[i] = "01111";
-          break;
+        case "t7":
+          return "01111";
       }
     }
 
-    code = tokens.join(" ");
-    let code2 = code.split(" ");
-    for (let i = 0; i < code2.length; i++) {
-      code2[i] = this.convertBinaryToHex(code2[i]);
+    let reg = register.replace("$", "");
+    let regNumber = Number.parseInt(reg);
+    if (regNumber < 0 || regNumber > 31) {
+      throw new Error(`[Assembler] Invalid register number!`);
     }
-
-    return code2.join(" ");
+    return regNumber.toString(2).padStart(5, "0");
   }
 }

@@ -6,7 +6,7 @@ class Register {
 
   public constructor(size: number = 1) {
     this.size = size;
-    this._data = new BinaryNumber(size);
+    this._data = new BinaryNumber();
   }
 
   // @param value: BinaryNumber - A number in binary to be set in the register
@@ -139,8 +139,8 @@ class ALU {
   private _negative: boolean = false;
 
   public constructor(
-    A: BinaryNumber = new BinaryNumber(1),
-    B: BinaryNumber = new BinaryNumber(1),
+    A: BinaryNumber = new BinaryNumber("0"),
+    B: BinaryNumber = new BinaryNumber("0"),
     size: number = 32
   ) {
     this._A = A;
