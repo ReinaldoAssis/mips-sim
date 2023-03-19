@@ -33,11 +33,25 @@ export default class SimulatorService {
     return cleanCode;
   }
 
+  public tokenfyCode(code: string): Array<string> {
+    let tokens = new Array<string>();
+    code = this.cleanComments(code);
+    let lines = code.split("\n");
+
+    for (let i = 0; i < lines.length; i++) {
+      let linetokens = lines[i].replace(/\r?\n|\r/g, "").split(" ");
+      linetokens.find((x) =>
+        x === "" ? linetokens.splice(linetokens.indexOf(x), 1) : x
+      );
+      tokens.push(...linetokens);
+    }
+
+    return tokens;
+  }
+
   public assemble(code: string): string {
     //stringify the code, remove comments, remove new lines, split by spaces
-    let tokens = this.cleanComments(code)
-      .replace(/\r?\n|\r/g, "")
-      .split(" ");
+    let tokens = this.tokenfyCode(code);
 
     for (let i = 0; i < tokens.length; i++) {
       console.log(JSON.stringify(tokens[i].toLowerCase()));
@@ -316,6 +330,6 @@ export default class SimulatorService {
       code2[i] = this.convertBinaryToHex(code2[i]);
     }
 
-    return code + "\n\n" + code2.join(" ");
+    return code2.join(" ");
   }
 }
