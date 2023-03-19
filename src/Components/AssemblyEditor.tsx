@@ -104,6 +104,8 @@ function AssemblyEditor(props: {
     monaco.editor.setTheme("mipsdark");
   }
 
+  const defaultcode = `addi t0 zero 1\naddi t1 zero 10\nsub t2 t1 t0`;
+
   return (
     <Editor
       onChange={props.onEditorChange}
@@ -111,7 +113,8 @@ function AssemblyEditor(props: {
       defaultLanguage="mips"
       theme="vs-dark"
       defaultValue={
-        "# MIPS UFAL Assembly Sim. by Reinaldo Assis \n# Project supervisor: prof. Bruno Costa"
+        "# MIPS UFAL Assembly Sim. by Reinaldo Assis \n# Project supervisor: prof. Bruno Costa\n\n" +
+        defaultcode
       }
       options={{
         scrollBeyondLastLine: false,
