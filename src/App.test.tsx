@@ -2,9 +2,58 @@ import React from "react";
 import { screen } from "@testing-library/react";
 import { render } from "./test-utils";
 import { App } from "./App";
+import SimulatorService from "./Service/SimulatorService";
 
 // test("renders learn react link", () => {
 //   render(<App />)
 //   const linkElement = screen.getByText(/learn chakra/i)
 //   expect(linkElement).toBeInTheDocument()
 // })
+
+test("treat offset", () => {
+  let simservice = SimulatorService.getInstance();
+  let offset = simservice.treatOffsets("10 (t3)");
+  expect(offset).toBe("10 t3");
+});
+
+test("check assembler compiler instructions", () => {
+  let simservice = SimulatorService.getInstance();
+  let add = simservice.assemble("add t0 t1 t2");
+  expect(add).toContain("0x012a4020");
+
+  let addi = simservice.assemble("addi t0 t1 16");
+  expect(addi).toContain("0x21280010");
+
+  let addiu = simservice.assemble("addiu t0 t1 16");
+  expect(addiu).toContain("0x25280010");
+
+  let addu = simservice.assemble("addu t0 t1 t2");
+  expect(addu).toContain("0x012a4021");
+
+  let and = simservice.assemble("and t0 t1 t2");
+  expect(and).toContain("0x012a4024");
+
+  let andi = simservice.assemble("andi t0 t1 16");
+  expect(andi).toContain("0x31280010");
+
+  let beq = simservice.assemble("beq t0 t1 16");
+  expect(beq).toContain("0x11090010");
+
+  let bne = simservice.assemble("bne zero v1 255");
+  expect(bne).toContain("0x140300ff");
+
+  let lui = simservice.assemble("lui t0 16");
+  expect(lui).toContain("0x3c080010");
+
+  let lw = simservice.assemble("lw t0 16(t1)");
+  expect(lw).toContain("0x8d280010");
+
+  let nor = simservice.assemble("nor t5 t4 t3");
+  expect(nor).toContain("0x018b6827");
+
+  let or = simservice.assemble("or t5 t4 t3");
+  expect(or).toContain("0x018b6825");
+
+  let ori = simservice.assemble("ori t5 t4 16");
+  expect(ori).toContain("0x358d0010");
+});
