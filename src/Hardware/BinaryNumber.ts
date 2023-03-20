@@ -75,32 +75,32 @@ export default class BinaryNumber {
   }
 
   public sub(b: BinaryNumber): BinaryNumber {
-    let result = new BinaryNumber();
-    result.value = this.value - b.value;
-    return result;
+    this._value -= b.value;
+    return this;
   }
 
   public add(b: BinaryNumber): BinaryNumber {
-    let result = new BinaryNumber();
-    result.value = this.value + b.value;
-    return result;
+    this._value += b.value;
+    return this;
+  }
+
+  public addNumber(b: number): BinaryNumber {
+    this._value += b;
+    return this;
   }
 
   public and(b: BinaryNumber): BinaryNumber {
-    let result = new BinaryNumber();
-    result.value = this.value & b.value;
-    return result;
+    this._value = this._value & b.value;
+    return this;
   }
 
   public or(b: BinaryNumber): BinaryNumber {
-    let result = new BinaryNumber();
-    result.value = this.value | b.value;
-    return result;
+    this._value = this.value | b.value;
+    return this;
   }
 
   public xor(b: BinaryNumber): BinaryNumber {
-    let result = new BinaryNumber();
-    result.value = this.value ^ b.value;
-    return result;
+    this._value = this.value ^ b.value;
+    return this;
   }
 }
