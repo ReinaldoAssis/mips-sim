@@ -80,6 +80,7 @@ export default class SimulatorService {
     let lines = code.split("\n");
 
     let machineCode = "";
+    let PC: BinaryNumber = new BinaryNumber("0x00400000"); //TODO: verify this value (PC starts at 0x00400000)?
 
     for (let i = 0; i < lines.length; i++) {
       let tokens = lines[i].split(" ");
@@ -478,6 +479,7 @@ export default class SimulatorService {
           break;
       }
 
+      PC.addNumber(4); //increment PC by 4 TODO: check if this is correct
       machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
     }
 
