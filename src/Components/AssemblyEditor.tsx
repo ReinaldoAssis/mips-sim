@@ -113,7 +113,7 @@ function AssemblyEditor(props: {
       defaultLanguage="mips"
       theme="vs-dark"
       defaultValue={
-        "# MIPS UFAL Assembly Sim. by Reinaldo Assis \n# Project supervisor: prof. Bruno Costa\n\n" +
+        "# MIPS Assembly Sim. by Reinaldo Assis \n# Project supervisor: prof. Bruno Costa\n\n" +
         defaultcode
       }
       options={{
