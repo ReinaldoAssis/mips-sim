@@ -71,8 +71,12 @@ export default class SimulatorService {
     //stringify the code, remove comments, remove new lines, split by spaces
     //let tokens = this.tokenfyCode(code);
 
-    code = this.cleanComments(code).replaceAll(",", " ");
+    code = this.cleanComments(code)
+      .replaceAll("\t", "")
+      .replaceAll("    ", "")
+      .replaceAll(",", " ");
     code = this.treatOffsets(code);
+    console.log(JSON.stringify(code));
     let lines = code.split("\n");
 
     let machineCode = "";
