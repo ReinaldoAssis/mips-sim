@@ -92,4 +92,58 @@ test("check assembler compiler instructions", () => {
 
   let jr = simservice.assemble("jr t0");
   expect(jr).toContain("0x01000008");
+
+  let sll = simservice.assemble("sll t0 t1 16");
+  expect(sll).toContain("0x00094400");
+
+  let sllv = simservice.assemble("sllv t0 t1 t2");
+  expect(sllv).toContain("0x01494004");
+
+  let sra = simservice.assemble("sra t0 t1 16");
+  expect(sra).toContain("0x00094403");
+
+  let srav = simservice.assemble("srav t0 t1 t2");
+  expect(srav).toContain("0x01494007");
+
+  let srl = simservice.assemble("srl t0 t1 16");
+  expect(srl).toContain("0x00094402");
+
+  let srlv = simservice.assemble("srlv t0 t1 t2");
+  expect(srlv).toContain("0x01494006");
+
+  let div = simservice.assemble("div t0 t1");
+  expect(div).toContain("0x0109001a");
+
+  let divu = simservice.assemble("divu t0 t1");
+  expect(divu).toContain("0x0109001b");
+
+  let mult = simservice.assemble("mult t0 t1");
+  expect(mult).toContain("0x01090018");
+
+  let multu = simservice.assemble("multu t0 t1");
+  expect(multu).toContain("0x01090019");
+
+  let mfhi = simservice.assemble("mfhi t0");
+  expect(mfhi).toContain("0x00004010");
+
+  let mflo = simservice.assemble("mflo t0");
+  expect(mflo).toContain("0x00004012");
+
+  let mthi = simservice.assemble("mthi t0");
+  expect(mthi).toContain("0x01000011");
+
+  let mtlo = simservice.assemble("mtlo t0");
+  expect(mtlo).toContain("0x01000013");
+
+  let bgtz = simservice.assemble("bgtz t0 16");
+  expect(bgtz).toContain("0x1D000010");
+
+  let blez = simservice.assemble("blez t0 16");
+  expect(blez).toContain("0x19000010");
+
+  let bltzal = simservice.assemble("bltzal t0 16");
+  expect(bltzal).toContain("0x05100010");
+
+  let bgezal = simservice.assemble("bgezal t0");
+  expect(bgezal).toContain("0x05110010");
 });
