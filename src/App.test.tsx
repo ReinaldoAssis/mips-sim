@@ -9,15 +9,29 @@ import SimulatorService from "./Service/SimulatorService";
 //   const linkElement = screen.getByText(/learn chakra/i)
 //   expect(linkElement).toBeInTheDocument()
 // })
+let simservice = SimulatorService.getInstance();
 
 test("treat offset", () => {
-  let simservice = SimulatorService.getInstance();
   let offset = simservice.treatOffsets("10 (t3)");
   expect(offset).toBe("10 t3");
 });
 
+test("treat labels", () => {
+  let sample_code = `
+  main:
+  addi t0 zero 1
+  addi t1 zero 10
+  sub t2 t1 t0
+  j loop
+
+loop:
+    `;
+
+  let treated = simservice.treatLabels(sample_code);
+  expect(treated).toContain("j 10000000000000000010000");
+});
+
 test("check assembler compiler instructions", () => {
-  let simservice = SimulatorService.getInstance();
   let add = simservice.assemble("add t0 t1 t2");
   expect(add).toContain("0x012a4020");
 

@@ -6,6 +6,48 @@ export default class SimulatorService {
   public assemblyCode: string = "";
   private log: Logger = Logger.instance;
 
+  // an array containing all the instructions names
+  private instruction_set = [
+    "add",
+    "addi",
+    "addiu",
+    "addu",
+    "and",
+    "andi",
+    "beq",
+    "bne",
+    "lui",
+    "lw",
+    "nor",
+    "or",
+    "ori",
+    "slt",
+    "slti",
+    "sltiu",
+    "sltu",
+    "sw",
+    "sub",
+    "subu",
+    "xor",
+    "xori",
+    "j",
+    "jal",
+    "jr",
+    "sll",
+    "sllv",
+    "sra",
+    "srav",
+    "srl",
+    "srlv",
+    "div",
+    "divu",
+    "mult",
+    "multu",
+    "mfhi",
+    "mflo",
+    "mthi",
+  ];
+
   private static instance: SimulatorService;
   private constructor() {
     // ...
@@ -22,7 +64,7 @@ export default class SimulatorService {
 
   // clear all comments from the code
   // @param {string} code - The code to be cleaned
-  public cleanComments(code: string): string {
+  public clearComments(code: string): string {
     let lines = code.split("\n");
     let cleanCode = "";
     for (let i = 0; i < lines.length; i++) {
@@ -33,6 +75,14 @@ export default class SimulatorService {
       cleanCode += line + "\n";
     }
     return cleanCode;
+  }
+
+  // clear all special characters from the code
+  public clearSpecialChars(code: string): string {
+    return code
+      .replaceAll("\t", "")
+      .replaceAll("    ", "")
+      .replaceAll(",", " ");
   }
 
   // treat the offsets in the code, like "4 (label)"
@@ -60,16 +110,77 @@ export default class SimulatorService {
     return code;
   }
 
+  public treatLabels(code: string): string {
+    // regex to find labels such as "label:"
+    let labels = code.match(/^\w+:/gm);
+
+    // until here, ok
+
+    if (!labels) return code; // if there are no labels, return the code
+
+    type Label = {
+      name: string;
+      address: string;
+    };
+
+    let addrlabels: Array<Label> = new Array<Label>();
+
+    labels.forEach((x) => {
+      //separate the value from the label
+      addrlabels.push({ name: x.toString().replace(":", ""), address: "-1" });
+    });
+
+    code = this.clearComments(code);
+    code = this.clearSpecialChars(code);
+
+    let lines = code.split("\n");
+    let PC: BinaryNumber = new BinaryNumber("0x00400000"); //TODO: verify this value (PC starts at 0x00400000)?
+    for (let i = 0; i < lines.length; i++) {
+      let tokens = lines[i].split(" ");
+
+      // if the line is empty, skip it
+      if (tokens[0] === "") continue;
+
+      // if it's an instruction, add 4 to the PC
+      if (this.instruction_set.includes(tokens[0].toLowerCase())) {
+        console.log(`Token ${tokens[0]} Line ${i} PC ${PC.value}`);
+        PC.addNumber(4);
+      }
+      // if it's a label, save the PC value
+      else {
+        let islabel = addrlabels.find(
+          (x) => x.name === tokens[0].replace(":", "")
+        );
+        console.log(
+          `Token ${tokens[0]} Line ${i} PC ${PC.value} Label ${islabel?.name}`
+        );
+        if (islabel !== undefined) {
+          islabel.address = PC.getBinaryValue(26); //sets the address of the label with a padding of 26 bits
+        }
+      }
+    }
+
+    //removes the labels definitions from the code (such as "label:")
+    labels.forEach((x) => (code = code.replaceAll(x.toString(), "")));
+    //replaces the labels with the address
+    addrlabels.forEach((x) => (code = code.replaceAll(x.name, x.address)));
+
+    return code;
+  }
+
   // assemble the code to machine code
   // @param {string} code - The code to be assembled
   // @returns {string} The machine code
   public assemble(code: string): string {
     // treats the code to be assembled
-    code = this.cleanComments(code)
-      .replaceAll("\t", "")
-      .replaceAll("    ", "")
-      .replaceAll(",", " ");
+    code = this.clearComments(code);
+    code = this.clearSpecialChars(code);
     code = this.treatOffsets(code);
+
+    code = this.treatLabels(code);
+
+    console.log(code);
+    console.log("========");
     console.log(JSON.stringify(code));
 
     // split the code into lines
@@ -226,7 +337,8 @@ export default class SimulatorService {
               ErrorType.ASSEMBLER
             );
 
-          instruction += new BinaryNumber(tokens[1]).getBinaryValue(26); //immediate value in binary
+          //instruction += new BinaryNumber(tokens[1]).getBinaryValue(26); //immediate value in binary
+          instruction += tokens[1]; // the value tokens[1] is the label already in binary
 
           break;
 
