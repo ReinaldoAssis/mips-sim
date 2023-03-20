@@ -11,13 +11,17 @@ export default class SimulatorService {
     // ...
   }
 
+  // Singleton pattern to avoid multiple instances of the service
+  // @returns {SimulatorService} The instance of the service
   public static getInstance(): SimulatorService {
     if (!SimulatorService.instance) {
       SimulatorService.instance = new SimulatorService();
     }
     return SimulatorService.instance;
   }
+
   // clear all comments from the code
+  // @param {string} code - The code to be cleaned
   public cleanComments(code: string): string {
     let lines = code.split("\n");
     let cleanCode = "";
@@ -31,62 +35,62 @@ export default class SimulatorService {
     return cleanCode;
   }
 
+  // treat the offsets in the code, like "4 (label)"
+  // @param {string} code - The code to be treated
   public treatOffsets(code: string): string {
+    // regex to find offsets such as "4 (label)" and "4(label)"
     let offsets = Array.from(code.matchAll(/\d+\s?\([a-z]+\d*\)/g))[0];
 
-    if (!offsets) return code;
+    if (!offsets) return code; // if there are no offsets, return the code
 
     offsets.forEach((x) => {
+      // treat the offset to separate the value from the label
       let offset = x.toString().replaceAll(" ", "");
       let value = offset.substring(0, offset.indexOf("("));
       let label = offset.substring(
         offset.indexOf("(") + 1,
         offset.indexOf(")")
       );
-      console.log(`offset: ${x.toString()}, value: ${value}, label: ${label}`);
+
+      // replace the offset with the value and the label
+      // this is what instructions expect to find
       code = code.replaceAll(x.toString(), value + " " + label);
     });
 
-    console.log(offsets);
     return code;
   }
 
-  public tokenfyCode(code: string): Array<string> {
-    let tokens = new Array<string>();
-    code = this.cleanComments(code).replaceAll(",", " ");
-    let lines = code.split("\n");
-
-    for (let i = 0; i < lines.length; i++) {
-      let linetokens = lines[i].replace(/\r?\n|\r/g, "").split(" ");
-      linetokens.find((x) =>
-        x === "" ? linetokens.splice(linetokens.indexOf(x), 1) : x
-      );
-      tokens.push(...linetokens);
-    }
-
-    return tokens;
-  }
-
+  // assemble the code to machine code
+  // @param {string} code - The code to be assembled
+  // @returns {string} The machine code
   public assemble(code: string): string {
-    //stringify the code, remove comments, remove new lines, split by spaces
-    //let tokens = this.tokenfyCode(code);
-
+    // treats the code to be assembled
     code = this.cleanComments(code)
       .replaceAll("\t", "")
       .replaceAll("    ", "")
       .replaceAll(",", " ");
     code = this.treatOffsets(code);
     console.log(JSON.stringify(code));
+
+    // split the code into lines
     let lines = code.split("\n");
 
+    // final machine code
     let machineCode = "";
-    let PC: BinaryNumber = new BinaryNumber("0x00400000"); //TODO: verify this value (PC starts at 0x00400000)?
+    //let PC: BinaryNumber = new BinaryNumber("0x00400000"); //TODO: verify this value (PC starts at 0x00400000)?
 
+    // one line is converted at a time
     for (let i = 0; i < lines.length; i++) {
+      // split the line into tokens (arguments)
       let tokens = lines[i].split(" ");
+
+      // result of the assembly of the line
       let instruction: string = "";
+
+      // if the line is empty, skip it
       if (tokens[0] === "") continue;
 
+      // all instructions are dealt with here
       switch (tokens[0].toLowerCase()) {
         case "add":
           if (tokens.length < 4)
@@ -95,7 +99,7 @@ export default class SimulatorService {
               ErrorType.ASSEMBLER
             );
 
-          instruction = "000000";
+          instruction = "000000"; //opcode
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[3]); //source register rt
           instruction += this.assembleRegister(tokens[1]); //destination register rd
@@ -479,14 +483,18 @@ export default class SimulatorService {
           break;
       }
 
-      PC.addNumber(4); //increment PC by 4 TODO: check if this is correct
+      //PC.addNumber(4); //increment PC by 4 TODO: check if this is correct
       machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
     }
 
     return machineCode;
   }
 
+  //assembles a register into a 5-bit binary string
+  //@param {register} - the register to assemble
+  //@returns {string} - the 5-bit binary string
   private assembleRegister(register: string): string {
+    //check if register is a number, if so, return the binary value, otherwise, return the register value
     if (register.includes("$") === false) {
       switch (register.toLowerCase()) {
         case "zero":
