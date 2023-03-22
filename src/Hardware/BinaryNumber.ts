@@ -89,6 +89,11 @@ export default class BinaryNumber {
     return this;
   }
 
+  public subNumber(b: number): BinaryNumber {
+    this._value -= b;
+    return this;
+  }
+
   public and(b: BinaryNumber): BinaryNumber {
     this._value = this._value & b.value;
     return this;

@@ -114,17 +114,18 @@ export default class SimulatorService {
     // regex to find labels such as "label:"
     let labels = code.match(/^\w+:/gm);
 
-    // until here, ok
-
     if (!labels) return code; // if there are no labels, return the code
 
+    // Label type
     type Label = {
       name: string;
       address: string;
     };
 
+    // array to store the labels and their addresses
     let addrlabels: Array<Label> = new Array<Label>();
 
+    // add all existing labels to the array with an initial addr of -1
     labels.forEach((x) => {
       //separate the value from the label
       addrlabels.push({ name: x.toString().replace(":", ""), address: "-1" });
@@ -135,6 +136,8 @@ export default class SimulatorService {
 
     let lines = code.split("\n");
     let PC: BinaryNumber = new BinaryNumber("0x00400000"); //TODO: verify this value (PC starts at 0x00400000)?
+
+    // for each line, check if it's an instruction or a label
     for (let i = 0; i < lines.length; i++) {
       let tokens = lines[i].split(" ");
 
@@ -143,7 +146,6 @@ export default class SimulatorService {
 
       // if it's an instruction, add 4 to the PC
       if (this.instruction_set.includes(tokens[0].toLowerCase())) {
-        console.log(`Token ${tokens[0]} Line ${i} PC ${PC.value}`);
         PC.addNumber(4);
       }
       // if it's a label, save the PC value
@@ -151,9 +153,7 @@ export default class SimulatorService {
         let islabel = addrlabels.find(
           (x) => x.name === tokens[0].replace(":", "")
         );
-        console.log(
-          `Token ${tokens[0]} Line ${i} PC ${PC.value} Label ${islabel?.name}`
-        );
+
         if (islabel !== undefined) {
           islabel.address = PC.getBinaryValue(26); //sets the address of the label with a padding of 26 bits
         }
@@ -162,7 +162,7 @@ export default class SimulatorService {
 
     //removes the labels definitions from the code (such as "label:")
     labels.forEach((x) => (code = code.replaceAll(x.toString(), "")));
-    //replaces the labels with the address
+    //replaces the labels with their addresses
     addrlabels.forEach((x) => (code = code.replaceAll(x.name, x.address)));
 
     return code;
@@ -182,13 +182,14 @@ export default class SimulatorService {
     console.log(code);
     console.log("========");
     console.log(JSON.stringify(code));
+    console.log("========");
 
     // split the code into lines
     let lines = code.split("\n");
 
     // final machine code
     let machineCode = "";
-    //let PC: BinaryNumber = new BinaryNumber("0x00400000"); //TODO: verify this value (PC starts at 0x00400000)?
+    let PC: BinaryNumber = new BinaryNumber("0x00400000"); //TODO: verify this value (PC starts at 0x00400000)?
 
     // one line is converted at a time
     for (let i = 0; i < lines.length; i++) {
@@ -200,6 +201,8 @@ export default class SimulatorService {
 
       // if the line is empty, skip it
       if (tokens[0] === "") continue;
+
+      console.log(`PC = ${PC.toHex()}`);
 
       // all instructions are dealt with here
       switch (tokens[0].toLowerCase()) {
@@ -309,7 +312,14 @@ export default class SimulatorService {
 
           instruction += this.assembleRegister(tokens[1]); //source register rs
           instruction += this.assembleRegister(tokens[2]); //source register rt
-          instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+
+          //calculate the offset
+          //the treatlabels function already converted the label to its address
+          //so we just need to calculate the offset
+          let offset = new BinaryNumber("0b" + tokens[3]); //the label is already in binary
+
+          offset = offset.subNumber(PC.value + 4);
+          instruction += offset.getBinaryValue(16);
 
           break;
 
@@ -595,7 +605,7 @@ export default class SimulatorService {
           break;
       }
 
-      //PC.addNumber(4); //increment PC by 4 TODO: check if this is correct
+      PC.addNumber(4); //increment PC by 4 TODO: check if this is correct
       machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
     }
 
@@ -662,7 +672,10 @@ export default class SimulatorService {
     let reg = register.replace("$", "");
     let regNumber = Number.parseInt(reg);
     if (regNumber < 0 || regNumber > 31) {
-      throw new Error(`[Assembler] Invalid register number!`);
+      this.log.error(
+        `[Assembler] Invalid register number!`,
+        ErrorType.ASSEMBLER
+      );
     }
     return regNumber.toString(2).padStart(5, "0");
   }
