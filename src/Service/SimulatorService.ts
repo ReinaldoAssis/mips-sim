@@ -79,10 +79,12 @@ export default class SimulatorService {
 
   // clear all special characters from the code
   public clearSpecialChars(code: string): string {
-    return code
+    let temp = code
       .replaceAll("\t", "")
       .replaceAll("    ", "")
       .replaceAll(",", " ");
+
+    return temp.replaceAll("  ", " ");
   }
 
   // treat the offsets in the code, like "4 (label)"
