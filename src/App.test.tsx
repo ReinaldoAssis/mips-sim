@@ -32,6 +32,7 @@ loop:
 });
 
 test("check assembler compiler instructions", () => {
+  simservice.register_prefix = "";
   let add = simservice.assemble("add t0 t1 t2");
   expect(add).toContain("0x012a4020");
 

@@ -12,8 +12,16 @@ export default class Logger {
   public error(message: string, errortype: ErrorType): void {
     this._log += `${message}`;
   }
+
+  public info(message: string, infotype: InfoType): void {
+    this._log += `INFO: ${message}`;
+  }
 }
 
 export enum ErrorType {
+  ASSEMBLER,
+}
+
+export enum InfoType {
   ASSEMBLER,
 }

@@ -104,7 +104,7 @@ function AssemblyEditor(props: {
     monaco.editor.setTheme("mipsdark");
   }
 
-  const defaultcode = `main:\n\taddi t0 zero 1\n\taddi t1 zero 10\n\tsub t2 t1 t0\n\tj loop\n\nloop:`;
+  const defaultcode = `main:\n\taddi $t0 $zero 1\n\taddi $t1 $zero 10\n\tsub $t2 $t1 $t0\n\tbeq $t2 $t1 loop\n\nloop:`;
 
   return (
     <Editor

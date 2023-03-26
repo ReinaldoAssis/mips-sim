@@ -1,10 +1,17 @@
 import BinaryNumber from "../Hardware/BinaryNumber";
-import Logger, { ErrorType } from "./Logger";
+import Logger, { ErrorType, InfoType } from "./Logger";
+
+// Label type
+type Label = {
+  name: string;
+  address: string;
+};
 
 export default class SimulatorService {
   public editorValue: string = "";
   public assemblyCode: string = "";
   private log: Logger = Logger.instance;
+  private found_labels = new Array<Label>(); // map containing all the labels and their addresses
 
   // an array containing all the instructions names
   private instruction_set = [
@@ -47,6 +54,8 @@ export default class SimulatorService {
     "mflo",
     "mthi",
   ];
+
+  public register_prefix = "$";
 
   private static instance: SimulatorService;
   private constructor() {
@@ -118,12 +127,6 @@ export default class SimulatorService {
 
     if (!labels) return code; // if there are no labels, return the code
 
-    // Label type
-    type Label = {
-      name: string;
-      address: string;
-    };
-
     // array to store the labels and their addresses
     let addrlabels: Array<Label> = new Array<Label>();
 
@@ -167,6 +170,8 @@ export default class SimulatorService {
     //replaces the labels with their addresses
     addrlabels.forEach((x) => (code = code.replaceAll(x.name, x.address)));
 
+    this.found_labels = addrlabels;
+
     return code;
   }
 
@@ -204,7 +209,7 @@ export default class SimulatorService {
       // if the line is empty, skip it
       if (tokens[0] === "") continue;
 
-      console.log(`PC = ${PC.toHex()}`);
+      //console.log(`PC = ${PC.toHex()}`);
 
       // all instructions are dealt with here
       switch (tokens[0].toLowerCase()) {
@@ -318,10 +323,22 @@ export default class SimulatorService {
           //calculate the offset
           //the treatlabels function already converted the label to its address
           //so we just need to calculate the offset
-          let offset = new BinaryNumber("0b" + tokens[3]); //the label is already in binary
 
-          offset = offset.subNumber(PC.value + 4);
-          instruction += offset.getBinaryValue(16);
+          //but first we need to make some checks
+          //check if its number or label, only hex are allowed as numbers
+
+          if (!tokens[3].toLowerCase().includes("0x")) {
+            let offset = new BinaryNumber("0b" + tokens[3]); //the label is already in binary
+
+            offset = offset.subNumber(PC.value + 4);
+            instruction += offset.getBinaryValue(16);
+          } else {
+            //if it's not a label, parse it as a number
+            //the number is treated as already the offset, so the calculation is not necessary
+            let offset = new BinaryNumber(tokens[3]);
+
+            instruction += offset.getBinaryValue(16);
+          }
 
           break;
 
@@ -609,6 +626,11 @@ export default class SimulatorService {
 
       PC.addNumber(4); //increment PC by 4 TODO: check if this is correct
       machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
+      console.log(
+        `[Assembler] Assembled instruction ${instruction} to ${new BinaryNumber(
+          "0b" + instruction
+        ).toHex(8)}!`
+      );
     }
 
     return machineCode;
@@ -619,57 +641,58 @@ export default class SimulatorService {
   //@returns {string} - the 5-bit binary string
   private assembleRegister(register: string): string {
     //check if register is a number, if so, return the binary value, otherwise, return the register value
-    if (register.includes("$") === false) {
-      switch (register.toLowerCase()) {
-        case "zero":
-          return "00000";
+    // if (register.includes("$") === false) {
+    let p = this.register_prefix;
+    switch (register.toLowerCase()) {
+      case p + "zero":
+        return "00000";
 
-        case "at":
-          return "00001";
+      case p + "at":
+        return "00001";
 
-        case "v0":
-          return "00010";
+      case p + "v0":
+        return "00010";
 
-        case "v1":
-          return "00011";
+      case p + "v1":
+        return "00011";
 
-        case "a0":
-          return "00100";
+      case p + "a0":
+        return "00100";
 
-        case "a1":
-          return "00101";
+      case p + "a1":
+        return "00101";
 
-        case "a2":
-          return "00110";
+      case p + "a2":
+        return "00110";
 
-        case "a3":
-          return "00111";
+      case p + "a3":
+        return "00111";
 
-        case "t0":
-          return "01000";
+      case p + "t0":
+        return "01000";
 
-        case "t1":
-          return "01001";
+      case p + "t1":
+        return "01001";
 
-        case "t2":
-          return "01010";
+      case p + "t2":
+        return "01010";
 
-        case "t3":
-          return "01011";
+      case p + "t3":
+        return "01011";
 
-        case "t4":
-          return "01100";
+      case p + "t4":
+        return "01100";
 
-        case "t5":
-          return "01101";
+      case p + "t5":
+        return "01101";
 
-        case "t6":
-          return "01110";
+      case p + "t6":
+        return "01110";
 
-        case "t7":
-          return "01111";
-      }
+      case p + "t7":
+        return "01111";
     }
+    // }
 
     let reg = register.replace("$", "");
     let regNumber = Number.parseInt(reg);
@@ -680,5 +703,14 @@ export default class SimulatorService {
       );
     }
     return regNumber.toString(2).padStart(5, "0");
+  }
+
+  public instruction_to_binary(str: string): string {
+    let b = "";
+    let strarr = str.split(" ");
+    for (let i = 0; i < strarr.length; i++)
+      b += BinaryNumber.parse(strarr[i]).getBinaryValue();
+
+    return b;
   }
 }
