@@ -18,6 +18,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import SimulatorService from "../Service/SimulatorService";
+import HardwareView from "./HardwareView";
 
 const HiPlayIcon = () => <Icon as={HiPlay} />;
 
@@ -72,6 +73,10 @@ export default function SimulatorView() {
             style={{ height: "80vh" }}
             value={simservice.assemblyCode}
           />
+        </TabPanel>
+
+        <TabPanel>
+          <HardwareView />
         </TabPanel>
       </TabPanels>
     </Tabs>
