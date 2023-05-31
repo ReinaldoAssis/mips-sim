@@ -15,6 +15,7 @@ import {
   TabPanels,
   TabPanel,
   Textarea,
+  useToast,
 } from "@chakra-ui/react";
 import SimulatorService from "../Service/SimulatorService";
 
@@ -27,6 +28,8 @@ export default function SimulatorView() {
   const [assemblyCode, setAssemblyCode] = React.useState<string>("");
 
   const simservice: SimulatorService = SimulatorService.getInstance();
+
+  const toast = useToast();
 
   React.useEffect(() => {
     setAssemblyCode(simservice.assemblyCode);
@@ -41,6 +44,14 @@ export default function SimulatorView() {
     simservice.assemblyCode = simservice.assemble(code);
     setAssemblyCode(simservice.assemblyCode);
     console.log(simservice.assemblyCode);
+
+    toast({
+      title: "Code assembled",
+      description: "Your code has been assembled",
+      status: "success",
+      duration: 4000,
+      isClosable: true,
+    });
   }
 
   return (
