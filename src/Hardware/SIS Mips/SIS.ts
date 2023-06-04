@@ -23,6 +23,7 @@ export default class SISMIPS implements processor {
   public memory: Array<addr> = new Array<addr>(); //memory
   public pc: BinaryNumber = new BinaryNumber(); //program counter
   public regbank: Array<BinaryNumber> = []; //register bank
+  public initializedRegs: Array<boolean> = []; //initialized registers
 
   public log: Logger = Logger.instance;
 
@@ -31,14 +32,34 @@ export default class SISMIPS implements processor {
   public constructor() {
     this.frequency = 1;
     for (let i = 0; i < 10; i++) {
-      if (i == 0) this.regbank.push(new BinaryNumber("0"));
-      else
+      if (i == 0) {
+        this.regbank.push(new BinaryNumber("0"));
+        this.initializedRegs.push(true);
+      } else {
         this.regbank.push(
           new BinaryNumber((Math.random() * 100000).toString())
         );
+        this.initializedRegs.push(false);
+      }
     }
 
     this.pc = new BinaryNumber(this.PCStart.toString());
+  }
+
+  public isRegisterInitialized(reg: string): boolean {
+    return this.initializedRegs[this.mapRegister(reg)];
+  }
+
+  public warnRegisterNotInitialized(regs: string[]): void {
+    regs.map((reg) => {
+      if (!this.isRegisterInitialized(reg)) {
+        this.log.warning(
+          "Acessing register not initialized.",
+          ErrorType.SIMULATOR
+        );
+        this.initializedRegs[this.mapRegister(reg)] = true;
+      }
+    });
   }
 
   public executeStep(): number {
@@ -119,11 +140,9 @@ export default class SISMIPS implements processor {
         rs = instruction.getBinaryValue(32).slice(6, 11);
         rt = instruction.getBinaryValue(32).slice(11, 16);
 
-        // console.log("R-type instruction");
-        // console.log("funct: " + funct);
-        // console.log("rd: " + rd);
-        // console.log("rs: " + rs);
-        // console.log("rt: " + rt);
+        // Write to the debug log a warning if the register has not been initialized
+        // and set the register as initialized
+        this.warnRegisterNotInitialized([rs, rt]);
 
         switch (funct) {
           case "100000": //add
@@ -193,10 +212,7 @@ export default class SISMIPS implements processor {
         rt = instruction.getBinaryValue(32).slice(11, 16);
         imm = instruction.getBinaryValue(32).slice(16, 32);
 
-        // console.log("Addi instruction");
-        // console.log("rs: " + rs);
-        // console.log("rt: " + rt);
-        // console.log("imm: " + imm);
+        this.warnRegisterNotInitialized([rs]);
 
         a = this.regbank[this.mapRegister(rs)];
         b = BinaryNumber.parse("0b" + imm, true);
@@ -214,6 +230,8 @@ export default class SISMIPS implements processor {
         rt = instruction.getBinaryValue(32).slice(11, 16);
         imm = instruction.getBinaryValue(32).slice(16, 32); //offset
 
+        this.warnRegisterNotInitialized([rs, rt]);
+
         base = this.regbank[this.mapRegister(rs)];
         address = BinaryNumber.add(
           base.value,
@@ -226,12 +244,16 @@ export default class SISMIPS implements processor {
           `LW base: ${base.value} address: ${address.value} result: ${result.value}`
         );
 
+        this.regbank[this.mapRegister(rt)] = result;
+
         break;
 
       case "101011": //sw
         rs = instruction.getBinaryValue(32).slice(6, 11);
         rt = instruction.getBinaryValue(32).slice(11, 16);
         imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+
+        this.warnRegisterNotInitialized([rs, rt]);
 
         base = this.regbank[this.mapRegister(rs)];
         address = BinaryNumber.add(
@@ -250,6 +272,8 @@ export default class SISMIPS implements processor {
         rs = instruction.getBinaryValue(32).slice(6, 11);
         rt = instruction.getBinaryValue(32).slice(11, 16);
         imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+
+        this.warnRegisterNotInitialized([rs, rt]);
 
         a = this.regbank[this.mapRegister(rs)];
         b = this.regbank[this.mapRegister(rt)];
@@ -271,6 +295,8 @@ export default class SISMIPS implements processor {
         rs = instruction.getBinaryValue(32).slice(6, 11);
         rt = instruction.getBinaryValue(32).slice(11, 16);
         imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+
+        this.warnRegisterNotInitialized([rs, rt]);
 
         a = this.regbank[this.mapRegister(rs)];
         b = this.regbank[this.mapRegister(rt)];
