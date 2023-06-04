@@ -1,4 +1,5 @@
 import Logger, { ErrorType, InfoType } from "../../Service/Logger";
+import SharedData, { processor } from "../../Service/SharedData";
 import BinaryNumber from "../BinaryNumber";
 import { ALU, Clock } from "../Descriptor";
 
@@ -15,18 +16,20 @@ type addr = {
   value: BinaryNumber; //value of the address in binary
 };
 
-export default class SISMIPS {
-  public f: number = 0; //frequency
+export default class SISMIPS implements processor {
+  public share: SharedData = SharedData.instance;
+
+  public frequency: number = 0; //frequency
   public memory: Array<addr> = new Array<addr>(); //memory
   public pc: BinaryNumber = new BinaryNumber(); //program counter
   public regbank: Array<BinaryNumber> = []; //register bank
 
   public log: Logger = Logger.instance;
 
-  private PCStart: number = 0x00400000;
+  public PCStart: number = this.share.PcStart;
 
   public constructor() {
-    this.f = 1;
+    this.frequency = 1;
     for (let i = 0; i < 10; i++) {
       if (i == 0) this.regbank.push(new BinaryNumber("0"));
       else
@@ -36,6 +39,18 @@ export default class SISMIPS {
     }
 
     this.pc = new BinaryNumber(this.PCStart.toString());
+  }
+
+  public executeStep(): number {
+    let instruction: BinaryNumber =
+      this.fetch() ?? new BinaryNumber("0xfc000000");
+    if (instruction.toHex(8) == "0xfc000000") {
+      //call 0
+      console.log("call 0");
+      return -1;
+    }
+    this.executeCycle(instruction);
+    return 0;
   }
 
   public writeMemory(address: BinaryNumber, value: BinaryNumber): void {
@@ -78,20 +93,14 @@ export default class SISMIPS {
       } instruction: ${instruction?.getBinaryValue(32)}`
     );
     this.pc.addNumber(1);
+    this.share.currentPc = this.pc.value;
     return instruction ?? new BinaryNumber("0xfc000000"); //call 0 if the instruction is not found
   }
 
   public execute(): void {
     //while (true) {
     for (let i = 0; i < 1000; i++) {
-      let instruction: BinaryNumber =
-        this.fetch() ?? new BinaryNumber("0xfc000000");
-      if (instruction.toHex(8) == "0xfc000000") {
-        //call 0
-        console.log("call 0");
-        break;
-      }
-      this.executeCycle(instruction);
+      if (this.executeStep() == -1) break;
     }
   }
 
@@ -248,6 +257,8 @@ export default class SISMIPS {
         if (a.value == b.value)
           this.pc.add(BinaryNumber.parse("0b" + imm, true));
 
+        this.share.currentPc = this.pc.value;
+
         console.log(
           `BEQ: a: ${a.value} b: ${
             b.value
@@ -267,6 +278,8 @@ export default class SISMIPS {
         if (a.value != b.value)
           this.pc.add(BinaryNumber.parse("0b" + imm, true));
 
+        this.share.currentPc = this.pc.value;
+
         console.log(`BNE: a: ${a.value} b: ${b.value} offset: ${imm}`);
 
         break;
@@ -275,7 +288,7 @@ export default class SISMIPS {
         let call = instruction.getBinaryValue(32).slice(6, 32);
         let n = BinaryNumber.parse("0b" + call, true).value;
         if (n == 1) {
-          a = this.regbank[this.mapRegister("00010")];
+          a = this.regbank[this.mapRegister("00010")]; //v0
           this.log.info(`${a.value}`, InfoType.OUTPUT);
         }
         break;

@@ -5,6 +5,7 @@ import AssemblyEditor from "./AssemblyEditor";
 import { ArrowForwardIcon } from "@chakra-ui/icons";
 import { HiPlay } from "react-icons/hi";
 import { BsTerminalFill } from "react-icons/bs";
+import { RiRewindFill } from "react-icons/ri";
 import { MdDelete } from "react-icons/md";
 import * as React from "react";
 import {
@@ -25,6 +26,7 @@ import SimulatorService from "../Service/SimulatorService";
 import HardwareView from "./HardwareView";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
 import Logger from "../Service/Logger";
+import SharedData from "../Service/SharedData";
 
 const HiPlayIcon = () => <Icon as={HiPlay} />;
 const TerminalFill = () => <Icon as={BsTerminalFill} />;
@@ -36,12 +38,15 @@ export default function SimulatorView() {
   const [code, setCode] = React.useState<string>("");
   const [assemblyCode, setAssemblyCode] = React.useState<string>("");
 
-  const simservice: SimulatorService = SimulatorService.getInstance();
+  let simservice: SimulatorService = SimulatorService.getInstance();
 
   const toast = useToast();
 
+  let share: SharedData = SharedData.instance;
+
   React.useEffect(() => {
     setAssemblyCode(simservice.assemblyCode);
+    share.code = code;
   }, [simservice.assemblyCode]);
 
   function onEditorChange(value: string | undefined, event: any) {
@@ -52,7 +57,6 @@ export default function SimulatorView() {
     console.log("Running code");
     simservice.assemblyCode = simservice.assemble(code);
     setAssemblyCode(simservice.assemblyCode);
-    console.log("Assembly " + simservice.assemblyCode);
 
     toast({
       title: "Code assembled",
@@ -109,8 +113,10 @@ function EditorView(props: {
   runBtn: Function;
   onEditorChange: (value: string | undefined, event: any) => void;
 }) {
-  const [consoleOpen, setConsoleOpen] = React.useState<boolean>(true);
+  const [consoleOpen, setConsoleOpen] = React.useState<boolean>(false);
   const [consoleTxt, setConsoleTxt] = React.useState<string>("");
+  let share: SharedData = SharedData.instance;
+  let simservice: SimulatorService = SimulatorService.getInstance();
 
   React.useEffect(() => {
     Logger.instance.onLogChange(() => {
@@ -172,21 +178,50 @@ function EditorView(props: {
             rightIcon={<ArrowForwardIcon />}
             colorScheme="teal"
             variant="outline"
+            onClick={() => {
+              share.monacoEditor?.setPosition(
+                new share.monaco.Position(share.currentStepLine, 0)
+              );
+
+              if (share.currentProcessor) {
+                share.currentProcessor.executeStep();
+              } else {
+                share.currentProcessor = new SISMIPS();
+                const assembly = simservice.assemble(share.code);
+                share.currentProcessor.loadProgram(assembly.split(" "));
+                console.log(
+                  `Current assembly code: ${assembly} code: ${share.code}`
+                );
+                share.currentProcessor.executeStep();
+              }
+            }}
           >
             Step
           </Button>
         </Stack>
-        <Button
-          rightIcon={<TerminalFill />}
-          colorScheme="teal"
-          variant="outline"
-          onClick={() => {
-            setConsoleOpen(!consoleOpen);
-            console.log("Console open " + consoleOpen);
-          }}
-        >
-          Terminal
-        </Button>
+        <Stack direction="row" spacing={4}>
+          <Button
+            rightIcon={<TerminalFill />}
+            colorScheme="teal"
+            variant="outline"
+            onClick={() => {
+              setConsoleOpen(!consoleOpen);
+              console.log("Console open " + consoleOpen);
+            }}
+          >
+            Terminal
+          </Button>
+          <Button
+            rightIcon={<Icon as={RiRewindFill} />}
+            colorScheme="teal"
+            onClick={() => {
+              share.currentProcessor = null;
+              share.currentPc = share.PcStart;
+            }}
+          >
+            Reset
+          </Button>
+        </Stack>
       </Stack>
     </Stack>
   );

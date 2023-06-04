@@ -1,10 +1,15 @@
 import Editor from "@monaco-editor/react";
+import React from "react";
 import { useRef } from "react";
+import SharedData from "../Service/SharedData";
 
 function AssemblyEditor(props: {
   onEditorChange: (value: string | undefined, event: any) => void;
 }) {
   const monacoRef = useRef(null);
+
+  const share: SharedData = SharedData.instance;
+
   const keywords = [
     "add",
     "or",
@@ -102,6 +107,8 @@ function AssemblyEditor(props: {
     // here is another way to get monaco instance
     // you can also store it in `useRef` for further usage
     monacoRef.current = editor;
+    share.monacoEditor = editor;
+    share.monaco = monaco;
 
     monaco.editor.setTheme("mipsdark");
   }
