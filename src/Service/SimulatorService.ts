@@ -241,6 +241,11 @@ export default class SimulatorService {
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
           instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+          console.log(
+            `addi immediate value: ${
+              new BinaryNumber(tokens[3]).getBinaryValue(16).length
+            }`
+          );
 
           break;
 
@@ -622,6 +627,19 @@ export default class SimulatorService {
           instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
 
           break;
+
+        case "call":
+          instruction = "111111";
+
+          if (tokens.length < 2)
+            this.log.error(
+              `[Assembler] Invalid number of arguments for call instruction!`,
+              ErrorType.ASSEMBLER
+            );
+
+          instruction += new BinaryNumber(tokens[1]).getBinaryValue(26); //immediate value in binary
+
+          break;
       }
 
       PC.addNumber(4); //increment PC by 4 TODO: check if this is correct
@@ -691,6 +709,9 @@ export default class SimulatorService {
 
       case p + "t7":
         return "01111";
+
+      case p + "ra":
+        return "11111";
     }
     // }
 
