@@ -64,7 +64,9 @@ export default function SimulatorView() {
     cpu.loadProgram(instructions);
 
     cpu.memory.forEach((value, index) => {
-      console.log("CPU mem " + index + " " + value.getBinaryValue(32));
+      console.log(
+        "CPU mem " + value.address.value + " " + value.value.getBinaryValue(32)
+      );
     });
     cpu.execute();
   }

@@ -10,19 +10,26 @@ export default class Logger {
   }
 
   public error(message: string, errortype: ErrorType): void {
-    this._log += `${message}`;
+    this._log += `${message} [${errortype}]`;
+  }
+
+  public warning(message: string, errortype: ErrorType): void {
+    this._log += `WARNING: ${message} [${errortype}]`;
+    console.log(`WARNING: ${message}`);
   }
 
   public info(message: string, infotype: InfoType): void {
-    this._log += `INFO: ${message}`;
+    this._log += `INFO: ${message} [${infotype}]`;
     console.log(`INFO: ${message}`);
   }
 }
 
 export enum ErrorType {
   ASSEMBLER,
+  SIMULATOR,
 }
 
 export enum InfoType {
   ASSEMBLER,
+  SIMULATOR,
 }

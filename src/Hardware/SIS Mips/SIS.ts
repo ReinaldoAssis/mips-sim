@@ -1,4 +1,4 @@
-import Logger, { InfoType } from "../../Service/Logger";
+import Logger, { ErrorType, InfoType } from "../../Service/Logger";
 import BinaryNumber from "../BinaryNumber";
 import { ALU, Clock } from "../Descriptor";
 
@@ -10,31 +10,66 @@ import { ALU, Clock } from "../Descriptor";
 
 //registers: v0,v1, a0,a1, t0,t1,t2,t3, ra, pc, zero
 
+type addr = {
+  address: BinaryNumber;
+  value: BinaryNumber; //value of the address in binary
+};
+
 export default class SISMIPS {
   public f: number = 0; //frequency
-  public memory: Array<BinaryNumber> = new Array<BinaryNumber>(); //memory
+  public memory: Array<addr> = new Array<addr>(); //memory
   public pc: BinaryNumber = new BinaryNumber(); //program counter
   public regbank: Array<BinaryNumber> = []; //register bank
 
   public log: Logger = Logger.instance;
+
+  private PCStart: number = 0x00400000;
 
   public constructor() {
     this.f = 1;
     for (let i = 0; i < 10; i++) {
       this.regbank.push(new BinaryNumber());
     }
+
+    this.pc = new BinaryNumber(this.PCStart.toString());
+  }
+
+  public writeMemory(address: BinaryNumber, value: BinaryNumber): void {
+    let addr = this.memory.find((x) => x.address.value == address.value);
+    if (addr == undefined) {
+      this.memory.push({ address: address, value: value });
+      return;
+    }
+    this.memory[this.memory.indexOf(addr)].value = value;
+  }
+
+  public readMemory(address: BinaryNumber): BinaryNumber {
+    let addr = this.memory.find((x) => x.address.value == address.value);
+    if (addr == undefined) {
+      this.log.warning("Memory location not initialized", ErrorType.SIMULATOR);
+      return new BinaryNumber((Math.random() * 100000).toString());
+    }
+    return addr.value;
   }
 
   public loadProgram(program: Array<string>): void {
     program.map((inst, i) => {
-      if (inst != " " && inst != "") this.memory[i] = new BinaryNumber(inst);
+      if (inst != " " && inst != "") {
+        let instruction = new BinaryNumber("0x" + inst);
+        this.memory.push({
+          address: new BinaryNumber((this.PCStart + i).toString()),
+          value: instruction,
+        });
+      }
     });
   }
 
   public fetch(): BinaryNumber {
-    let instruction = this.memory[this.pc.value];
+    let instruction = this.memory.find(
+      (x) => x.address.value == this.pc.value
+    )?.value;
     this.pc.addNumber(1);
-    return instruction;
+    return instruction ?? new BinaryNumber("0xfc000000"); //call 0 if the instruction is not found
   }
 
   public execute(): void {
@@ -52,12 +87,12 @@ export default class SISMIPS {
   }
 
   public executeCycle(instruction: BinaryNumber): void {
-    // console.log("Executing instruction: " + instruction.getBinaryValue(32));
+    console.log("Executing instruction: " + instruction.getBinaryValue(32));
     let op = instruction.getBinaryValue(32).slice(0, 6);
     // console.log("op: " + op);
 
-    let rs, rt, rd, funct: string;
-    let a, b, result: BinaryNumber;
+    let rs, rt, rd, funct, imm: string;
+    let a, b, result, base, address: BinaryNumber;
 
     switch (op) {
       case "000000": //R-type
@@ -138,7 +173,7 @@ export default class SISMIPS {
       case "001000": //addi
         rs = instruction.getBinaryValue(32).slice(6, 11);
         rt = instruction.getBinaryValue(32).slice(11, 16);
-        let imm = instruction.getBinaryValue(32).slice(16, 32);
+        imm = instruction.getBinaryValue(32).slice(16, 32);
 
         // console.log("Addi instruction");
         // console.log("rs: " + rs);
@@ -159,6 +194,37 @@ export default class SISMIPS {
       case "100011": //lw
         rs = instruction.getBinaryValue(32).slice(6, 11);
         rt = instruction.getBinaryValue(32).slice(11, 16);
+        imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+
+        base = this.regbank[this.mapRegister(rs)];
+        address = BinaryNumber.add(
+          base.value,
+          BinaryNumber.parse("0b" + imm, true).value
+        );
+
+        result = this.readMemory(address);
+
+        console.log(
+          `LW: base: ${base.value} address: ${address.value} result: ${result.value}`
+        );
+
+        break;
+
+      case "101011": //sw
+        rs = instruction.getBinaryValue(32).slice(6, 11);
+        rt = instruction.getBinaryValue(32).slice(11, 16);
+        imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+
+        base = this.regbank[this.mapRegister(rs)];
+        address = BinaryNumber.add(
+          base.value,
+          BinaryNumber.parse("0b" + imm, true).value
+        );
+
+        result = this.regbank[this.mapRegister(rt)];
+        this.writeMemory(address, result);
+
+        console.log(`SW: address: ${address.value} result: ${result.value}`);
     }
   }
 
