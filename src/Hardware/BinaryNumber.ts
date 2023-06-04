@@ -34,10 +34,16 @@ export default class BinaryNumber {
   }
 
   public getBinaryValue(pad: number = this._length): string {
-    return this._value.toString(2).padStart(pad, "0");
+    let v = this._value < 0 ? this._value >>> 0 : this._value;
+
+    if (v.toString(2).length > pad) {
+      console.log("Number too large: " + v + " pad: " + pad);
+      return v.toString(2).slice(-pad);
+    }
+    return v.toString(2).padStart(pad, "0");
   }
 
-  public toHex(pad: number = this._length): string {
+  public toHex(pad: number = this._length / 4): string {
     let hex = this._value.toString(16);
     return "0x" + hex.padStart(pad, "0");
   }
@@ -60,18 +66,53 @@ export default class BinaryNumber {
     return this._value;
   }
 
-  public static parse(value: string): BinaryNumber {
+  public static parse(value: string, signed = false): BinaryNumber {
     let binary = new BinaryNumber();
     if (value.startsWith("0x")) {
       binary.value = Number.parseInt(value.substring(2), 16);
       return binary;
     } else if (value.startsWith("0b")) {
-      binary.value = Number.parseInt(value.substring(2), 2);
+      if (!signed) binary.value = Number.parseInt(value.substring(2), 2);
+      else {
+        let v = value.substring(2);
+        if (v[0] == "1") {
+          let flipped = "";
+          for (let i = 0; i < v.length; i++) {
+            flipped += v[i] == "1" ? "0" : "1";
+          }
+          binary.value = Number.parseInt(flipped, 2) + 1;
+          binary.value *= -1;
+        } else {
+          binary.value = Number.parseInt(v, 2);
+        }
+      }
+
       return binary;
     }
 
     binary.value = Number.parseInt(value);
+
     return binary;
+  }
+
+  public static add(a: number, b: number): BinaryNumber {
+    return new BinaryNumber((a + b).toString());
+  }
+
+  public static sub(a: number, b: number): BinaryNumber {
+    return new BinaryNumber((a - b).toString());
+  }
+
+  public static and(a: number, b: number): BinaryNumber {
+    return new BinaryNumber((a & b).toString());
+  }
+
+  public static or(a: number, b: number): BinaryNumber {
+    return new BinaryNumber((a | b).toString());
+  }
+
+  public static not(a: number): BinaryNumber {
+    return new BinaryNumber((~a).toString());
   }
 
   public sub(b: BinaryNumber): BinaryNumber {
