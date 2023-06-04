@@ -195,6 +195,36 @@ export default class SimulatorService {
     return code;
   }
 
+  private computeBrenchOffset(token: string, pc: BinaryNumber): string {
+    let instruction = "";
+    if (!token.toLowerCase().includes("0x")) {
+      let offset = new BinaryNumber("0b" + token); //the label is already in binary
+
+      // console.log(
+      //   `beq offset: ${offset.getBinaryValue(16)} decimal: ${
+      //     offset.value
+      //   }`
+      // );
+
+      offset = BinaryNumber.sub(offset.value, pc.value + 4);
+      offset.value = offset.value / 4;
+
+      console.log(
+        `beq offset: ${offset.getBinaryValue(16)} decimal: ${offset.value}`
+      );
+
+      instruction += offset.getBinaryValue(16);
+    } else {
+      //if it's not a label, parse it as a number
+      //the number is treated as already the offset, so the calculation is not necessary
+      let offset = new BinaryNumber(token);
+
+      instruction += offset.getBinaryValue(16);
+    }
+
+    return instruction;
+  }
+
   // assemble the code to machine code
   // @param {string} code - The code to be assembled
   // @returns {string} The machine code
@@ -353,32 +383,7 @@ export default class SimulatorService {
           //but first we need to make some checks
           //check if its number or label, only hex are allowed as numbers
 
-          if (!tokens[3].toLowerCase().includes("0x")) {
-            let offset = new BinaryNumber("0b" + tokens[3]); //the label is already in binary
-
-            console.log(
-              `beq offset: ${offset.getBinaryValue(16)} decimal: ${
-                offset.value
-              }`
-            );
-
-            offset = BinaryNumber.sub(offset.value, PC.value + 4);
-            offset.value = offset.value / 4;
-
-            console.log(
-              `beq offset: ${offset.getBinaryValue(16)} decimal: ${
-                offset.value
-              }`
-            );
-
-            instruction += offset.getBinaryValue(16);
-          } else {
-            //if it's not a label, parse it as a number
-            //the number is treated as already the offset, so the calculation is not necessary
-            let offset = new BinaryNumber(tokens[3]);
-
-            instruction += offset.getBinaryValue(16);
-          }
+          instruction += this.computeBrenchOffset(tokens[3], PC);
 
           break;
 
@@ -393,7 +398,8 @@ export default class SimulatorService {
 
           instruction += this.assembleRegister(tokens[1]); //source register rs
           instruction += this.assembleRegister(tokens[2]); //source register rt
-          instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+
+          instruction += this.computeBrenchOffset(tokens[3], PC);
 
           break;
 
