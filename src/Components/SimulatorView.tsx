@@ -19,6 +19,8 @@ import {
 } from "@chakra-ui/react";
 import SimulatorService from "../Service/SimulatorService";
 import HardwareView from "./HardwareView";
+import SISMIPS from "../Hardware/SIS Mips/SIS";
+import BinaryNumber from "../Hardware/BinaryNumber";
 
 const HiPlayIcon = () => <Icon as={HiPlay} />;
 
@@ -44,7 +46,7 @@ export default function SimulatorView() {
     console.log("Running code");
     simservice.assemblyCode = simservice.assemble(code);
     setAssemblyCode(simservice.assemblyCode);
-    console.log(simservice.assemblyCode);
+    console.log("Assembly " + simservice.assemblyCode);
 
     toast({
       title: "Code assembled",
@@ -53,6 +55,18 @@ export default function SimulatorView() {
       duration: 4000,
       isClosable: true,
     });
+
+    let instructions = simservice.assemblyCode.split(" ");
+    console.log(instructions);
+    //temporary
+
+    let cpu = new SISMIPS();
+    cpu.loadProgram(instructions);
+
+    cpu.memory.forEach((value, index) => {
+      console.log("CPU mem " + index + " " + value.getBinaryValue(32));
+    });
+    cpu.execute();
   }
 
   return (
