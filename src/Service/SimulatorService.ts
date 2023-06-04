@@ -356,7 +356,21 @@ export default class SimulatorService {
           if (!tokens[3].toLowerCase().includes("0x")) {
             let offset = new BinaryNumber("0b" + tokens[3]); //the label is already in binary
 
-            offset = offset.subNumber(PC.value + 4);
+            console.log(
+              `beq offset: ${offset.getBinaryValue(16)} decimal: ${
+                offset.value
+              }`
+            );
+
+            offset = BinaryNumber.sub(offset.value, PC.value + 4);
+            offset.value = offset.value / 4;
+
+            console.log(
+              `beq offset: ${offset.getBinaryValue(16)} decimal: ${
+                offset.value
+              }`
+            );
+
             instruction += offset.getBinaryValue(16);
           } else {
             //if it's not a label, parse it as a number

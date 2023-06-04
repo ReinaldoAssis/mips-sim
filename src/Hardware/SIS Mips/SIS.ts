@@ -68,13 +68,18 @@ export default class SISMIPS {
     let instruction = this.memory.find(
       (x) => x.address.value == this.pc.value
     )?.value;
+    console.log(
+      `PC value: ${
+        this.pc.value - this.PCStart
+      } instruction: ${instruction?.getBinaryValue(32)}`
+    );
     this.pc.addNumber(1);
     return instruction ?? new BinaryNumber("0xfc000000"); //call 0 if the instruction is not found
   }
 
   public execute(): void {
     //while (true) {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 1000; i++) {
       let instruction: BinaryNumber =
         this.fetch() ?? new BinaryNumber("0xfc000000");
       if (instruction.toHex(8) == "0xfc000000") {
@@ -225,6 +230,23 @@ export default class SISMIPS {
         this.writeMemory(address, result);
 
         console.log(`SW: address: ${address.value} result: ${result.value}`);
+
+        break;
+
+      case "000100": //beq
+        rs = instruction.getBinaryValue(32).slice(6, 11);
+        rt = instruction.getBinaryValue(32).slice(11, 16);
+        imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+
+        a = this.regbank[this.mapRegister(rs)];
+        b = this.regbank[this.mapRegister(rt)];
+
+        if (a.value == b.value)
+          this.pc.add(BinaryNumber.parse("0b" + imm, true));
+
+        console.log(`BEQ: a: ${a.value} b: ${b.value} offset: ${imm}`);
+
+        break;
     }
   }
 
