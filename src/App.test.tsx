@@ -3,6 +3,8 @@ import { screen } from "@testing-library/react";
 import { render } from "./test-utils";
 import { App } from "./App";
 import SimulatorService from "./Service/SimulatorService";
+import SISMIPS from "./Hardware/SIS Mips/SIS";
+import BinaryNumber from "./Hardware/BinaryNumber";
 
 // test("renders learn react link", () => {
 //   render(<App />)
@@ -10,6 +12,31 @@ import SimulatorService from "./Service/SimulatorService";
 //   expect(linkElement).toBeInTheDocument()
 // })
 let simservice = SimulatorService.getInstance();
+
+test("Binary static add", () => {
+  let a = new BinaryNumber("2");
+  let b = new BinaryNumber("6");
+  let c = BinaryNumber.add(a.value, b.value);
+  expect(c.value).toBe(8);
+});
+
+test("Binary hex instance", () => {
+  let a = new BinaryNumber("-6");
+  expect(a.value).toBe(-6);
+  expect(a.getBinaryValue(16).length).toBe(16);
+  expect(a.getBinaryValue(16)).toBe("1111111111111010");
+});
+
+test("Binary negative", () => {
+  let a = new BinaryNumber("-2");
+  let b = new BinaryNumber("6");
+  let c = BinaryNumber.add(a.value, b.value);
+  expect(c.value).toBe(4);
+  let bin = a.getBinaryValue(32);
+  expect(bin).toBe("11111111111111111111111111111110");
+
+  //expect(new BinaryNumber("0b" + bin).value).toBe(-2);
+});
 
 test("treat offset", () => {
   let offset = simservice.treatOffsets("10 (t3)");
