@@ -17,9 +17,7 @@ export default function HardwareRenderer() {
 
   const [offsetx, setOffsetx] = useState(0);
   const [offsety, setOffsety] = useState(0);
-
-  const [, updateState] = React.useState();
-  const forceUpdate = React.useCallback(() => updateState({} as any), []);
+  const [draw, setDraw] = useState<CanvasRenderingContext2D>();
 
   useEffect(() => {
     function handleResize() {
@@ -29,9 +27,23 @@ export default function HardwareRenderer() {
         width = el.clientWidth;
         setOffsetx((width != 0 ? width : 600) / 100);
         setOffsety((height != 0 ? height - 100 : 600) / 100);
-        //console.log(height, width);
         console.log(offsetx, offsety);
       }
+    }
+
+    if (document.getElementById("canvas")) {
+      let ctx: CanvasRenderingContext2D =
+        (document.getElementById("canvas") as HTMLCanvasElement).getContext(
+          "2d"
+        ) ?? new CanvasRenderingContext2D();
+
+      ctx.canvas.width = window.innerWidth * 2;
+      ctx.canvas.height = window.innerHeight * 2 - 40;
+      ctx.strokeStyle = "black";
+      ctx.fillStyle = "black";
+      ctx.lineWidth = 7;
+
+      setDraw(ctx);
     }
 
     window.addEventListener("resize", handleResize);
@@ -74,66 +86,46 @@ export default function HardwareRenderer() {
   components.push(registerA);
   components.push(registerB);
 
-  function computeMask() {
-    if (offsetx == 0 || offsety == 0) {
-      console.log("offsetx or offsety is 0");
-      return;
-    }
-
-    components.forEach((component) => {
-      let bounds = document
-        .getElementById(component.tag)
-        ?.getBoundingClientRect();
-
-      //console.log("bounds, tag", bounds, component.tag);
-
-      let x = bounds?.x ?? 0 / offsetx;
-      let y = bounds?.y ?? 0 / offsety;
-
-      let elwidth = bounds ? bounds.width / offsetx : 0;
-      let elheight = bounds ? bounds.height / offsety : 0;
-
-      elwidth = Math.round(elwidth);
-      elheight = Math.round(elheight);
-      x = Math.round(x);
-      y = Math.round(y);
-
-      console.log(x, y, elwidth, elheight);
-
-      for (let i = x; i < x + width; i++)
-        for (let j = y; j < y + height; j++)
-          matrix[i + j * 100].occupied = true;
-    });
+  function drawPin(x: number, y: number, size: number) {
+    if (draw == undefined) return;
+    draw.fillRect(x - size / 2, y - size / 2, size, size);
   }
 
-  //computeMask();
-  //forceUpdate();
+  function drawComponent(component: HardwareProps) {
+    let x = component.pos[0];
+    let y = component.pos[1];
+    let w = 0;
+    let h = 0;
+
+    if (draw == undefined) return;
+
+    draw.font = "40px Arial";
+    draw.fillText(component.name ?? "Undefined", x, y - 10);
+    w = draw.measureText(component.name ?? "Undefined").width + 10;
+    h = 100;
+
+    component.pins.forEach((pin) => {
+      if (pin.type == PinType.Input) {
+        draw.font = "20px Arial";
+        let pinw = draw.measureText(pin.name).width + 15;
+        drawPin(x - pinw, y, 15);
+      } else {
+      }
+    });
+
+    //draw.strokeRect(x, y, 100, 100);
+    //draw.fillRect(x + 93, y + 40, 15, 15);
+  }
+
+  //draws the component
+  components.forEach((component) => {
+    drawComponent(component);
+  });
 
   return (
-    <div id="canvas">
-      <Flex>
-        {/* {components.map((component) => {
-          return <Hardware {...component} key={component.tag}></Hardware>;
-        })} */}
-
-        <img src={mips} style={{ width: "50%" }}></img>
-      </Flex>
-
-      {/* {matrix.map((p) => {
-        return (
-          <Box
-            style={{
-              position: "absolute",
-              left: p.x + 300,
-              top: p.y + 100,
-              width: 3,
-              height: 3,
-              backgroundColor: p.occupied ? "red" : "black",
-            }}
-            key={p.x + p.y + Math.random() * 100}
-          ></Box>
-        );
-      })} */}
-    </div>
+    <canvas
+      id="canvas"
+      style={{ position: "relative", width: "100%", height: "100%" }}
+    ></canvas>
   );
 }
