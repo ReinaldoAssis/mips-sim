@@ -98,7 +98,7 @@ export default class SimulatorService {
 
   // treat the offsets in the code, like "4 (label)"
   // @param {string} code - The code to be treated
-  public treatOffsets(code: string): string {
+  public treatLabelOffsets(code: string): string {
     // regex to find offsets such as "4 (label)" and "4(label)"
     let offsets = Array.from(code.matchAll(/\d+\s?\([a-z]+\d*\)/g))[0];
 
@@ -116,6 +116,26 @@ export default class SimulatorService {
       // replace the offset with the value and the label
       // this is what instructions expect to find
       code = code.replaceAll(x.toString(), value + " " + label);
+    });
+
+    return code;
+  }
+
+  // treat the offsets in the code, like "4 ($t0)"
+  // @param {string} code - The code to be treated
+  public treatOffsets(code: string): string {
+    let offsets = Array.from(code.matchAll(/\d+\s?\(\$\w+\d*\)/g))[0];
+    if (!offsets) return code;
+
+    offsets.forEach((x) => {
+      // treat the offset to separate the value from the register
+      let offset = x.toString().replaceAll(" ", "");
+      let value = offset.substring(0, offset.indexOf("("));
+      let reg = offset.substring(offset.indexOf("(") + 1, offset.indexOf(")"));
+
+      // replace the offset with the value and the label
+      // this is what instructions expect to find
+      code = code.replaceAll(x.toString(), value + " " + reg);
     });
 
     return code;
@@ -182,6 +202,7 @@ export default class SimulatorService {
     // treats the code to be assembled
     code = this.clearComments(code);
     code = this.clearSpecialChars(code);
+    code = this.treatLabelOffsets(code);
     code = this.treatOffsets(code);
 
     code = this.treatLabels(code);
