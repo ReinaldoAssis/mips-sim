@@ -7,6 +7,8 @@ function AssemblyEditor(props: {
   const monacoRef = useRef(null);
   const keywords = [
     "add",
+    "or",
+    "call",
     "and",
     "div",
     "mult",
