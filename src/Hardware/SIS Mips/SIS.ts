@@ -4,7 +4,7 @@ import { ALU, Clock } from "../Descriptor";
 
 //simplified instruction set mips
 //compatible instructions:
-//arithmetics: add, addi, sub, and, or, slt
+//arithmetics: add, addi, sub, and, or, slt, call 0, call 1
 //memory: lw, sw
 //branch: beq, bne
 
@@ -269,6 +269,15 @@ export default class SISMIPS {
 
         console.log(`BNE: a: ${a.value} b: ${b.value} offset: ${imm}`);
 
+        break;
+
+      case "111111": //call
+        let call = instruction.getBinaryValue(32).slice(6, 32);
+        let n = BinaryNumber.parse("0b" + call, true).value;
+        if (n == 1) {
+          a = this.regbank[this.mapRegister("00010")];
+          this.log.info(`${a.value}`, InfoType.OUTPUT);
+        }
         break;
     }
   }

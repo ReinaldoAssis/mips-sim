@@ -5,6 +5,7 @@ import AssemblyEditor from "./AssemblyEditor";
 import { ArrowForwardIcon } from "@chakra-ui/icons";
 import { HiPlay } from "react-icons/hi";
 import { BsTerminalFill } from "react-icons/bs";
+import { MdDelete } from "react-icons/md";
 import * as React from "react";
 import {
   Stack,
@@ -19,15 +20,15 @@ import {
   useToast,
   Slide,
   Box,
-  useDisclosure,
 } from "@chakra-ui/react";
 import SimulatorService from "../Service/SimulatorService";
 import HardwareView from "./HardwareView";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
-import BinaryNumber from "../Hardware/BinaryNumber";
+import Logger from "../Service/Logger";
 
 const HiPlayIcon = () => <Icon as={HiPlay} />;
 const TerminalFill = () => <Icon as={BsTerminalFill} />;
+const DeleteIcon = () => <Icon as={MdDelete} />;
 
 export default function SimulatorView() {
   //const [code, setCode] = React.useState<string>("");
@@ -109,8 +110,13 @@ function EditorView(props: {
   onEditorChange: (value: string | undefined, event: any) => void;
 }) {
   const [consoleOpen, setConsoleOpen] = React.useState<boolean>(true);
+  const [consoleTxt, setConsoleTxt] = React.useState<string>("");
 
-  //React.useEffect(() => {}, [consoleOpen]);
+  React.useEffect(() => {
+    Logger.instance.onLogChange(() => {
+      setConsoleTxt(Logger.instance.console());
+    });
+  }, [consoleOpen]);
 
   return (
     <Stack direction={"row"}>
@@ -136,10 +142,19 @@ function EditorView(props: {
             height: "250px",
           }}
         >
+          <Icon
+            as={MdDelete}
+            onClick={() => {
+              setConsoleTxt("");
+              Logger.instance.clear();
+            }}
+            style={{ position: "relative", left: "95%", scale: "1.5" }}
+          />
           <Textarea
             readOnly={true}
             border={"hidden"}
             placeholder={"Empty"}
+            value={consoleTxt}
           ></Textarea>
         </Box>
       </Slide>
