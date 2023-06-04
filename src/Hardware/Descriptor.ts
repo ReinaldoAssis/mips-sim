@@ -127,7 +127,7 @@ class Clock {
   }
 }
 
-class ALU {
+export class ALU {
   private _A: BinaryNumber = new BinaryNumber();
   private _B: BinaryNumber = new BinaryNumber();
   private _size: number = 32;
