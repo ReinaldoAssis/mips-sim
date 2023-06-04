@@ -15,6 +15,7 @@ export default class Logger {
 
   public info(message: string, infotype: InfoType): void {
     this._log += `INFO: ${message}`;
+    console.log(`INFO: ${message}`);
   }
 }
 
