@@ -115,12 +115,16 @@ function EditorView(props: {
 }) {
   const [consoleOpen, setConsoleOpen] = React.useState<boolean>(false);
   const [consoleTxt, setConsoleTxt] = React.useState<string>("");
+  const [currentTerminal, setCurrentTerminal] = React.useState<number>(0);
+  const [debugTxt, setDebugTxt] = React.useState<string>("");
+
   let share: SharedData = SharedData.instance;
   let simservice: SimulatorService = SimulatorService.getInstance();
 
   React.useEffect(() => {
     Logger.instance.onLogChange(() => {
-      setConsoleTxt(Logger.instance.console());
+      setConsoleTxt(Logger.instance.getConsole());
+      setDebugTxt(Logger.instance.getDebug());
     });
   }, [consoleOpen]);
 
@@ -148,20 +152,92 @@ function EditorView(props: {
             height: "250px",
           }}
         >
-          <Icon
-            as={MdDelete}
-            onClick={() => {
-              setConsoleTxt("");
-              Logger.instance.clear();
-            }}
-            style={{ position: "relative", left: "95%", scale: "1.5" }}
-          />
-          <Textarea
-            readOnly={true}
-            border={"hidden"}
-            placeholder={"Empty"}
-            value={consoleTxt}
-          ></Textarea>
+          <Stack direction="row" spacing={4}>
+            <Button
+              style={{
+                position: "relative",
+                borderBottom: currentTerminal == 0 ? "solid" : "none",
+                backgroundColor: "none",
+                background: "none",
+                borderRadius: "0px",
+                top: -40,
+                right: 20,
+              }}
+              onClick={() => setCurrentTerminal(0)}
+            >
+              Terminal
+            </Button>
+            <Button
+              style={{
+                position: "relative",
+                borderBottom: currentTerminal == 1 ? "solid" : "none",
+                backgroundColor: "none",
+                background: "none",
+                borderRadius: "0px",
+                top: -40,
+                right: 20,
+              }}
+              onClick={() => setCurrentTerminal(1)}
+            >
+              Debug
+            </Button>
+          </Stack>
+
+          {currentTerminal == 0 ? (
+            <>
+              <Icon
+                as={MdDelete}
+                onClick={() => {
+                  setConsoleTxt("");
+                  Logger.instance.clearConsole();
+                }}
+                style={{
+                  position: "relative",
+                  left: "95%",
+                  scale: "1.5",
+                  zIndex: 10,
+                }}
+              />
+              <Textarea
+                readOnly={true}
+                border={"hidden"}
+                placeholder={"Empty"}
+                value={consoleTxt}
+                height={"150px"}
+                style={{ position: "relative", bottom: 50 }}
+              ></Textarea>
+            </>
+          ) : (
+            <></>
+          )}
+
+          {currentTerminal == 1 ? (
+            <>
+              <Icon
+                as={MdDelete}
+                onClick={() => {
+                  setDebugTxt("");
+                }}
+                style={{
+                  position: "relative",
+                  left: "95%",
+                  top: 0,
+                  scale: "1.5",
+                  zIndex: 10,
+                }}
+              />
+              <Textarea
+                readOnly={true}
+                border={"hidden"}
+                placeholder={"Empty"}
+                value={debugTxt}
+                height={"150px"}
+                style={{ position: "relative", bottom: 50 }}
+              ></Textarea>
+            </>
+          ) : (
+            <></>
+          )}
         </Box>
       </Slide>
       <Stack spacing={4}>

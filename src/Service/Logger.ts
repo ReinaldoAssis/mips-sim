@@ -11,29 +11,42 @@ export default class Logger {
   }
 
   public error(message: string, errortype: ErrorType): void {
-    this._log += `${message} [${errortype}]\n`;
+    this._log += `ERROR: ${message} [${errortype}]\n`;
     this.onchange();
   }
 
   public warning(message: string, errortype: ErrorType): void {
     this._log += `WARNING: ${message} [${errortype}]\n`;
     this.onchange();
-    console.log(`WARNING: ${message}`);
   }
 
   public info(message: string, infotype: InfoType): void {
     if (infotype != InfoType.OUTPUT) this._log += `INFO: ${message}\n`;
     else this._log += `[Out]: ${message}\n`;
     this.onchange();
-    console.log(`INFO: ${message}`);
   }
 
-  public console(): string {
+  public debug(message: string): void {
+    this._log += `DEBUG: ${message}\n`;
+    this.onchange();
+  }
+
+  public getConsole(): string {
     let logs = this._log.split("\n").filter((x) => x.startsWith("[Out]"));
     return logs.join("\n");
   }
 
-  public clear(): void {
+  public getDebug(): string {
+    return this._log
+      .split("\n")
+      .filter(
+        (x) =>
+          x.includes("WARNING") || x.includes("ERROR") || x.includes("DEBUG")
+      )
+      .join("\n");
+  }
+
+  public clearConsole(): void {
     this._log = "";
   }
 

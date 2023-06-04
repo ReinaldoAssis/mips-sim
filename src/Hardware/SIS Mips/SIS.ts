@@ -132,7 +132,7 @@ export default class SISMIPS implements processor {
             result = BinaryNumber.add(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            console.log(
+            this.log.debug(
               `ADD a: ${a.value} b: ${b.value} result: ${result.value}`
             );
 
@@ -144,7 +144,7 @@ export default class SISMIPS implements processor {
             result = BinaryNumber.sub(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            console.log(
+            this.log.debug(
               `SUB a: ${a.value} b: ${b.value} result: ${result.value}`
             );
             break;
@@ -155,7 +155,7 @@ export default class SISMIPS implements processor {
             result = BinaryNumber.and(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            console.log(
+            this.log.debug(
               `AND a: ${a.value} b: ${b.value} result: ${result.value}`
             );
             break;
@@ -166,7 +166,7 @@ export default class SISMIPS implements processor {
             result = BinaryNumber.or(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            console.log(
+            this.log.debug(
               `OR a: ${a.value} b: ${b.value} result: ${result.value}`
             );
             break;
@@ -180,7 +180,7 @@ export default class SISMIPS implements processor {
                 : new BinaryNumber("0b0");
             this.regbank[this.mapRegister(rd)] = result;
 
-            console.log(
+            this.log.debug(
               `SLT a: ${a.value} b: ${b.value} result: ${result.value}`
             );
             break;
@@ -203,8 +203,8 @@ export default class SISMIPS implements processor {
         result = BinaryNumber.add(a.value, b.value);
         this.regbank[this.mapRegister(rt)] = result;
 
-        console.log(
-          `ADDI: a: ${a.value} b: ${b.value} result: ${result.value} [${rt}]`
+        this.log.debug(
+          `ADDI a: ${a.value} b: ${b.value} result: ${result.value}`
         );
 
         break;
@@ -222,8 +222,8 @@ export default class SISMIPS implements processor {
 
         result = this.readMemory(address);
 
-        console.log(
-          `LW: base: ${base.value} address: ${address.value} result: ${result.value}`
+        this.log.debug(
+          `LW base: ${base.value} address: ${address.value} result: ${result.value}`
         );
 
         break;
@@ -242,7 +242,7 @@ export default class SISMIPS implements processor {
         result = this.regbank[this.mapRegister(rt)];
         this.writeMemory(address, result);
 
-        console.log(`SW: address: ${address.value} result: ${result.value}`);
+        this.log.debug(`SW address: ${address.value} result: ${result.value}`);
 
         break;
 
@@ -259,8 +259,8 @@ export default class SISMIPS implements processor {
 
         this.share.currentPc = this.pc.value;
 
-        console.log(
-          `BEQ: a: ${a.value} b: ${
+        this.log.debug(
+          `BEQ a: ${a.value} b: ${
             b.value
           } [${b.getBinaryValue()}] offset: ${imm}`
         );
@@ -280,7 +280,7 @@ export default class SISMIPS implements processor {
 
         this.share.currentPc = this.pc.value;
 
-        console.log(`BNE: a: ${a.value} b: ${b.value} offset: ${imm}`);
+        this.log.debug(`BNE a: ${a.value} b: ${b.value} offset: ${imm}`);
 
         break;
 
