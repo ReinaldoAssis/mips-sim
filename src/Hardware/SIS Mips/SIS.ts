@@ -191,7 +191,7 @@ export default class SISMIPS {
         this.regbank[this.mapRegister(rt)] = result;
 
         console.log(
-          `ADDI: a: ${a.value} b: ${b.value} result: ${result.value}`
+          `ADDI: a: ${a.value} b: ${b.value} result: ${result.value} [${rt}]`
         );
 
         break;

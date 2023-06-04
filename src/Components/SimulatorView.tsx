@@ -4,6 +4,7 @@ import Editor from "@monaco-editor/react";
 import AssemblyEditor from "./AssemblyEditor";
 import { ArrowForwardIcon } from "@chakra-ui/icons";
 import { HiPlay } from "react-icons/hi";
+import { BsTerminalFill } from "react-icons/bs";
 import * as React from "react";
 import {
   Stack,
@@ -16,6 +17,9 @@ import {
   TabPanel,
   Textarea,
   useToast,
+  Slide,
+  Box,
+  useDisclosure,
 } from "@chakra-ui/react";
 import SimulatorService from "../Service/SimulatorService";
 import HardwareView from "./HardwareView";
@@ -23,6 +27,7 @@ import SISMIPS from "../Hardware/SIS Mips/SIS";
 import BinaryNumber from "../Hardware/BinaryNumber";
 
 const HiPlayIcon = () => <Icon as={HiPlay} />;
+const TerminalFill = () => <Icon as={BsTerminalFill} />;
 
 export default function SimulatorView() {
   //const [code, setCode] = React.useState<string>("");
@@ -103,24 +108,65 @@ function EditorView(props: {
   runBtn: Function;
   onEditorChange: (value: string | undefined, event: any) => void;
 }) {
+  const [consoleOpen, setConsoleOpen] = React.useState<boolean>(true);
+
+  //React.useEffect(() => {}, [consoleOpen]);
+
   return (
     <Stack direction={"row"}>
       <AssemblyEditor onEditorChange={props.onEditorChange} />
-      <Stack direction="row" spacing={4}>
-        <Button
-          leftIcon={<HiPlayIcon />}
-          colorScheme="teal"
-          variant="solid"
-          onClick={() => props.runBtn()}
+      <Slide
+        direction="bottom"
+        in={consoleOpen}
+        style={{
+          zIndex: 10,
+        }}
+      >
+        <Box
+          p="40px"
+          color="white"
+          mt="4"
+          bg="teal.500"
+          rounded="md"
+          shadow="md"
+          style={{
+            position: "relative",
+            right: "11px",
+            width: "102vw",
+            height: "200px",
+          }}
         >
-          Run
-        </Button>
+          oi
+        </Box>
+      </Slide>
+      <Stack spacing={4}>
+        <Stack direction="row" spacing={4}>
+          <Button
+            leftIcon={<HiPlayIcon />}
+            colorScheme="teal"
+            variant="solid"
+            onClick={() => props.runBtn()}
+          >
+            Run
+          </Button>
+          <Button
+            rightIcon={<ArrowForwardIcon />}
+            colorScheme="teal"
+            variant="outline"
+          >
+            Step
+          </Button>
+        </Stack>
         <Button
-          rightIcon={<ArrowForwardIcon />}
+          rightIcon={<TerminalFill />}
           colorScheme="teal"
           variant="outline"
+          onClick={() => {
+            setConsoleOpen(!consoleOpen);
+            console.log("Console open " + consoleOpen);
+          }}
         >
-          Step
+          Terminal
         </Button>
       </Stack>
     </Stack>
