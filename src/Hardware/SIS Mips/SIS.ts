@@ -153,6 +153,12 @@ export default class SISMIPS {
         console.log(
           `ADDI: a: ${a.value} b: ${b.value} result: ${result.value}`
         );
+
+        break;
+
+      case "100011": //lw
+        rs = instruction.getBinaryValue(32).slice(6, 11);
+        rt = instruction.getBinaryValue(32).slice(11, 16);
     }
   }
 
