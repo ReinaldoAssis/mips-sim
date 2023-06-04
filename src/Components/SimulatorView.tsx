@@ -46,11 +46,11 @@ export default function SimulatorView() {
 
   React.useEffect(() => {
     setAssemblyCode(simservice.assemblyCode);
-    share.code = code;
   }, [simservice.assemblyCode]);
 
   function onEditorChange(value: string | undefined, event: any) {
     setCode(value!);
+    share.code = code;
   }
 
   function runCode() {
@@ -263,7 +263,7 @@ function EditorView(props: {
                 share.currentProcessor.executeStep();
               } else {
                 share.currentProcessor = new SISMIPS();
-                const assembly = simservice.assemble(share.code);
+                const assembly = simservice.assemble(SharedData.instance.code);
                 share.currentProcessor.loadProgram(assembly.split(" "));
                 console.log(
                   `Current assembly code: ${assembly} code: ${share.code}`
