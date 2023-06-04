@@ -108,7 +108,6 @@ export default function HardwareRenderer() {
       if (pin.type == PinType.Input) {
         draw.font = "20px Arial";
         let pinw = draw.measureText(pin.name).width + 15;
-        drawPin(x - pinw, y, 15);
       } else {
       }
     });
