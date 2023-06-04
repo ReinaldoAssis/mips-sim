@@ -6,7 +6,7 @@ import { ALU, Clock } from "../Descriptor";
 //compatible instructions:
 //arithmetics: add, addi, sub, and, or, slt
 //memory: lw, sw
-//branch: beq
+//branch: beq, bne
 
 //registers: v0,v1, a0,a1, t0,t1,t2,t3, ra, pc, zero
 
@@ -28,7 +28,11 @@ export default class SISMIPS {
   public constructor() {
     this.f = 1;
     for (let i = 0; i < 10; i++) {
-      this.regbank.push(new BinaryNumber());
+      if (i == 0) this.regbank.push(new BinaryNumber("0"));
+      else
+        this.regbank.push(
+          new BinaryNumber((Math.random() * 100000).toString())
+        );
     }
 
     this.pc = new BinaryNumber(this.PCStart.toString());
@@ -116,7 +120,7 @@ export default class SISMIPS {
           case "100000": //add
             a = this.regbank[this.mapRegister(rs)];
             b = this.regbank[this.mapRegister(rt)];
-            result = a.add(b);
+            result = BinaryNumber.add(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
             console.log(
@@ -244,7 +248,26 @@ export default class SISMIPS {
         if (a.value == b.value)
           this.pc.add(BinaryNumber.parse("0b" + imm, true));
 
-        console.log(`BEQ: a: ${a.value} b: ${b.value} offset: ${imm}`);
+        console.log(
+          `BEQ: a: ${a.value} b: ${
+            b.value
+          } [${b.getBinaryValue()}] offset: ${imm}`
+        );
+
+        break;
+
+      case "000101": //bne
+        rs = instruction.getBinaryValue(32).slice(6, 11);
+        rt = instruction.getBinaryValue(32).slice(11, 16);
+        imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+
+        a = this.regbank[this.mapRegister(rs)];
+        b = this.regbank[this.mapRegister(rt)];
+
+        if (a.value != b.value)
+          this.pc.add(BinaryNumber.parse("0b" + imm, true));
+
+        console.log(`BNE: a: ${a.value} b: ${b.value} offset: ${imm}`);
 
         break;
     }

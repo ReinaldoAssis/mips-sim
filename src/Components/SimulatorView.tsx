@@ -126,17 +126,21 @@ function EditorView(props: {
           p="40px"
           color="white"
           mt="4"
-          bg="teal.500"
+          bg="#20212b"
           rounded="md"
           shadow="md"
           style={{
             position: "relative",
             right: "11px",
             width: "102vw",
-            height: "200px",
+            height: "250px",
           }}
         >
-          oi
+          <Textarea
+            readOnly={true}
+            border={"hidden"}
+            placeholder={"Empty"}
+          ></Textarea>
         </Box>
       </Slide>
       <Stack spacing={4}>
