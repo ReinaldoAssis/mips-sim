@@ -32,6 +32,7 @@ test("Binary negative", () => {
   let b = new BinaryNumber("6");
   let c = BinaryNumber.add(a.value, b.value);
   expect(c.value).toBe(4);
+
   let bin = a.getBinaryValue(32);
   expect(bin).toBe("11111111111111111111111111111110");
 
