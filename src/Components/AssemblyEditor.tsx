@@ -127,7 +127,7 @@ function AssemblyEditor(props: {
       }
       options={{
         scrollBeyondLastLine: false,
-        fontSize: "20px",
+        fontSize: 20,
       }}
       beforeMount={handleEditorWillMount}
       onMount={handleEditorDidMount}
