@@ -98,6 +98,18 @@ export default function HardwareView() {
           type: PinType.Output,
         },
         {
+          name: "beq",
+          value: 0,
+          bits: 1,
+          type: PinType.Output,
+        },
+        {
+          name: "overflow",
+          value: 0,
+          bits: 1,
+          type: PinType.Output,
+        },
+        {
           name: "enable",
           value: 0,
           bits: 1,
