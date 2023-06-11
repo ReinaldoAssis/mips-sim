@@ -31,6 +31,9 @@ export default class HardwareRenderer {
   private static _instance: HardwareRenderer;
   public draw: CanvasRenderingContext2D | undefined;
   public components: Array<HardwareProps> = [];
+  public matrix: Array<Array<Point>> = [];
+  public matrixXoffset: number = 20;
+  public matrixYoffset: number = 20;
 
   public static get instance(): HardwareRenderer {
     if (!HardwareRenderer._instance) {
@@ -42,6 +45,57 @@ export default class HardwareRenderer {
 
   public setCanvas(ctx: CanvasRenderingContext2D) {
     this.draw = ctx;
+  }
+
+  public checkCollision() {
+    this.components.forEach((component) => {
+      let width = component.width ?? 0;
+      let height = component.height ?? 0;
+
+      let cx = component.pos[0];
+      let cy = component.pos[1];
+
+      if (this.draw == undefined) return false;
+
+      this.matrix.forEach((row) => {
+        row.forEach((point) => {
+          if (
+            point.x >= cx &&
+            point.x <= cx + width &&
+            point.y >= cy &&
+            point.y <= cy + height
+          ) {
+            point.occupied = true;
+          }
+        });
+      });
+    });
+  }
+
+  public initializeMatrix() {
+    let height = this.draw?.canvas.height ?? 0;
+    let width = this.draw?.canvas.width ?? 0;
+
+    this.matrix = [];
+
+    for (let x = 0; x < width; x += this.matrixXoffset) {
+      let row: Array<Point> = [];
+      for (let y = 0; y < height; y += this.matrixYoffset) {
+        row.push({ x: x, y: y, occupied: false });
+      }
+      this.matrix.push(row);
+    }
+  }
+
+  public drawMatrix() {
+    this.matrix.forEach((row) => {
+      row.forEach((point) => {
+        if (this.draw == undefined) return;
+        if (point.occupied) this.draw.fillStyle = "red";
+        else this.draw.fillStyle = "green";
+        this.draw.fillRect(point.x - 7 / 2, point.y - 7 / 2, 7, 7);
+      });
+    });
   }
 
   public drawComponents() {
@@ -133,13 +187,15 @@ export default class HardwareRenderer {
 
     //draw pins
     let pinSize = 20;
-    let pinYoffset = 50;
+    let pinYoffset = 40;
 
     let height = this.getAutoHeight(component.pins, pinYoffset);
 
     //draw box
     this.draw.strokeStyle = "black";
     this.draw.strokeRect(x, y, widest * 4, height);
+    component.width = widest * 4;
+    component.height = height;
 
     //draw title
     this.draw.font = "bold 50px Arial";

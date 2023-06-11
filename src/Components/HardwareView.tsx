@@ -26,7 +26,7 @@ export default function HardwareView() {
 
     renderer.addComponent({
       name: "RegisterAAAAAAAAA",
-      pos: [300, 300],
+      pos: [20 * 10, 20 * 8],
       tag: "test",
       pins: [
         {
@@ -58,7 +58,7 @@ export default function HardwareView() {
 
     renderer.addComponent({
       name: "Register with a really long name",
-      pos: [1400, 300],
+      pos: [20 * 80, 20 * 8],
       tag: "test",
       pins: [
         {
@@ -119,6 +119,10 @@ export default function HardwareView() {
     });
 
     renderer.drawComponents();
+
+    renderer.initializeMatrix();
+    renderer.checkCollision();
+    renderer.drawMatrix();
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
