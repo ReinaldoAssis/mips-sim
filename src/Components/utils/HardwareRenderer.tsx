@@ -24,7 +24,92 @@ type Point = {
   x: number;
   y: number;
   occupied: boolean;
+  visited: boolean;
 };
+
+function manhattan(a: Point, b: Point): number {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+}
+
+export class Heap<T> {
+  private _heap: Array<T> = [];
+  private _comparator: (a: T, b: T) => boolean;
+
+  constructor(comparator: (a: T, b: T) => boolean) {
+    this._comparator = comparator;
+  }
+
+  public push(element: T): void {
+    this._heap.push(element);
+    this._bubbleUp(this._heap.length - 1);
+  }
+
+  public peek(): T | undefined {
+    return this._heap[0];
+  }
+
+  public pop(): T | undefined {
+    const poppedElement = this._heap[0];
+    const bottom = this._heap.pop();
+
+    if (bottom === undefined || this._heap.length === 0) {
+      return poppedElement;
+    }
+
+    this._heap[0] = bottom;
+    this._bubbleDown(0);
+
+    return poppedElement;
+  }
+
+  private swap(i: number, j: number): void {
+    const temp = this._heap[i];
+    this._heap[i] = this._heap[j];
+    this._heap[j] = temp;
+  }
+
+  private _parent(index: number): number {
+    if (index < 0) return -1;
+    return Math.floor((index - 1) / 2);
+  }
+
+  private _leftChild(index: number): number {
+    return Math.floor((2 * index + 1) / 2);
+  }
+
+  private _rightChild(index: number): number {
+    return Math.floor((2 * index + 2) / 2);
+  }
+
+  private _bubbleUp(index: number): void {
+    while (
+      index > 0 &&
+      this._comparator(this._heap[this._parent(index)], this._heap[index])
+    ) {
+      this.swap(this._parent(index), index);
+      index = this._parent(index);
+    }
+  }
+
+  private _bubbleDown(index: number): void {
+    while (
+      this._leftChild(index) < this._heap.length &&
+      this._comparator(this._heap[index], this._heap[this._leftChild(index)]) &&
+      this._rightChild(index) < this._heap.length &&
+      this._comparator(this._heap[index], this._heap[this._rightChild(index)])
+    ) {
+      const smallerIndex = this._comparator(
+        this._heap[this._leftChild(index)],
+        this._heap[this._rightChild(index)]
+      )
+        ? this._leftChild(index)
+        : this._rightChild(index);
+
+      this.swap(index, smallerIndex);
+      index = smallerIndex;
+    }
+  }
+}
 
 //singleton class
 export default class HardwareRenderer {
@@ -59,8 +144,9 @@ export default class HardwareRenderer {
 
       this.matrix.forEach((row) => {
         row.forEach((point) => {
+          //OBS: cx + 5 is a quick fix to make pins walkable in a* pathfinding
           if (
-            point.x >= cx &&
+            point.x >= cx + 5 &&
             point.x <= cx + width &&
             point.y >= cy &&
             point.y <= cy + height
@@ -81,7 +167,7 @@ export default class HardwareRenderer {
     for (let x = 0; x < width; x += this.matrixXoffset) {
       let row: Array<Point> = [];
       for (let y = 0; y < height; y += this.matrixYoffset) {
-        row.push({ x: x, y: y, occupied: false });
+        row.push({ x: x, y: y, occupied: false, visited: false });
       }
       this.matrix.push(row);
     }

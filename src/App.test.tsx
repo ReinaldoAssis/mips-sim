@@ -5,6 +5,7 @@ import { App } from "./App";
 import SimulatorService from "./Service/SimulatorService";
 import SISMIPS from "./Hardware/SIS Mips/SIS";
 import BinaryNumber from "./Hardware/BinaryNumber";
+import { Heap } from "./Components/utils/HardwareRenderer";
 
 // test("renders learn react link", () => {
 //   render(<App />)
@@ -12,6 +13,18 @@ import BinaryNumber from "./Hardware/BinaryNumber";
 //   expect(linkElement).toBeInTheDocument()
 // })
 let simservice = SimulatorService.getInstance();
+
+test("Binary heap", () => {
+  let h: Heap<string> = new Heap<string>((a, b) => a.length > b.length);
+  h.push("abcd");
+  h.push("abcdef");
+  h.push("a");
+  h.push("ab");
+  h.push("abc");
+  h.push("abcde");
+
+  expect(h.pop()).toBe("a");
+});
 
 test("Binary static add", () => {
   let a = new BinaryNumber("2");
