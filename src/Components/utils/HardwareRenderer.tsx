@@ -132,6 +132,10 @@ export default class HardwareRenderer {
     this.draw = ctx;
   }
 
+  /*
+    * Updates the matrix tiles to occupied if a component is on top of it
+    @returns void
+  */
   public checkCollision() {
     this.components.forEach((component) => {
       let width = component.width ?? 0;
@@ -158,6 +162,10 @@ export default class HardwareRenderer {
     });
   }
 
+  /*
+    * Initializes the matrix with the canvas width and height
+    @returns void
+  */
   public initializeMatrix() {
     let height = this.draw?.canvas.height ?? 0;
     let width = this.draw?.canvas.width ?? 0;
@@ -173,6 +181,10 @@ export default class HardwareRenderer {
     }
   }
 
+  /*
+    * Draws the matrix tiles on the canvas  
+    @returns void
+  */
   public drawMatrix() {
     this.matrix.forEach((row) => {
       row.forEach((point) => {
@@ -184,16 +196,30 @@ export default class HardwareRenderer {
     });
   }
 
+  /*
+    * Draws all the registered components on the canvas 
+    @returns void
+  */
   public drawComponents() {
     this.components.forEach((component) => {
       this.drawComponent(component);
     });
   }
 
+  /*
+    * Adds a component to the list of components to be drawn
+    @param component - The component to be added
+    @returns void
+  */
   public addComponent(component: HardwareProps) {
     this.components.push(component);
   }
 
+  /*
+    * Updates the canvas reference from the document
+    @param doc - The document to be used as reference
+    @returns void
+  */
   public setCanvasFromDoc(doc: Document) {
     if (doc.getElementById("canvas")) {
       let ctx: CanvasRenderingContext2D =
@@ -210,11 +236,24 @@ export default class HardwareRenderer {
     }
   }
 
+  /*
+    * Draws a component's pin on the canvas
+    @param x - The x position of the pin
+    @param y - The y position of the pin
+    @param size - The size of the pin
+    @returns void
+  */
   public drawPin(x: number, y: number, size: number) {
     if (this.draw == undefined) return;
     this.draw.fillRect(x - size / 2, y - size / 2, size, size);
   }
 
+  /*
+    * Gets the widest pin width from a list of pins given a font
+    @param pins - The list of pins to be checked
+    @param font - The font to be used
+    @returns The width of the widest pin
+  */
   public getWidestPinWidth(pins: Array<Pin>, font: string): number {
     let max = "";
     if (this.draw == undefined) return 0;
@@ -230,6 +269,12 @@ export default class HardwareRenderer {
     return this.draw.measureText(max).width;
   }
 
+  /*
+    * Gets the width of a title given a font
+    @param title - The title to be checked
+    @param font - The font to be used
+    @returns The width of the title
+  */
   public getTitleWidth(title: string, font: string): number {
     if (this.draw == undefined) return 0;
 
@@ -237,10 +282,22 @@ export default class HardwareRenderer {
     return this.draw.measureText(title).width;
   }
 
+  /*
+    * Filters a list of pins by type
+    @param pins - The list of pins to be filtered
+    @param type - The type of pin to be filtered
+    @returns The filtered list of pins
+  */
   public filterPins(pins: Array<Pin>, type: PinType): Array<Pin> {
     return pins.filter((pin) => pin.type == type);
   }
 
+  /*
+    * Gets what the height of a component has to be given a list of pins and a pin offset
+    @param pins - The list of pins to be checked
+    @param pinYoffset - The offset of the pins
+    @returns The height of the component
+  */
   public getAutoHeight(pins: Array<Pin>, pinYoffset: number): number {
     let p: Array<Pin> =
       this.filterPins(pins, PinType.Input).length >
@@ -251,6 +308,11 @@ export default class HardwareRenderer {
     return p.length * pinYoffset + 150;
   }
 
+  /*
+    * Draws a component on the canvas
+    @param component - The component to be drawn
+    @returns void    
+  */
   public drawComponent(component: HardwareProps) {
     if (this.draw == undefined) return;
 
