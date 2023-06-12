@@ -25,10 +25,22 @@ type Point = {
   y: number;
   occupied: boolean;
   visited: boolean;
+  f: number;
+  g: number;
+  parent?: Point | undefined;
 };
 
 function manhattan(a: Point, b: Point): number {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+}
+
+function backtrace(node: Point): Array<Point> {
+  let path: Array<Point> = [node];
+  while (node.parent) {
+    node = node.parent;
+    path.push(node);
+  }
+  return path.reverse();
 }
 
 export class Heap<T> {
@@ -48,7 +60,7 @@ export class Heap<T> {
     return this._heap[0];
   }
 
-  public pop(): T | undefined {
+  public pop(): T {
     const poppedElement = this._heap[0];
     const bottom = this._heap.pop();
 
@@ -60,6 +72,16 @@ export class Heap<T> {
     this._bubbleDown(0);
 
     return poppedElement;
+  }
+
+  public updateItem(item: T): void {
+    const index = this._heap.indexOf(item);
+    this._bubbleUp(index);
+    this._bubbleDown(index);
+  }
+
+  public isEmpty(): boolean {
+    return this._heap.length === 0;
   }
 
   private swap(i: number, j: number): void {
@@ -82,31 +104,37 @@ export class Heap<T> {
   }
 
   private _bubbleUp(index: number): void {
-    while (
-      index > 0 &&
-      this._comparator(this._heap[this._parent(index)], this._heap[index])
+    let parent = this._parent(index);
+    if (
+      parent >= 0 &&
+      this._comparator(this._heap[index], this._heap[parent])
     ) {
-      this.swap(this._parent(index), index);
-      index = this._parent(index);
+      this.swap(index, parent);
+      this._bubbleUp(parent);
     }
   }
 
   private _bubbleDown(index: number): void {
-    while (
-      this._leftChild(index) < this._heap.length &&
-      this._comparator(this._heap[index], this._heap[this._leftChild(index)]) &&
-      this._rightChild(index) < this._heap.length &&
-      this._comparator(this._heap[index], this._heap[this._rightChild(index)])
+    let smallest = index;
+    let left = this._leftChild(index);
+    let right = this._rightChild(index);
+    if (
+      left < this._heap.length &&
+      this._comparator(this._heap[left], this._heap[smallest])
     ) {
-      const smallerIndex = this._comparator(
-        this._heap[this._leftChild(index)],
-        this._heap[this._rightChild(index)]
-      )
-        ? this._leftChild(index)
-        : this._rightChild(index);
+      smallest = left;
+    }
 
-      this.swap(index, smallerIndex);
-      index = smallerIndex;
+    if (
+      right < this._heap.length &&
+      this._comparator(this._heap[right], this._heap[smallest])
+    ) {
+      smallest = right;
+    }
+
+    if (smallest !== index) {
+      this.swap(index, smallest);
+      this._bubbleDown(smallest);
     }
   }
 }
@@ -150,8 +178,8 @@ export default class HardwareRenderer {
         row.forEach((point) => {
           //OBS: cx + 5 is a quick fix to make pins walkable in a* pathfinding
           if (
-            point.x >= cx + 5 &&
-            point.x <= cx + width &&
+            point.x >= cx &&
+            point.x <= cx + width + 10 &&
             point.y >= cy &&
             point.y <= cy + height
           ) {
@@ -175,7 +203,14 @@ export default class HardwareRenderer {
     for (let x = 0; x < width; x += this.matrixXoffset) {
       let row: Array<Point> = [];
       for (let y = 0; y < height; y += this.matrixYoffset) {
-        row.push({ x: x, y: y, occupied: false, visited: false });
+        row.push({
+          x: x,
+          y: y,
+          occupied: false,
+          visited: false,
+          f: 999999,
+          g: 0,
+        });
       }
       this.matrix.push(row);
     }
@@ -293,6 +328,139 @@ export default class HardwareRenderer {
   }
 
   /*
+    * Gets the euclidian distance between two points
+    @param x1 - The x position of the first point
+    @param y1 - The y position of the first point
+    @param x2 - The x position of the second point
+    @param y2 - The y position of the second point
+    @returns The euclidian distance between the two points
+  */
+  private euclidian(x1: number, y1: number, x2: number, y2: number): number {
+    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+  }
+
+  /*
+    * Gets the closest tile from the matrix to a pin   
+    @param pin - The pin to be checked
+    @returns The closest tile to the pin 
+  */
+  private getsPinClosestTile(pin: Pin): Point {
+    if (pin.pos == undefined)
+      return { x: -1, y: -1, occupied: false, visited: false, f: -1, g: -1 };
+    let x = pin.pos[0];
+    let y = pin.pos[1];
+
+    let closest: Array<Point> = [];
+    this.matrix.forEach((row) => {
+      row.forEach((point) => {
+        if (this.euclidian(point.x, point.y, x, y) < 20 && !point.occupied) {
+          closest.push(point);
+        }
+      });
+    });
+
+    closest.sort((p) => this.euclidian(p.x, p.y, x, y));
+
+    return closest[0];
+  }
+
+  private getTileNeighbors(tile: Point): Array<Point> {
+    let neighbors: Array<Point> = [];
+
+    let i = tile.x / this.matrixXoffset;
+    let j = tile.y / this.matrixYoffset;
+
+    if (this.matrix[i][j - 1].occupied == false)
+      neighbors.push(this.matrix[i][j - 1]);
+
+    if (this.matrix[i][j + 1].occupied == false)
+      neighbors.push(this.matrix[i][j + 1]);
+
+    if (this.matrix[i - 1][j].occupied == false)
+      neighbors.push(this.matrix[i - 1][j]);
+
+    if (this.matrix[i + 1][j].occupied == false)
+      neighbors.push(this.matrix[i + 1][j]);
+
+    return neighbors;
+  }
+
+  public aStarPathFiding(a: Point, b: Point): Array<Point> {
+    //A* pathfinding
+    let weight = 4;
+
+    let openSet: Heap<Point> = new Heap<Point>((a, b) => a.f < b.f);
+    a.f = 0;
+    a.g = 0;
+
+    openSet.push(a);
+    a.visited = true;
+
+    while (openSet.isEmpty() == false) {
+      let node = openSet.pop(); //gets the node with the lowest f value
+      node.visited = true;
+
+      if (node === b) {
+        //return backtrace
+        return backtrace(node);
+      }
+
+      let neighbors = this.getTileNeighbors(node);
+      for (let i = 0; i < neighbors.length; i++) {
+        let neighbor = neighbors[i];
+
+        if (neighbor.visited) continue;
+
+        // get the distance between current node and the neighbor
+        // and calculate the next g score
+
+        let ng = node.g + 1; // 1 is the distance between two nodes (1 tile) since diagonal movement is not allowed
+
+        if (!neighbor.visited || ng < neighbor.g) {
+          neighbor.g = ng;
+          neighbor.f = ng + weight * manhattan(neighbor, b);
+          neighbor.parent = node;
+
+          if (!neighbor.visited) {
+            neighbor.visited = true;
+            openSet.push(neighbor);
+          } else {
+            // the neighbor can be reached with smaller cost.
+            // Since its f value has been updated, we have to
+            // update its position in the open list
+            openSet.updateItem(neighbor);
+          }
+        }
+      }
+    }
+
+    return [];
+  }
+
+  public drawWire(pinA: Pin, pinB: Pin) {
+    if (this.draw == undefined) return;
+
+    let a: Point = this.getsPinClosestTile(pinA);
+    let b: Point = this.getsPinClosestTile(pinB);
+
+    let path: Array<Point> = this.aStarPathFiding(a, b);
+
+    console.log("path", path);
+
+    this.draw.strokeStyle = "black";
+    this.draw.beginPath();
+
+    path.forEach((point, index) => {
+      if (this.draw == undefined) return;
+
+      if (index == 0) this.draw.moveTo(point.x, point.y);
+      else this.draw.lineTo(point.x, point.y);
+    });
+
+    this.draw.stroke();
+  }
+
+  /*
     * Gets what the height of a component has to be given a list of pins and a pin offset
     @param pins - The list of pins to be checked
     @param pinYoffset - The offset of the pins
@@ -365,6 +533,9 @@ export default class HardwareRenderer {
         x + pinSize * 2,
         y + pinYoffset + 10 + index * pinYoffset
       );
+
+      //updates the pin position
+      pin.pos = [x - pinSize / 2, y + pinYoffset + index * pinYoffset];
     });
 
     //draw output pins
@@ -381,6 +552,12 @@ export default class HardwareRenderer {
         x + widest * 4 - pinSize * 2 - this.draw.measureText(pin.name).width,
         y + pinYoffset + 10 + index * pinYoffset
       );
+
+      //updates the pin position
+      pin.pos = [
+        x + widest * 4 - pinSize / 2,
+        y + pinYoffset + index * pinYoffset,
+      ];
     });
   }
 }

@@ -15,15 +15,19 @@ import { Heap } from "./Components/utils/HardwareRenderer";
 let simservice = SimulatorService.getInstance();
 
 test("Binary heap", () => {
-  let h: Heap<string> = new Heap<string>((a, b) => a.length > b.length);
+  let h: Heap<string> = new Heap<string>((a, b) => b > a);
   h.push("abcd");
-  h.push("abcdef");
   h.push("a");
-  h.push("ab");
   h.push("abc");
+  h.push("ab");
+  h.push("abcdef");
   h.push("abcde");
 
   expect(h.pop()).toBe("a");
+  expect(h.pop()).toBe("ab");
+
+  h.push("reinaldo");
+  expect(h.pop()).toBe("abc");
 });
 
 test("Binary static add", () => {

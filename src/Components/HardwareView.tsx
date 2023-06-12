@@ -57,6 +57,38 @@ export default function HardwareView() {
     });
 
     renderer.addComponent({
+      name: "Register Bank",
+      pos: [20 * 45, 20 * 8],
+      tag: "test",
+      pins: [
+        {
+          name: "clk",
+          value: 0,
+          bits: 1,
+          type: PinType.Input,
+        },
+        {
+          name: "clr",
+          value: 0,
+          bits: 1,
+          type: PinType.Input,
+        },
+        {
+          name: "dataout",
+          value: 0,
+          bits: 1,
+          type: PinType.Output,
+        },
+        {
+          name: "enable",
+          value: 0,
+          bits: 1,
+          type: PinType.Input,
+        },
+      ],
+    });
+
+    renderer.addComponent({
       name: "Register with a really long name",
       pos: [20 * 80, 20 * 8],
       tag: "test",
@@ -122,6 +154,12 @@ export default function HardwareView() {
 
     renderer.initializeMatrix();
     renderer.checkCollision();
+
+    // renderer.drawWire(
+    //   renderer.components[0].pins[2],
+    //   renderer.components[2].pins[0]
+    // );
+
     renderer.drawMatrix();
 
     window.addEventListener("resize", handleResize);
