@@ -3,6 +3,12 @@ export enum PinType {
   Output,
 }
 
+export enum HardwareType {
+  Block,
+  Mux,
+  Adder,
+}
+
 export type HardwareProps = {
   pins: Array<Pin>;
   height?: number;
@@ -10,6 +16,7 @@ export type HardwareProps = {
   name?: string;
   pos: number[];
   tag: string;
+  type: HardwareType;
 };
 
 export type Pin = {
@@ -147,6 +154,7 @@ export default class HardwareRenderer {
   public matrix: Array<Array<Point>> = [];
   public matrixXoffset: number = 20;
   public matrixYoffset: number = 20;
+  public scale: number = 0.7;
 
   public static get instance(): HardwareRenderer {
     if (!HardwareRenderer._instance) {
@@ -194,9 +202,15 @@ export default class HardwareRenderer {
     * Initializes the matrix with the canvas width and height
     @returns void
   */
-  public initializeMatrix() {
+  public initializeMatrix(
+    xOffset: number = this.matrixXoffset,
+    yOffset: number = this.matrixYoffset
+  ) {
     let height = this.draw?.canvas.height ?? 0;
     let width = this.draw?.canvas.width ?? 0;
+
+    this.matrixXoffset = xOffset;
+    this.matrixYoffset = yOffset;
 
     this.matrix = [];
 
@@ -237,7 +251,8 @@ export default class HardwareRenderer {
   */
   public drawComponents() {
     this.components.forEach((component) => {
-      this.drawComponent(component);
+      if (component.type == HardwareType.Block) this.drawComponent(component);
+      else if (component.type == HardwareType.Mux) this.drawMux(component);
     });
   }
 
@@ -265,7 +280,7 @@ export default class HardwareRenderer {
       ctx.canvas.height = window.innerHeight * 2 - 40;
       ctx.strokeStyle = "black";
       ctx.fillStyle = "black";
-      ctx.lineWidth = 7;
+      ctx.lineWidth = 7; //* this.scale;
 
       this.setCanvas(ctx);
     }
@@ -353,13 +368,15 @@ export default class HardwareRenderer {
     let closest: Array<Point> = [];
     this.matrix.forEach((row) => {
       row.forEach((point) => {
-        if (this.euclidian(point.x, point.y, x, y) < 20 && !point.occupied) {
+        if (this.euclidian(point.x, point.y, x, y) < 20) {
+          //&& !point.occupied
           closest.push(point);
         }
       });
     });
 
     closest.sort((p) => this.euclidian(p.x, p.y, x, y));
+    closest[0].occupied = false;
 
     return closest[0];
   }
@@ -387,7 +404,7 @@ export default class HardwareRenderer {
 
   public aStarPathFiding(a: Point, b: Point): Array<Point> {
     //A* pathfinding
-    let weight = 4;
+    let weight = 5;
 
     let openSet: Heap<Point> = new Heap<Point>((a, b) => a.f < b.f);
     a.f = 0;
@@ -445,8 +462,6 @@ export default class HardwareRenderer {
 
     let path: Array<Point> = this.aStarPathFiding(a, b);
 
-    console.log("path", path);
-
     this.draw.strokeStyle = "black";
     this.draw.beginPath();
 
@@ -487,12 +502,9 @@ export default class HardwareRenderer {
     let inputPins = this.filterPins(component.pins, PinType.Input);
     let outputPins = this.filterPins(component.pins, PinType.Output);
 
-    let titleWidth = this.getTitleWidth(
-      component.name ?? "",
-      "bold 55px Arial"
-    );
-    let widestInput = this.getWidestPinWidth(inputPins, "40px Arial");
-    let widestOutput = this.getWidestPinWidth(outputPins, "40px Arial");
+    let titleWidth = this.getTitleWidth(component.name ?? "", this.bigText);
+    let widestInput = this.getWidestPinWidth(inputPins, this.shortText);
+    let widestOutput = this.getWidestPinWidth(outputPins, this.shortText);
 
     let widest = Math.max(widestInput, widestOutput);
 
@@ -502,8 +514,8 @@ export default class HardwareRenderer {
     let y = component.pos[1];
 
     //draw pins
-    let pinSize = 20;
-    let pinYoffset = 40;
+    let pinSize = 20 * this.scale;
+    let pinYoffset = 80 * this.scale;
 
     let height = this.getAutoHeight(component.pins, pinYoffset);
 
@@ -514,14 +526,14 @@ export default class HardwareRenderer {
     component.height = height;
 
     //draw title
-    this.draw.font = "bold 50px Arial";
+    this.draw.font = this.bigText;
     this.draw.fillText(
       component.name ?? "",
       x + (widest * 4 - titleWidth) / 2,
       y + height - 50,
       titleWidth
     );
-    this.draw.font = "40px Arial";
+    this.draw.font = this.shortText;
 
     //draw input pins
     inputPins.forEach((pin, index) => {
@@ -558,6 +570,62 @@ export default class HardwareRenderer {
         x + widest * 4 - pinSize / 2,
         y + pinYoffset + index * pinYoffset,
       ];
+    });
+  }
+
+  private get shortText(): string {
+    return `${40 * this.scale}px Arial`;
+  }
+
+  private get bigText(): string {
+    return `bold ${55 * this.scale}px Arial`;
+  }
+
+  public drawMux(props: HardwareProps) {
+    if (this.draw == undefined) return;
+
+    let inputPins = this.filterPins(props.pins, PinType.Input);
+    let outputPins = this.filterPins(props.pins, PinType.Output);
+
+    let height = inputPins.length * 40 * this.scale + 50;
+
+    this.draw.strokeStyle = "black";
+    this.draw.beginPath();
+    this.draw.roundRect(props.pos[0], props.pos[1], 50, height, 50);
+    this.draw.stroke();
+
+    this.draw.font = this.shortText;
+
+    let inputOffset = 40 * this.scale;
+
+    function margin(length: number, offset: number): number {
+      return (height - (length - 1) * offset) / 2;
+    }
+
+    inputPins.forEach((pin, index) => {
+      if (this.draw == undefined) return;
+
+      this.drawPin(
+        props.pos[0],
+        props.pos[1] +
+          margin(inputPins.length, inputOffset) +
+          index * inputOffset,
+        20 * this.scale
+      );
+    });
+
+    let outputOffset = height / (outputPins.length + 1);
+
+    outputPins.forEach((pin, index) => {
+      if (this.draw == undefined) return;
+
+      this.drawPin(
+        props.pos[0] + 50,
+        props.pos[1] +
+          +margin(outputPins.length, outputOffset) +
+          index * outputOffset * this.scale,
+        20 * this.scale
+      );
     });
   }
 }

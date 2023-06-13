@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import HardwareRenderer, { PinType } from "./utils/HardwareRenderer";
+import HardwareRenderer, {
+  HardwareType,
+  PinType,
+} from "./utils/HardwareRenderer";
 
 export default function HardwareView() {
   let height = 0;
@@ -25,62 +28,91 @@ export default function HardwareView() {
     renderer.setCanvasFromDoc(document);
 
     renderer.addComponent({
-      name: "RegisterAAAAAAAAA",
+      name: "PC",
       pos: [20 * 10, 20 * 8],
+      type: HardwareType.Block,
       tag: "test",
       pins: [
         {
-          name: "clk",
+          name: "out",
           value: 0,
-          bits: 1,
-          type: PinType.Input,
-        },
-        {
-          name: "clr",
-          value: 0,
-          bits: 1,
-          type: PinType.Input,
-        },
-        {
-          name: "dataout",
-          value: 0,
-          bits: 1,
+          bits: 32,
           type: PinType.Output,
         },
         {
-          name: "enable",
+          name: "newPC",
           value: 0,
           bits: 1,
           type: PinType.Input,
+        },
+      ],
+    });
+
+    renderer.addComponent({
+      name: "Data Memory",
+      pos: [20 * 45, 20 * 1],
+      type: HardwareType.Block,
+      tag: "test",
+      pins: [
+        {
+          name: "Address",
+          value: 0,
+          bits: 32,
+          type: PinType.Input,
+        },
+        {
+          name: "Write Data",
+          value: 0,
+          bits: 1,
+          type: PinType.Input,
+        },
+        {
+          name: "Dataout",
+          value: 0,
+          bits: 32,
+          type: PinType.Output,
         },
       ],
     });
 
     renderer.addComponent({
       name: "Register Bank",
-      pos: [20 * 45, 20 * 8],
+      pos: [20 * 86, 20 * 10],
       tag: "test",
+      type: HardwareType.Block,
       pins: [
         {
-          name: "clk",
+          name: "Read Register 1",
           value: 0,
-          bits: 1,
+          bits: 5,
           type: PinType.Input,
         },
         {
-          name: "clr",
+          name: "Read Register 2",
           value: 0,
-          bits: 1,
+          bits: 5,
           type: PinType.Input,
         },
         {
-          name: "dataout",
+          name: "Write Register",
+          value: 0,
+          bits: 5,
+          type: PinType.Input,
+        },
+        {
+          name: "Data 1",
           value: 0,
           bits: 1,
           type: PinType.Output,
         },
         {
-          name: "enable",
+          name: "Data 2",
+          value: 0,
+          bits: 1,
+          type: PinType.Output,
+        },
+        {
+          name: "Write Data",
           value: 0,
           bits: 1,
           type: PinType.Input,
@@ -89,78 +121,44 @@ export default function HardwareView() {
     });
 
     renderer.addComponent({
-      name: "Register with a really long name",
-      pos: [20 * 80, 20 * 8],
+      name: "Mux1",
+      pos: [20 * 50, 20 * 30],
       tag: "test",
+      type: HardwareType.Mux,
       pins: [
         {
-          name: "clk",
-          value: 0,
-          bits: 1,
+          name: "in1",
           type: PinType.Input,
+          value: 0,
+          bits: 32,
         },
         {
-          name: "clr",
-          value: 0,
-          bits: 1,
+          name: "in2",
           type: PinType.Input,
-        },
-        {
-          name: "dataout",
           value: 0,
-          bits: 1,
+          bits: 32,
+        },
+
+        {
+          name: "out",
           type: PinType.Output,
-        },
-        {
-          name: "carry",
           value: 0,
-          bits: 1,
-          type: PinType.Output,
-        },
-        {
-          name: "output",
-          value: 0,
-          bits: 1,
-          type: PinType.Output,
-        },
-        {
-          name: "zero",
-          value: 0,
-          bits: 1,
-          type: PinType.Output,
-        },
-        {
-          name: "beq",
-          value: 0,
-          bits: 1,
-          type: PinType.Output,
-        },
-        {
-          name: "overflow",
-          value: 0,
-          bits: 1,
-          type: PinType.Output,
-        },
-        {
-          name: "enable",
-          value: 0,
-          bits: 1,
-          type: PinType.Input,
+          bits: 32,
         },
       ],
     });
 
     renderer.drawComponents();
 
-    renderer.initializeMatrix();
+    renderer.initializeMatrix(20, 20);
     renderer.checkCollision();
 
     // renderer.drawWire(
-    //   renderer.components[0].pins[2],
+    //   renderer.components[0].pins[1],
     //   renderer.components[2].pins[0]
     // );
 
-    renderer.drawMatrix();
+    // renderer.drawMatrix();
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
