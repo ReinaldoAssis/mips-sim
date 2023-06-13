@@ -7,6 +7,7 @@ export enum HardwareType {
   Block,
   Mux,
   Adder,
+  Rounder, //general purpose rounded block
 }
 
 export type HardwareProps = {
@@ -253,6 +254,9 @@ export default class HardwareRenderer {
     this.components.forEach((component) => {
       if (component.type == HardwareType.Block) this.drawComponent(component);
       else if (component.type == HardwareType.Mux) this.drawMux(component);
+      else if (component.type == HardwareType.Adder) this.drawAdder(component);
+      else if (component.type == HardwareType.Rounder)
+        this.drawRounder(component);
     });
   }
 
@@ -387,24 +391,41 @@ export default class HardwareRenderer {
     let i = tile.x / this.matrixXoffset;
     let j = tile.y / this.matrixYoffset;
 
-    if (this.matrix[i][j - 1].occupied == false)
-      neighbors.push(this.matrix[i][j - 1]);
+    if (i + 1 >= this.matrix.length) {
+      // console.log("i + 1 >= this.matrix.length", i + 1, this.matrix.length);
+      return neighbors;
+    }
+    if (j + 1 >= this.matrix[0].length) {
+      // console.log(
+      //   "j + 1 >= this.matrix[0].length",
+      //   j + 1,
+      //   this.matrix[0].length
+      // );
+      return neighbors;
+    }
+
+    if (this.matrix[i + 1][j].occupied == false)
+      neighbors.push(this.matrix[i + 1][j]);
 
     if (this.matrix[i][j + 1].occupied == false)
       neighbors.push(this.matrix[i][j + 1]);
 
+    if (j - 1 < 0) return neighbors;
+
+    if (this.matrix[i][j - 1].occupied == false)
+      neighbors.push(this.matrix[i][j - 1]);
+
+    if (i - 1 < 0) return neighbors;
+
     if (this.matrix[i - 1][j].occupied == false)
       neighbors.push(this.matrix[i - 1][j]);
-
-    if (this.matrix[i + 1][j].occupied == false)
-      neighbors.push(this.matrix[i + 1][j]);
 
     return neighbors;
   }
 
   public aStarPathFiding(a: Point, b: Point): Array<Point> {
     //A* pathfinding
-    let weight = 5;
+    let weight = 1;
 
     let openSet: Heap<Point> = new Heap<Point>((a, b) => a.f < b.f);
     a.f = 0;
@@ -454,6 +475,12 @@ export default class HardwareRenderer {
     return [];
   }
 
+  /*
+    * Draws a wire between two pins using A* pathfinding
+    @param pinA - The first pin
+    @param pinB - The second pin
+    @returns void
+  */
   public drawWire(pinA: Pin, pinB: Pin) {
     if (this.draw == undefined) return;
 
@@ -473,6 +500,24 @@ export default class HardwareRenderer {
     });
 
     this.draw.stroke();
+  }
+
+  public connect(c1: string, c2: string, p1: string, p2: string) {
+    c1 = c1.toLowerCase();
+    c2 = c2.toLowerCase();
+    p1 = p1.toLowerCase();
+    p2 = p2.toLowerCase();
+
+    let pinA = this.components
+      .find((c) => c.name?.toLowerCase() == c1)
+      ?.pins.find((p) => p.name.toLowerCase() == p1);
+    let pinB = this.components
+      .find((c) => c.name?.toLowerCase() == c2)
+      ?.pins.find((p) => p.name.toLowerCase() == p2);
+
+    if (pinA == undefined || pinB == undefined) return;
+
+    this.drawWire(pinA, pinB);
   }
 
   /*
@@ -573,14 +618,25 @@ export default class HardwareRenderer {
     });
   }
 
+  /*
+   * Gets the font for the short text of a component
+   */
   private get shortText(): string {
     return `${40 * this.scale}px Arial`;
   }
 
+  /*
+   * Gets the font for the title text of a component
+   */
   private get bigText(): string {
     return `bold ${55 * this.scale}px Arial`;
   }
 
+  /*
+    * Draws a mux on the canvas with variable input and output pins
+    @param props - The component to be drawn
+    @returns void
+  */
   public drawMux(props: HardwareProps) {
     if (this.draw == undefined) return;
 
@@ -593,6 +649,9 @@ export default class HardwareRenderer {
     this.draw.beginPath();
     this.draw.roundRect(props.pos[0], props.pos[1], 50, height, 50);
     this.draw.stroke();
+
+    props.height = height;
+    props.width = 50;
 
     this.draw.font = this.shortText;
 
@@ -612,6 +671,13 @@ export default class HardwareRenderer {
           index * inputOffset,
         20 * this.scale
       );
+
+      inputPins[index].pos = [
+        props.pos[0],
+        props.pos[1] +
+          margin(inputPins.length, inputOffset) +
+          index * inputOffset,
+      ];
     });
 
     let outputOffset = 40 * this.scale;
@@ -626,6 +692,91 @@ export default class HardwareRenderer {
           index * outputOffset,
         20 * this.scale
       );
+
+      outputPins[index].pos = [
+        props.pos[0] + 50,
+        props.pos[1] +
+          margin(outputPins.length, outputOffset) +
+          index * outputOffset,
+      ];
     });
+  }
+
+  public drawAdder(props: HardwareProps) {
+    if (this.draw == undefined) return;
+
+    let x = props.pos[0];
+    let y = props.pos[1];
+
+    let s = this.scale * 1.5;
+
+    //draw body
+    this.draw.strokeStyle = "black";
+    this.draw.beginPath();
+    this.draw.moveTo(x, y);
+    this.draw.lineTo(x, y + 50 * s);
+    this.draw.lineTo(x + 40 * s, y + 75 * s);
+    this.draw.lineTo(x, y + 100 * s);
+    this.draw.lineTo(x, y + 150 * s);
+    this.draw.lineTo(x + 80 * s, y + 100 * s);
+    this.draw.lineTo(x + 80 * s, y + 50 * s);
+    this.draw.lineTo(x, y);
+    this.draw.stroke();
+
+    //updates the component size
+    props.height = 200 * s;
+    props.width = 80 * s;
+
+    //draw text
+    this.draw.font = this.bigText;
+    this.draw.fillText("Adder", x - 15 * s, y + 190 * s);
+
+    //draw pins
+    let pinSize = 20 * this.scale;
+    let inputPins = this.filterPins(props.pins, PinType.Input);
+    let outputPins = this.filterPins(props.pins, PinType.Output);
+
+    this.drawPin(x, y + 25 * s, pinSize); //a
+    this.drawPin(x, y + 125 * s, pinSize); //b
+    this.drawPin(x + 84, y + 75 * s, pinSize); //output
+
+    inputPins[0].pos = [x, y + 25 * s];
+    inputPins[1].pos = [x, y + 125 * s];
+    outputPins[0].pos = [x + 84, y + 75 * s];
+  }
+
+  public drawRounder(props: HardwareProps) {
+    let titleWidth = this.getTitleWidth(props.name ?? "", this.bigText);
+
+    let x = props.pos[0];
+    let y = props.pos[1];
+
+    if (this.draw == undefined) return;
+
+    //draw box
+    this.draw.strokeStyle = "black";
+    this.draw.beginPath();
+    this.draw.roundRect(x, y, titleWidth + 70, 70, 50);
+    this.draw.stroke();
+
+    //draw title
+    this.draw.font = this.bigText;
+    this.draw.fillText(props.name ?? "", x + 35, y + 50, titleWidth);
+
+    //draw pins
+    let pinSize = 20 * this.scale;
+    let inputPins = this.filterPins(props.pins, PinType.Input);
+    let outputPins = this.filterPins(props.pins, PinType.Output);
+
+    this.drawPin(x, y + 35, pinSize); //a
+    this.drawPin(x + titleWidth + 70, y + 35, pinSize); //output
+
+    //updates the pin position
+    inputPins[0].pos = [x, y + 35];
+    outputPins[0].pos = [x + titleWidth + 70, y + 35];
+
+    //updates the component size
+    props.height = 70;
+    props.width = titleWidth + 70;
   }
 }

@@ -145,6 +145,48 @@ export default function HardwareView() {
           value: 0,
           bits: 32,
         },
+      ],
+    });
+
+    renderer.addComponent({
+      name: "Adder1",
+      pos: [20 * 50, 20 * 50],
+      tag: "test",
+      type: HardwareType.Adder,
+      pins: [
+        {
+          name: "in1",
+          type: PinType.Input,
+          value: 0,
+          bits: 32,
+        },
+        {
+          name: "in2",
+          type: PinType.Input,
+          value: 0,
+          bits: 32,
+        },
+        {
+          name: "out",
+          type: PinType.Output,
+          value: 0,
+          bits: 32,
+        },
+      ],
+    });
+
+    renderer.addComponent({
+      name: "Sign extend",
+      pos: [20 * 50, 20 * 70],
+      tag: "test",
+      type: HardwareType.Rounder,
+      pins: [
+        {
+          name: "in",
+          type: PinType.Input,
+          value: 0,
+          bits: 32,
+        },
         {
           name: "out",
           type: PinType.Output,
@@ -159,10 +201,8 @@ export default function HardwareView() {
     renderer.initializeMatrix(20, 20);
     renderer.checkCollision();
 
-    // renderer.drawWire(
-    //   renderer.components[0].pins[1],
-    //   renderer.components[2].pins[0]
-    // );
+    renderer.connect("PC", "data memory", "newpc", "address");
+    renderer.connect("PC", "sign extend", "out", "in");
 
     // renderer.drawMatrix();
 
