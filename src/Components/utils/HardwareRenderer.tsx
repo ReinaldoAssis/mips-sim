@@ -614,7 +614,7 @@ export default class HardwareRenderer {
       );
     });
 
-    let outputOffset = height / (outputPins.length + 1);
+    let outputOffset = 40 * this.scale;
 
     outputPins.forEach((pin, index) => {
       if (this.draw == undefined) return;
@@ -623,7 +623,7 @@ export default class HardwareRenderer {
         props.pos[0] + 50,
         props.pos[1] +
           +margin(outputPins.length, outputOffset) +
-          index * outputOffset * this.scale,
+          index * outputOffset,
         20 * this.scale
       );
     });

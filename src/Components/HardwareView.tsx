@@ -145,6 +145,12 @@ export default function HardwareView() {
           value: 0,
           bits: 32,
         },
+        {
+          name: "out",
+          type: PinType.Output,
+          value: 0,
+          bits: 32,
+        },
       ],
     });
 
