@@ -92,6 +92,10 @@ export class Heap<T> {
     return this._heap.length === 0;
   }
 
+  public toArray(): Array<T> {
+    return this._heap;
+  }
+
   private swap(i: number, j: number): void {
     const temp = this._heap[i];
     this._heap[i] = this._heap[j];
@@ -228,6 +232,22 @@ export default class HardwareRenderer {
         });
       }
       this.matrix.push(row);
+    }
+  }
+
+  /*
+    * Resets the matrix tiles to their default values except for occupied
+    @returns void
+  */
+  public resetMatrix() {
+    for (let i = 0; i < this.matrix.length; i++) {
+      for (let j = 0; j < this.matrix[i].length; j++) {
+        this.matrix[i][j].occupied = this.matrix[i][j].occupied;
+        this.matrix[i][j].visited = false;
+        this.matrix[i][j].f = 999999;
+        this.matrix[i][j].g = 0;
+        this.matrix[i][j].parent = undefined;
+      }
     }
   }
 
@@ -423,7 +443,11 @@ export default class HardwareRenderer {
     return neighbors;
   }
 
-  public aStarPathFiding(a: Point, b: Point): Array<Point> {
+  public aStarPathFiding(
+    a: Point,
+    b: Point,
+    debug: boolean = false
+  ): Array<Point> {
     //A* pathfinding
     let weight = 1;
 
@@ -438,12 +462,24 @@ export default class HardwareRenderer {
       let node = openSet.pop(); //gets the node with the lowest f value
       node.visited = true;
 
-      if (node === b) {
-        //return backtrace
-        return backtrace(node);
-      }
+      // if (node === b) {
+      //   //return backtrace
+      //   return backtrace(node);
+      // }
+
+      if (node.x == b.x && node.y == b.y) return backtrace(node);
 
       let neighbors = this.getTileNeighbors(node);
+
+      if (debug) {
+        if (this.draw == undefined) return [];
+        this.draw.strokeStyle = "orange";
+        this.draw.strokeRect(node.x - 2, node.y - 2, 4, 4);
+
+        // console.log("heap", openSet.toArray());
+        // console.log("neighbors", neighbors);
+      }
+
       for (let i = 0; i < neighbors.length; i++) {
         let neighbor = neighbors[i];
 
@@ -452,11 +488,14 @@ export default class HardwareRenderer {
         // get the distance between current node and the neighbor
         // and calculate the next g score
 
-        let ng = node.g + 1; // 1 is the distance between two nodes (1 tile) since diagonal movement is not allowed
+        //TODO: verify if this is correct
+        // let ng = node.g + 1; // 1 is the distance between two nodes (1 tile) since diagonal movement is not allowed
+        let ng = node.g + weight; // 1 is the distance between two nodes (1 tile) since diagonal movement is not allowed
 
         if (!neighbor.visited || ng < neighbor.g) {
           neighbor.g = ng;
-          neighbor.f = ng + weight * manhattan(neighbor, b);
+          // neighbor.f = ng + weight * manhattan(neighbor, b);
+          neighbor.f = ng + manhattan(neighbor, b);
           neighbor.parent = node;
 
           if (!neighbor.visited) {
@@ -481,8 +520,8 @@ export default class HardwareRenderer {
     @param pinB - The second pin
     @returns void
   */
-  public drawWire(pinA: Pin, pinB: Pin) {
-    if (this.draw == undefined) return;
+  public drawWire(pinA: Pin, pinB: Pin): Array<Point> {
+    if (this.draw == undefined) return [];
 
     let a: Point = this.getsPinClosestTile(pinA);
     let b: Point = this.getsPinClosestTile(pinB);
@@ -500,9 +539,19 @@ export default class HardwareRenderer {
     });
 
     this.draw.stroke();
+
+    return path;
   }
 
-  public connect(c1: string, c2: string, p1: string, p2: string) {
+  /*
+    * Connects two pins using A* pathfinding
+    @param c1 - The name of the first component
+    @param c2 - The name of the second component
+    @param p1 - The name of the first pin
+    @param p2 - The name of the second pin
+    @returns The path between the two pins
+  */
+  public connect(c1: string, c2: string, p1: string, p2: string): Array<Point> {
     c1 = c1.toLowerCase();
     c2 = c2.toLowerCase();
     p1 = p1.toLowerCase();
@@ -515,9 +564,56 @@ export default class HardwareRenderer {
       .find((c) => c.name?.toLowerCase() == c2)
       ?.pins.find((p) => p.name.toLowerCase() == p2);
 
-    if (pinA == undefined || pinB == undefined) return;
+    if (pinA == undefined || pinB == undefined) return [];
 
-    this.drawWire(pinA, pinB);
+    return this.drawWire(pinA, pinB);
+  }
+
+  /*
+    * Makes a branch from a wire to a pin using A* pathfinding
+    @param wire - The wire to be branched
+    @param c1 - The name of the component
+    @param p1 - The name of the pin
+    @param branch - The index of the wire to be branched
+    @returns The path between the wire and the pin  
+  */
+  public branch(
+    wire: Array<Point>,
+    c1: string,
+    p1: string,
+    branch: number | undefined = undefined
+  ): Array<Point> {
+    c1 = c1.toLowerCase();
+    p1 = p1.toLowerCase();
+    let pinA = this.components
+      .find((c) => c.name?.toLowerCase() == c1)
+      ?.pins.find((p) => p.name.toLowerCase() == p1);
+
+    if (pinA == undefined || wire.length == 0) return [];
+
+    let a: Point = wire[branch ?? Math.floor(Math.random() * wire.length)];
+    let b: Point = this.getsPinClosestTile(pinA);
+
+    a.visited = false;
+    a.occupied = false;
+
+    this.resetMatrix();
+    let path: Array<Point> = this.aStarPathFiding(a, b, true);
+
+    if (this.draw == undefined) return [];
+
+    this.draw.strokeStyle = "black";
+    this.draw.beginPath();
+    path.forEach((point, index) => {
+      if (this.draw == undefined) return;
+
+      if (index == 0) this.draw.moveTo(point.x, point.y);
+      else this.draw.lineTo(point.x, point.y);
+    });
+
+    this.draw.stroke();
+
+    return path;
   }
 
   /*

@@ -10,6 +10,9 @@ export default function HardwareView() {
 
   const [offsetx, setOffsetx] = useState(0);
   const [offsety, setOffsety] = useState(0);
+
+  const [rendered, setRendered] = useState(false);
+
   const [draw, setDraw] = useState<CanvasRenderingContext2D>();
   let renderer: HardwareRenderer = new HardwareRenderer();
 
@@ -27,9 +30,19 @@ export default function HardwareView() {
 
     renderer.setCanvasFromDoc(document);
 
+    handleRender();
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  function handleRender() {
+    //if (rendered) return;
+    setRendered(true);
+
     renderer.addComponent({
       name: "PC",
-      pos: [20 * 10, 20 * 8],
+      pos: [20 * 10, 20 * 30],
       type: HardwareType.Block,
       tag: "test",
       pins: [
@@ -50,7 +63,7 @@ export default function HardwareView() {
 
     renderer.addComponent({
       name: "Data Memory",
-      pos: [20 * 45, 20 * 1],
+      pos: [20 * 45, 20 * 30],
       type: HardwareType.Block,
       tag: "test",
       pins: [
@@ -77,7 +90,7 @@ export default function HardwareView() {
 
     renderer.addComponent({
       name: "Register Bank",
-      pos: [20 * 86, 20 * 10],
+      pos: [20 * 100, 20 * 30],
       tag: "test",
       type: HardwareType.Block,
       pins: [
@@ -122,7 +135,7 @@ export default function HardwareView() {
 
     renderer.addComponent({
       name: "Mux1",
-      pos: [20 * 50, 20 * 30],
+      pos: [20 * 90, 20 * 35.5],
       tag: "test",
       type: HardwareType.Mux,
       pins: [
@@ -177,7 +190,7 @@ export default function HardwareView() {
 
     renderer.addComponent({
       name: "Sign extend",
-      pos: [20 * 50, 20 * 70],
+      pos: [20 * 90, 20 * 70],
       tag: "test",
       type: HardwareType.Rounder,
       pins: [
@@ -201,14 +214,20 @@ export default function HardwareView() {
     renderer.initializeMatrix(20, 20);
     renderer.checkCollision();
 
-    renderer.connect("PC", "data memory", "newpc", "address");
-    renderer.connect("PC", "sign extend", "out", "in");
+    let wire2 = renderer.connect(
+      "data memory",
+      "register bank",
+      "dataout",
+      "read register 1"
+    );
+
+    console.log("wire2", wire2);
+
+    renderer.branch(wire2, "register bank", "read register 2", 3);
+    renderer.branch(wire2, "sign extend", "in", 0);
 
     // renderer.drawMatrix();
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }
 
   return (
     <canvas
