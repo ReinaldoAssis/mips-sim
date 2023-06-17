@@ -458,6 +458,24 @@ export default class HardwareRenderer {
     openSet.push(a);
     a.visited = true;
 
+    //initializes the direction
+    let direction = Math.atan2(b.y - a.y, b.x - a.x);
+
+    function isSameDirection(node: Point): boolean | undefined {
+      if (node.parent == undefined) return undefined;
+      if (node.parent.parent == undefined) return undefined;
+
+      let prev = node.parent;
+      let prevprev = node.parent.parent;
+
+      let dx = Math.abs(prev.x - prevprev.x);
+      let dy = Math.abs(prev.y - prevprev.y);
+
+      if (dx == 0 && dy == 0) return undefined;
+      if (dx == 0) return prev.x > prevprev.x && prev.y == prevprev.y;
+      if (dy == 0) return prev.y > prevprev.y && prev.x == prevprev.x;
+    }
+
     while (openSet.isEmpty() == false) {
       let node = openSet.pop(); //gets the node with the lowest f value
       node.visited = true;
@@ -485,12 +503,26 @@ export default class HardwareRenderer {
 
         if (neighbor.visited) continue;
 
+        let turnCost = 0;
+
+        //calculate the current direction and apply a turn cost if the direction changes
+        if (node.parent) {
+          let dx1 = node.x - node.parent.x;
+          let dy1 = node.y - node.parent.y;
+          let dx2 = neighbor.x - node.x;
+          let dy2 = neighbor.y - node.y;
+
+          if (dx1 != dx2 || dy1 != dy2) {
+            turnCost = 200;
+          }
+        }
+
         // get the distance between current node and the neighbor
         // and calculate the next g score
 
         //TODO: verify if this is correct
         // let ng = node.g + 1; // 1 is the distance between two nodes (1 tile) since diagonal movement is not allowed
-        let ng = node.g + weight; // 1 is the distance between two nodes (1 tile) since diagonal movement is not allowed
+        let ng = node.g + weight + turnCost; // 1 is the distance between two nodes (1 tile) since diagonal movement is not allowed
 
         if (!neighbor.visited || ng < neighbor.g) {
           neighbor.g = ng;
@@ -598,7 +630,7 @@ export default class HardwareRenderer {
     a.occupied = false;
 
     this.resetMatrix();
-    let path: Array<Point> = this.aStarPathFiding(a, b, true);
+    let path: Array<Point> = this.aStarPathFiding(a, b, false);
 
     if (this.draw == undefined) return [];
 
