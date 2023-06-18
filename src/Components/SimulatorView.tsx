@@ -151,6 +151,14 @@ function EditorView(props: {
     Logger.instance.onLogChange(() => {
       setConsoleTxt(Logger.instance.getConsole());
       setDebugTxt(Logger.instance.getDebug());
+
+      /* Responsible for scrolling the text areas */
+      let debugTxtArea = document.getElementById("debugTxtArea");
+      if (debugTxtArea) debugTxtArea.scrollTop = debugTxtArea.scrollHeight;
+
+      let consoleTxtArea = document.getElementById("consoleTxtArea");
+      if (consoleTxtArea)
+        consoleTxtArea.scrollTop = consoleTxtArea.scrollHeight;
     });
   }, [consoleOpen]);
 
@@ -209,6 +217,7 @@ function EditorView(props: {
             </Button>
           </Stack>
 
+          {/* Console  */}
           {currentTerminal == 0 ? (
             <>
               <Icon
@@ -231,12 +240,15 @@ function EditorView(props: {
                 value={consoleTxt}
                 height={"150px"}
                 style={{ position: "relative", bottom: 50 }}
+                id={"consoleTxtArea"}
+                scrollBehavior={"smooth"}
               ></Textarea>
             </>
           ) : (
             <></>
           )}
 
+          {/* Debug terminal  */}
           {currentTerminal == 1 ? (
             <>
               <Icon
@@ -259,6 +271,8 @@ function EditorView(props: {
                 value={debugTxt}
                 height={"150px"}
                 style={{ position: "relative", bottom: 50 }}
+                id={"debugTxtArea"}
+                scrollBehavior={"smooth"}
               ></Textarea>
             </>
           ) : (
@@ -289,7 +303,7 @@ function EditorView(props: {
                 share.currentProcessor.executeStep();
               } else {
                 share.currentProcessor = new SISMIPS();
-                const assembly = simservice.assemble(SharedData.instance.code);
+                const assembly = simservice.assemble(share.code);
                 share.currentProcessor.loadProgram(assembly.split(" "));
                 console.log(
                   `Current assembly code: ${assembly} code: ${share.code}`
