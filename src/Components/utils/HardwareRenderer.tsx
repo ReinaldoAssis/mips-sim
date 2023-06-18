@@ -847,10 +847,11 @@ export default class HardwareRenderer {
 
       //updates the pin position
       inputPins[index].pos = [
-        props.pos[0],
+        props.pos[0] - pinSize / 2,
         props.pos[1] +
           margin(inputPins.length, inputOffset) +
-          index * inputOffset,
+          index * inputOffset -
+          pinSize / 2,
       ];
     });
 
@@ -931,30 +932,38 @@ export default class HardwareRenderer {
 
     if (this.draw == undefined) return;
 
+    let width = titleWidth + 3 * this.matrixXoffset;
+    let height = 3 * this.matrixYoffset;
+
     //draw box
     this.draw.strokeStyle = "black";
     this.draw.beginPath();
-    this.draw.roundRect(x, y, titleWidth + 70, 70, 50);
+    this.draw.roundRect(x, y, width, height, 50);
     this.draw.stroke();
 
     //draw title
     this.draw.font = this.bigText;
-    this.draw.fillText(props.name ?? "", x + 35, y + 50, titleWidth);
+    this.draw.fillText(
+      props.name ?? "",
+      x + titleWidth / 8,
+      y + 60 * this.scale,
+      width
+    );
 
     //draw pins
     let pinSize = 20 * this.scale;
     let inputPins = this.filterPins(props.pins, PinType.Input);
     let outputPins = this.filterPins(props.pins, PinType.Output);
 
-    this.drawPin(x, y + 35, pinSize); //a
-    this.drawPin(x + titleWidth + 70, y + 35, pinSize); //output
+    this.drawPin(x, y + height / 2, pinSize); //a
+    this.drawPin(x + width, y + height / 2, pinSize); //output
 
     //updates the pin position
-    inputPins[0].pos = [x, y + 35];
-    outputPins[0].pos = [x + titleWidth + 70, y + 35];
+    inputPins[0].pos = [x - pinSize / 2, y + height / 2 - pinSize / 2];
+    outputPins[0].pos = [x + width - pinSize / 2, y + height / 2 - pinSize / 2];
 
     //updates the component size
-    props.height = 70;
-    props.width = titleWidth + 70;
+    props.height = height;
+    props.width = width;
   }
 }
