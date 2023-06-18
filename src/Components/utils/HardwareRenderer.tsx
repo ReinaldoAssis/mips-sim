@@ -395,12 +395,20 @@ export default class HardwareRenderer {
         if (this.euclidian(point.x, point.y, x, y) < 20) {
           //&& !point.occupied
           closest.push(point);
+          // if (this.draw == undefined) return closest[0];
+          // this.draw.strokeStyle = "red";
+          // this.draw.strokeRect(point.x - 1, point.y - 1, 2, 2);
         }
       });
     });
 
     closest.sort((p) => this.euclidian(p.x, p.y, x, y));
     closest[0].occupied = false;
+
+    /*TODO: remove this section */
+    // if (this.draw == undefined) return closest[0];
+    // this.draw.strokeStyle = "purple";
+    // this.draw.strokeRect(closest[0].x - 2, closest[0].y - 2, 4, 4);
 
     return closest[0];
   }
@@ -607,14 +615,17 @@ export default class HardwareRenderer {
     @param c1 - The name of the component
     @param p1 - The name of the pin
     @param branch - The index of the wire to be branched
+    @param delta - The offset for the branch, for example [0, 1] will make the branch go down one tile
     @returns The path between the wire and the pin  
   */
   public branch(
     wire: Array<Point>,
     c1: string,
     p1: string,
-    branch: number | undefined = undefined
+    branch: number | undefined = undefined,
+    delta: number[] = [0, 0]
   ): Array<Point> {
+    /* Finds the pin using the names given */
     c1 = c1.toLowerCase();
     p1 = p1.toLowerCase();
     let pinA = this.components
@@ -622,14 +633,24 @@ export default class HardwareRenderer {
       ?.pins.find((p) => p.name.toLowerCase() == p1);
 
     if (pinA == undefined || wire.length == 0) return [];
+    /* --- */
 
+    //Point a is where the wire is branched from
     let a: Point = wire[branch ?? Math.floor(Math.random() * wire.length)];
+    //copy of the original point
+    let originalA: Point = { ...a };
+    //Point b is the destination pin
     let b: Point = this.getsPinClosestTile(pinA);
 
     a.visited = false;
     a.occupied = false;
+    a.x += delta[0] * this.matrixXoffset;
+    a.y += delta[1] * this.matrixYoffset;
 
+    //reset the matrix to its default values
     this.resetMatrix();
+
+    //get the path with a* pathfinding
     let path: Array<Point> = this.aStarPathFiding(a, b, false);
 
     if (this.draw == undefined) return [];
@@ -644,6 +665,16 @@ export default class HardwareRenderer {
     });
 
     this.draw.stroke();
+
+    if (delta[0] != 0 || delta[1] != 0) {
+      this.draw.beginPath();
+      this.draw.moveTo(originalA.x, originalA.y);
+
+      if (delta[1] != 0) this.draw.lineTo(a.x, a.y + 4 * this.scale);
+      else this.draw.lineTo(a.x, a.y);
+
+      this.draw.stroke();
+    }
 
     return path;
   }
@@ -720,7 +751,10 @@ export default class HardwareRenderer {
       );
 
       //updates the pin position
-      pin.pos = [x - pinSize / 2, y + pinYoffset + index * pinYoffset];
+      pin.pos = [
+        x - pinSize / 2,
+        y + pinYoffset + index * pinYoffset - pinSize / 2,
+      ];
     });
 
     //draw output pins
@@ -768,27 +802,38 @@ export default class HardwareRenderer {
   public drawMux(props: HardwareProps) {
     if (this.draw == undefined) return;
 
+    // filters the pins by type
     let inputPins = this.filterPins(props.pins, PinType.Input);
     let outputPins = this.filterPins(props.pins, PinType.Output);
 
-    let height = inputPins.length * 40 * this.scale + 50;
+    // automatically calculates the height of the component
+    let height =
+      inputPins.length * this.matrixYoffset * 2 + this.matrixYoffset * 2;
+    let width = this.matrixXoffset * 3;
 
+    //draws the rounded body
     this.draw.strokeStyle = "black";
     this.draw.beginPath();
-    this.draw.roundRect(props.pos[0], props.pos[1], 50, height, 50);
+    this.draw.roundRect(props.pos[0], props.pos[1], width, height, 50);
     this.draw.stroke();
 
+    /* Updates the props height and width to account for in collision */
     props.height = height;
-    props.width = 50;
+    props.width = width - 20;
+    /* */
 
     this.draw.font = this.shortText;
 
-    let inputOffset = 40 * this.scale;
+    //offset between input pins
+    let inputOffset = this.matrixYoffset * 2;
+    let pinSize = this.matrixXoffset / 1.5; //general size of the pins
 
+    //calculates the margin between the pins so that they are centered
     function margin(length: number, offset: number): number {
       return (height - (length - 1) * offset) / 2;
     }
 
+    /* draws the input pins */
     inputPins.forEach((pin, index) => {
       if (this.draw == undefined) return;
 
@@ -797,9 +842,10 @@ export default class HardwareRenderer {
         props.pos[1] +
           margin(inputPins.length, inputOffset) +
           index * inputOffset,
-        20 * this.scale
+        pinSize
       );
 
+      //updates the pin position
       inputPins[index].pos = [
         props.pos[0],
         props.pos[1] +
@@ -808,24 +854,28 @@ export default class HardwareRenderer {
       ];
     });
 
+    //offset between output pins
     let outputOffset = 40 * this.scale;
 
+    /* Draws the output pins */
     outputPins.forEach((pin, index) => {
       if (this.draw == undefined) return;
 
       this.drawPin(
-        props.pos[0] + 50,
+        props.pos[0] + width,
         props.pos[1] +
           +margin(outputPins.length, outputOffset) +
           index * outputOffset,
-        20 * this.scale
+        pinSize
       );
 
+      //updates the pin position
       outputPins[index].pos = [
-        props.pos[0] + 50,
+        props.pos[0] + width - pinSize / 2,
         props.pos[1] +
           margin(outputPins.length, outputOffset) +
-          index * outputOffset,
+          index * outputOffset -
+          pinSize / 2,
       ];
     });
   }
