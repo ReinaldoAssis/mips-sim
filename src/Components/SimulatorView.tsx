@@ -33,21 +33,25 @@ const TerminalFill = () => <Icon as={BsTerminalFill} />;
 const DeleteIcon = () => <Icon as={MdDelete} />;
 
 export default function SimulatorView() {
-  //const [code, setCode] = React.useState<string>("");
-
+  // Handles the assembly code present in the editor
   const [code, setCode] = React.useState<string>("");
-  const [assemblyCode, setAssemblyCode] = React.useState<string>("");
 
+  // const [assemblyCode, setAssemblyCode] = React.useState<string>("");
+
+  // SimulatorService instance that handles the assembly of the code
   let simservice: SimulatorService = SimulatorService.getInstance();
 
+  // Notification toast
   const toast = useToast();
 
+  // Holds the shared state of the application
   let share: SharedData = SharedData.instance;
 
-  React.useEffect(() => {
-    setAssemblyCode(simservice.assemblyCode);
-  }, [simservice.assemblyCode]);
+  // React.useEffect(() => {
+  //   setAssemblyCode(simservice.assemblyCode);
+  // }, [simservice.assemblyCode]);
 
+  // Updates the assembly code when the code changes
   function onEditorChange(value: string | undefined, event: any) {
     setCode(value!);
     share.code = code;
@@ -56,7 +60,7 @@ export default function SimulatorView() {
   function runCode() {
     console.log("Running code");
     simservice.assemblyCode = simservice.assemble(code);
-    setAssemblyCode(simservice.assemblyCode);
+    // setAssemblyCode(simservice.assemblyCode);
 
     toast({
       title: "Code assembled",
@@ -80,6 +84,9 @@ export default function SimulatorView() {
     });
     cpu.execute();
   }
+
+  /* DESCRIPTION */
+  // View page that houses the assembly code editor, assembly hex, and hardware view
 
   return (
     <Tabs variant="soft-rounded">
@@ -113,14 +120,25 @@ function EditorView(props: {
   runBtn: Function;
   onEditorChange: (value: string | undefined, event: any) => void;
 }) {
+  // Handles the visibility of the console and debug terminal
   const [consoleOpen, setConsoleOpen] = React.useState<boolean>(false);
+
+  // Handles the state of the console and debug terminal
   const [consoleTxt, setConsoleTxt] = React.useState<string>("");
+
+  // Handles witch terminal is currently selected
   const [currentTerminal, setCurrentTerminal] = React.useState<number>(0);
+
+  // Handles the information text of the debug terminal
   const [debugTxt, setDebugTxt] = React.useState<string>("");
 
+  // SharedData instance that holds the shared state of the application
   let share: SharedData = SharedData.instance;
+
+  // SimulatorService instance that handles the assembly of the code
   let simservice: SimulatorService = SimulatorService.getInstance();
 
+  // Updates the console and debug terminal when the log changes
   React.useEffect(() => {
     Logger.instance.onLogChange(() => {
       setConsoleTxt(Logger.instance.getConsole());
