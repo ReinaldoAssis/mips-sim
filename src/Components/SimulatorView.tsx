@@ -47,20 +47,28 @@ export default function SimulatorView() {
   // Holds the shared state of the application
   let share: SharedData = SharedData.instance;
 
-  // React.useEffect(() => {
-  //   setAssemblyCode(simservice.assemblyCode);
-  // }, [simservice.assemblyCode]);
-
   // Updates the assembly code when the code changes
   function onEditorChange(value: string | undefined, event: any) {
     setCode(value!);
     share.code = code;
   }
 
+  function forceGetCode() {
+    console.log("monaco editor value ", share.monacoEditor.getValue());
+    console.log("code ", code);
+    if (code == "" && share.monacoEditor != null) {
+      let monacoCode = share.monacoEditor.getValue();
+      setCode(monacoCode);
+      share.code = monacoCode;
+    }
+  }
+
   function runCode() {
+    // if code state is empty, get code from monaco editor and update share.code
+    forceGetCode();
+
     console.log("Running code");
-    simservice.assemblyCode = simservice.assemble(code);
-    // setAssemblyCode(simservice.assemblyCode);
+    simservice.assembledCode = simservice.assemble(share.code);
 
     toast({
       title: "Code assembled",
@@ -70,7 +78,7 @@ export default function SimulatorView() {
       isClosable: true,
     });
 
-    let instructions = simservice.assemblyCode.split(" ");
+    let instructions = simservice.assembledCode.split(" ");
     console.log(instructions);
     //temporary
 
@@ -104,7 +112,7 @@ export default function SimulatorView() {
         <TabPanel>
           <Textarea
             style={{ height: "80vh" }}
-            value={simservice.assemblyCode}
+            value={simservice.assembledCode}
           />
         </TabPanel>
 
