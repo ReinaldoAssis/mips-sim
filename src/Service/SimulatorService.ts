@@ -9,7 +9,7 @@ type Label = {
 
 export default class SimulatorService {
   public editorValue: string = "";
-  public assemblyCode: string = "";
+  public assembledCode: string = "";
   private log: Logger = Logger.instance;
   private found_labels = new Array<Label>(); // map containing all the labels and their addresses
 
