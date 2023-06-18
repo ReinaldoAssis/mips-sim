@@ -209,9 +209,10 @@ export default function HardwareView() {
       ],
     });
 
+    renderer.scale = 0.7;
     renderer.drawComponents();
 
-    renderer.initializeMatrix(20, 20);
+    renderer.initializeMatrix(20 * renderer.scale, 20 * renderer.scale);
     renderer.checkCollision();
 
     let wire2 = renderer.connect(
@@ -223,10 +224,20 @@ export default function HardwareView() {
 
     console.log("wire2", wire2);
 
-    renderer.branch(wire2, "register bank", "read register 2", 3);
-    renderer.branch(wire2, "sign extend", "in", 0);
+    let wire3 = renderer.branch(
+      wire2,
+      "register bank",
+      "read register 2",
+      3,
+      [0, 1]
+    );
 
-    // renderer.drawMatrix();
+    let wire4 = renderer.branch(wire2, "sign extend", "in", 0);
+    renderer.branch(wire3, "mux1", "in1", 1);
+    renderer.branch(wire4, "mux1", "in2", 0);
+    renderer.connect("mux1", "register bank", "out", "write register");
+
+    renderer.drawMatrix();
   }
 
   return (
