@@ -356,6 +356,10 @@ export default class HardwareRenderer {
     return this.draw.measureText(title).width;
   }
 
+  private get nullPoint(): Point {
+    return { x: -1, y: -1, occupied: false, visited: false, f: -1, g: -1 };
+  }
+
   /*
     * Filters a list of pins by type
     @param pins - The list of pins to be filtered
@@ -403,6 +407,7 @@ export default class HardwareRenderer {
     });
 
     closest.sort((p) => this.euclidian(p.x, p.y, x, y));
+    if (closest.length == 0) return this.nullPoint;
     closest[0].occupied = false;
 
     /*TODO: remove this section */
@@ -825,7 +830,7 @@ export default class HardwareRenderer {
     this.draw.font = this.shortText;
 
     //offset between input pins
-    let inputOffset = this.matrixYoffset * 2;
+    let inputOffset = height / (inputPins.length + 1);
     let pinSize = this.matrixXoffset / 1.5; //general size of the pins
 
     //calculates the margin between the pins so that they are centered
