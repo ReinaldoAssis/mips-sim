@@ -20,12 +20,21 @@ export default class SharedData {
   // Start address of the program
   public PcStart: number = 0x00400000;
   // Pure text code
-  public code: string = "";
+  private _code: string = "";
   // Current model for simulation
   public currentProcessor: processor | null = null;
 
   public get currentStepLine(): number {
     return 1; //this.currentPc - this.PcStart;
+  }
+
+  public get code(): string {
+    if (this.monacoEditor) return this.monacoEditor.getValue();
+    else return this._code;
+  }
+
+  public set code(value: string) {
+    this._code = value;
   }
 
   private constructor() {}
