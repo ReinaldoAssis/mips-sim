@@ -124,7 +124,7 @@ export default class SimulatorService {
   // treat the offsets in the code, like "4 ($t0)"
   // @param {string} code - The code to be treated
   public treatOffsets(code: string): string {
-    let offsets = Array.from(code.matchAll(/\d+\s?\(\$\w+\d*\)/g))[0];
+    let offsets = Array.from(code.matchAll(/\d+\s?\(\$\w+\d*\)/g));
     if (!offsets) return code;
 
     offsets.forEach((x) => {
@@ -141,6 +141,7 @@ export default class SimulatorService {
     return code;
   }
 
+  /* TODO: DESCRIPTION */
   public treatLabels(code: string): string {
     // regex to find labels such as "label:"
     let labels = code.match(/^\w+:/gm);
