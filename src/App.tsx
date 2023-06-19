@@ -8,6 +8,7 @@ export const App = () => (
   <ChakraProvider theme={theme}>
     <SidebarWithHeader>
       <SimulatorView />
+      <h1>test</h1>
     </SidebarWithHeader>
   </ChakraProvider>
 );

@@ -56,11 +56,19 @@ export default function SidebarWithHeader({
   children: ReactNode;
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [page, setPage] = React.useState(0);
+
+  const changePage = (index: number) => {
+    setPage(index);
+    console.log("page", page);
+  };
+
   return (
     <Box minH="100vh" bg={useColorModeValue("gray.100", "gray.900")}>
       <SidebarContent
         onClose={() => onClose}
         display={{ base: "none", md: "block" }}
+        changePage={changePage}
       />
       <Drawer
         autoFocus={false}
@@ -72,13 +80,13 @@ export default function SidebarWithHeader({
         size="full"
       >
         <DrawerContent>
-          <SidebarContent onClose={onClose} />
+          <SidebarContent onClose={onClose} changePage={changePage} />
         </DrawerContent>
       </Drawer>
       {/* mobilenav */}
       {/* <MobileNav onOpen={onOpen} /> */}
       <Box ml={{ base: 0, md: 60 }} p="4">
-        {children}
+        {React.Children.toArray(children)[page]}
       </Box>
     </Box>
   );
@@ -86,9 +94,10 @@ export default function SidebarWithHeader({
 
 interface SidebarProps extends BoxProps {
   onClose: () => void;
+  changePage: (index: number) => void;
 }
 
-const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
+const SidebarContent = ({ onClose, changePage, ...rest }: SidebarProps) => {
   return (
     <Box
       transition="3s ease"
@@ -106,8 +115,8 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
         </Text>
         <CloseButton display={{ base: "flex", md: "none" }} onClick={onClose} />
       </Flex>
-      {LinkItems.map((link) => (
-        <NavItem key={link.name} icon={link.icon}>
+      {LinkItems.map((link, i) => (
+        <NavItem key={link.name} icon={link.icon} onClick={() => changePage(i)}>
           {link.name}
         </NavItem>
       ))}
