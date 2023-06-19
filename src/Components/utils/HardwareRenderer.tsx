@@ -780,7 +780,7 @@ export default class HardwareRenderer {
       //updates the pin position
       pin.pos = [
         x + widest * 4 - pinSize / 2,
-        y + pinYoffset + index * pinYoffset,
+        y + pinYoffset + index * pinYoffset - pinSize / 2,
       ];
     });
   }

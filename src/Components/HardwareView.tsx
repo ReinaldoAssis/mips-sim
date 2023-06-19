@@ -209,7 +209,7 @@ export default function HardwareView() {
       ],
     });
 
-    renderer.scale = 0.7;
+    renderer.scale = 1;
     renderer.drawComponents();
 
     renderer.initializeMatrix(20 * renderer.scale, 20 * renderer.scale);
@@ -237,7 +237,9 @@ export default function HardwareView() {
     renderer.branch(wire4, "mux1", "in2", 0);
     renderer.connect("mux1", "register bank", "out", "write register");
 
-    renderer.drawMatrix();
+    renderer.connect("PC", "data memory", "out", "address");
+
+    // renderer.drawMatrix();
   }
 
   return (
