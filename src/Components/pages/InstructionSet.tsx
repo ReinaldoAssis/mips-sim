@@ -100,7 +100,7 @@ export default class InstructionSetPage extends React.Component<{}> {
               </Tr>
               <Tr>
                 <Td>SLT</Td>
-                <Td>A = B ^ C</Td>
+                <Td>A = B &lt; C ? 1 : 0</Td>
                 <Td>
                   Set Less Than (SLT) sets the A register to 1 if B is less than
                   C, otherwise it sets A to 0
