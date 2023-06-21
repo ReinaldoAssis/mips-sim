@@ -160,7 +160,7 @@ function EditorView(props: {
       if (consoleTxtArea)
         consoleTxtArea.scrollTop = consoleTxtArea.scrollHeight;
     });
-  }, [consoleOpen]);
+  }, [consoleOpen, debugTxt]);
 
   return (
     <Stack direction={"row"}>
@@ -255,6 +255,7 @@ function EditorView(props: {
                 as={MdDelete}
                 onClick={() => {
                   setDebugTxt("");
+                  Logger.instance.clearDebug();
                 }}
                 style={{
                   position: "relative",
