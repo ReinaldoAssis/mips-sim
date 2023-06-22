@@ -21,6 +21,7 @@ import {
   useToast,
   Slide,
   Box,
+  IconButton,
 } from "@chakra-ui/react";
 import SimulatorService from "../../Service/SimulatorService";
 import HardwareView from "../HardwareView";
@@ -28,7 +29,9 @@ import SISMIPS from "../../Hardware/SIS Mips/SIS";
 import Logger from "../../Service/Logger";
 import SharedData from "../../Service/SharedData";
 
-const HiPlayIcon = () => <Icon as={HiPlay} />;
+const HiPlayIcon = () => (
+  <Icon as={HiPlay} style={{ transform: "scale(1.4)" }} />
+);
 const TerminalFill = () => <Icon as={BsTerminalFill} />;
 const DeleteIcon = () => <Icon as={MdDelete} />;
 
@@ -283,14 +286,17 @@ function EditorView(props: {
       </Slide>
       <Stack spacing={4}>
         <Stack direction="row" spacing={4}>
-          <Button
-            leftIcon={<HiPlayIcon />}
+          <IconButton
+            icon={<HiPlayIcon />}
             colorScheme="teal"
             variant="solid"
             onClick={() => props.runBtn()}
+            aria-label="Run program"
+            borderRadius={50}
+            size="sm"
           >
             Run
-          </Button>
+          </IconButton>
           <Button
             rightIcon={<ArrowForwardIcon />}
             colorScheme="teal"
