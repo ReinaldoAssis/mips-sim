@@ -1,7 +1,8 @@
-export interface processor {
+export interface Processor {
   frequency: number;
   executeStep(): number;
   loadProgram(program: Array<string>): void;
+  instructionSet: Array<string>;
 }
 
 export default class SharedData {
@@ -22,7 +23,18 @@ export default class SharedData {
   // Pure text code
   private _code: string = "";
   // Current model for simulation
-  public currentProcessor: processor | null = null;
+  private _currentProcessor: Processor | null = null;
+
+  public onProcessorChange: Function = (processor: Processor) => {};
+
+  public get currentProcessor(): Processor | null {
+    this.onProcessorChange(this._currentProcessor);
+    return this._currentProcessor;
+  }
+
+  public set currentProcessor(value: Processor | null) {
+    this._currentProcessor = value;
+  }
 
   public get currentStepLine(): number {
     return 1; //this.currentPc - this.PcStart;

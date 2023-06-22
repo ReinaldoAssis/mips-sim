@@ -1,7 +1,7 @@
 import Editor from "@monaco-editor/react";
 import React from "react";
 import { useRef } from "react";
-import SharedData from "../Service/SharedData";
+import SharedData, { Processor } from "../Service/SharedData";
 
 function AssemblyEditor(props: {
   onEditorChange: (value: string | undefined, event: any) => void;
@@ -10,7 +10,7 @@ function AssemblyEditor(props: {
 
   const share: SharedData = SharedData.instance;
 
-  const keywords = [
+  let keywords = [
     "add",
     "or",
     "call",
@@ -43,6 +43,35 @@ function AssemblyEditor(props: {
     "j",
     "jal",
   ];
+
+  share.onProcessorChange((processor: Processor) => {
+    if (processor != null) keywords = processor.instructionSet;
+    console.log("processor changed", processor);
+  });
+
+  React.useEffect(() => {
+    if (share.monacoEditor && share.monacoEditor.languages) {
+      share.monacoEditor.languages.setMonarchTokensProvider("mips", {
+        keywords: keywords,
+        tokenizer: {
+          root: [
+            [
+              /@?\$?[a-zA-Z][\w$]*/,
+              {
+                cases: {
+                  "@keywords": "keyword",
+                  "@default": "identifier",
+                },
+              },
+            ],
+            [/".*?"/, "string"],
+            [/\d+/, "number"],
+            [/#.*$/, "comment"],
+          ],
+        },
+      });
+    }
+  }, [keywords]);
 
   function handleEditorWillMount(monaco: any) {
     // here you can access to the monaco instance before it is initialized

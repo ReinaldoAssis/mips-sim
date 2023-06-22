@@ -1,5 +1,5 @@
 import Logger, { ErrorType, InfoType } from "../../Service/Logger";
-import SharedData, { processor } from "../../Service/SharedData";
+import SharedData, { Processor } from "../../Service/SharedData";
 import BinaryNumber from "../BinaryNumber";
 import { ALU, Clock } from "../Descriptor";
 
@@ -16,7 +16,7 @@ type addr = {
   value: BinaryNumber; //value of the address in binary
 };
 
-export default class SISMIPS implements processor {
+export default class SISMIPS implements Processor {
   public share: SharedData = SharedData.instance;
 
   public frequency: number = 0; //frequency
@@ -24,6 +24,21 @@ export default class SISMIPS implements processor {
   public pc: BinaryNumber = new BinaryNumber(); //program counter
   public regbank: Array<BinaryNumber> = []; //register bank
   public initializedRegs: Array<boolean> = []; //initialized registers
+
+  public instructionSet: Array<string> = [
+    "add",
+    "addi",
+    "sub",
+    "and",
+    "or",
+    "slt",
+    "lw",
+    "sw",
+    "beq",
+    "bne",
+    "call 0",
+    "call 1",
+  ];
 
   public log: Logger = Logger.instance;
 
