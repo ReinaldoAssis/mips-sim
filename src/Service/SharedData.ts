@@ -5,12 +5,20 @@ export interface Processor {
   instructionSet: Array<string>;
 }
 
+export interface ThemeData {
+  editorBackground: string;
+}
+
 export default class SharedData {
   private static _instance: SharedData;
 
   //public stepMode: boolean = false;
   //   public currentLine: number = 0;
   //   public onStep: Function = (n: number) => {};
+
+  public static theme: ThemeData = {
+    editorBackground: "#282a36",
+  };
 
   // monaco editor instance
   public monacoEditor: any = null;

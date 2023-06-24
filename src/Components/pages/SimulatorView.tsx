@@ -22,6 +22,7 @@ import {
   Slide,
   Box,
   IconButton,
+  Tooltip,
 } from "@chakra-ui/react";
 import SimulatorService from "../../Service/SimulatorService";
 import HardwareView from "../HardwareView";
@@ -285,66 +286,86 @@ function EditorView(props: {
         </Box>
       </Slide>
       <Stack spacing={4}>
-        <Stack direction="row" spacing={4}>
-          <IconButton
-            icon={<HiPlayIcon />}
-            colorScheme="teal"
-            variant="solid"
-            onClick={() => props.runBtn()}
-            aria-label="Run program"
-            borderRadius={50}
-            size="sm"
-          >
-            Run
-          </IconButton>
-          <Button
-            rightIcon={<ArrowForwardIcon />}
-            colorScheme="teal"
-            variant="outline"
-            onClick={() => {
-              share.monacoEditor?.setPosition(
-                new share.monaco.Position(share.currentStepLine, 0)
-              );
-
-              if (share.currentProcessor) {
-                share.currentProcessor.executeStep();
-              } else {
-                share.currentProcessor = new SISMIPS();
-                const assembly = simservice.assemble(share.code);
-                share.currentProcessor.loadProgram(assembly.split(" "));
-                console.log(
-                  `Current assembly code: ${assembly} code: ${share.code}`
+        <Stack direction="column" spacing={4}>
+          <Tooltip label="Assemble & Run">
+            <IconButton
+              icon={<HiPlayIcon />}
+              colorScheme="teal"
+              variant="solid"
+              onClick={() => props.runBtn()}
+              aria-label="Run program"
+              borderRadius={50}
+              size="sm"
+            >
+              Run
+            </IconButton>
+          </Tooltip>
+          <Tooltip label="Run next instruction">
+            <IconButton
+              icon={<ArrowForwardIcon style={{ transform: "scale(1.4)" }} />}
+              colorScheme="yellow"
+              aria-label="Run step"
+              variant="solid"
+              borderRadius={50}
+              size="sm"
+              onClick={() => {
+                share.monacoEditor?.setPosition(
+                  new share.monaco.Position(share.currentStepLine, 0)
                 );
-                share.currentProcessor.executeStep();
-              }
-            }}
-          >
-            Step
-          </Button>
+
+                if (share.currentProcessor) {
+                  share.currentProcessor.executeStep();
+                } else {
+                  share.currentProcessor = new SISMIPS();
+                  const assembly = simservice.assemble(share.code);
+                  share.currentProcessor.loadProgram(assembly.split(" "));
+                  console.log(
+                    `Current assembly code: ${assembly} code: ${share.code}`
+                  );
+                  share.currentProcessor.executeStep();
+                }
+              }}
+            >
+              Step
+            </IconButton>
+          </Tooltip>
+          <Tooltip label="Open terminal">
+            <IconButton
+              icon={<TerminalFill />}
+              color="white"
+              backgroundColor={SharedData.theme.editorBackground}
+              variant="solid"
+              aria-label="Open console"
+              borderRadius={50}
+              size="sm"
+              onClick={() => {
+                setConsoleOpen(!consoleOpen);
+                console.log("Console open " + consoleOpen);
+              }}
+            >
+              Terminal
+            </IconButton>
+          </Tooltip>
+          <Tooltip label="Reset">
+            <IconButton
+              icon={<Icon as={RiRewindFill} />}
+              aria-label="Reset"
+              backgroundColor={SharedData.theme.editorBackground}
+              color="white"
+              borderRadius={50}
+              size="sm"
+              onClick={() => {
+                share.currentProcessor = null;
+                share.currentPc = share.PcStart;
+              }}
+            >
+              Reset
+            </IconButton>
+          </Tooltip>
         </Stack>
-        <Stack direction="row" spacing={4}>
-          <Button
-            rightIcon={<TerminalFill />}
-            colorScheme="teal"
-            variant="outline"
-            onClick={() => {
-              setConsoleOpen(!consoleOpen);
-              console.log("Console open " + consoleOpen);
-            }}
-          >
-            Terminal
-          </Button>
-          <Button
-            rightIcon={<Icon as={RiRewindFill} />}
-            colorScheme="teal"
-            onClick={() => {
-              share.currentProcessor = null;
-              share.currentPc = share.PcStart;
-            }}
-          >
-            Reset
-          </Button>
-        </Stack>
+        {/* <Stack direction="row" spacing={4}>
+          
+        </Stack> */}
       </Stack>
     </Stack>
   );
