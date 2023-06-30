@@ -89,11 +89,11 @@ export default function SimulatorView() {
     let cpu = new SISMIPS();
     cpu.loadProgram(instructions);
 
-    cpu.memory.forEach((value, index) => {
+    /*cpu.memory.forEach((value, index) => {
       console.log(
         "CPU mem " + value.address.value + " " + value.value.getBinaryValue(32)
       );
-    });
+    });*/
     cpu.execute();
   }
 

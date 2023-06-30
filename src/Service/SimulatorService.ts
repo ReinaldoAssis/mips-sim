@@ -172,7 +172,8 @@ export default class SimulatorService {
 
       // if it's an instruction, add 4 to the PC
       if (this.instruction_set.includes(tokens[0].toLowerCase())) {
-        PC.addNumber(4);
+        PC.addNumber(1) //TODO TEST
+        console.log(`Added ${tokens[0].toLowerCase()}`, PC.value)
       }
       // if it's a label, save the PC value
       else {

@@ -325,6 +325,17 @@ export default class SISMIPS implements Processor {
 
         break;
 
+      case "000011": //jal
+          
+          imm = instruction.getBinaryValue(32).slice(6,32)
+          console.log("imm value in SIS",imm)
+          this.regbank[9] = this.pc;
+          console.log("0b"+this.pc.getBinaryValue(32).slice(0,6) + imm)
+          this.pc = BinaryNumber.parse("0b"+this.pc.getBinaryValue(32).slice(0,6) + imm)
+          console.log("SIS new pc",this.pc.value)
+
+      break;
+
       case "111111": //call
         let call = instruction.getBinaryValue(32).slice(6, 32);
         let n = BinaryNumber.parse("0b" + call, true).value;
