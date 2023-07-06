@@ -37,11 +37,18 @@ export default class SharedData {
 
   public get currentProcessor(): Processor | null {
     this.onProcessorChange(this._currentProcessor);
+
     return this._currentProcessor;
   }
 
   public set currentProcessor(value: Processor | null) {
     this._currentProcessor = value;
+    let instructionSet = this._currentProcessor?.instructionSet ?? [];
+
+    //configure mono editor to current instruction set
+    if (this.monaco && this._currentProcessor) {
+      //TODO
+    }
   }
 
   public get currentStepLine(): number {

@@ -53,6 +53,7 @@ export default class SimulatorService {
     "mfhi",
     "mflo",
     "mthi",
+    "call",
   ];
 
   public register_prefix = "$";

@@ -330,8 +330,12 @@ export default class SISMIPS implements Processor {
         let n = BinaryNumber.parse("0b" + call, true).value;
         if (n == 1) {
           a = this.regbank[this.mapRegister("00010")]; //v0
-          this.log.info(`${a.value}`, InfoType.OUTPUT);
+          this.log.console(`${a.value}`);
         }
+        break;
+
+      default:
+        this.log.error("Invalid instruction", ErrorType.SIMULATOR);
         break;
     }
   }

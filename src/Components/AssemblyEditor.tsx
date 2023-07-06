@@ -44,36 +44,33 @@ function AssemblyEditor(props: {
     "jal",
   ];
 
-  share.onProcessorChange((processor: Processor) => {
-    if (processor != null) keywords = processor.instructionSet;
-    console.log("processor changed", processor);
-  });
-
-  React.useEffect(() => {
-    if (share.monacoEditor && share.monacoEditor.languages) {
-      share.monacoEditor.languages.setMonarchTokensProvider("mips", {
-        keywords: keywords,
-        tokenizer: {
-          root: [
-            [
-              /@?\$?[a-zA-Z][\w$]*/,
-              {
-                cases: {
-                  "@keywords": "keyword",
-                  "@default": "identifier",
-                },
-              },
-            ],
-            [/".*?"/, "string"],
-            [/\d+/, "number"],
-            [/#.*$/, "comment"],
-          ],
-        },
-      });
-    }
-  }, [keywords]);
+  // React.useEffect(() => {
+  //   if (share.monacoEditor && share.monacoEditor.languages) {
+  //     share.monacoEditor.languages.setMonarchTokensProvider("mips", {
+  //       keywords: keywords,
+  //       tokenizer: {
+  //         root: [
+  //           [
+  //             /@?\$?[a-zA-Z][\w$]*/,
+  //             {
+  //               cases: {
+  //                 "@keywords": "keyword",
+  //                 "@default": "identifier",
+  //               },
+  //             },
+  //           ],
+  //           [/".*?"/, "string"],
+  //           [/\d+/, "number"],
+  //           [/#.*$/, "comment"],
+  //         ],
+  //       },
+  //     });
+  //   }
+  // }, [keywords]);
 
   function handleEditorWillMount(monaco: any) {
+    //keywords = share.currentProcessor?.instructionSet ?? keywords;
+
     // here you can access to the monaco instance before it is initialized
     // register the language
     monaco.languages.register({ id: "mips" });
@@ -116,17 +113,26 @@ function AssemblyEditor(props: {
       ],
     });
 
+    //TODO: fix suggestions - suggesting instructions that are not in the instruction set
+    let suggestions = keywords.map((k) => {
+      return {
+        label: k,
+        kind: monaco.languages.CompletionItemKind.Keyword,
+        insertText: k,
+      };
+    });
+
     monaco.languages.registerCompletionItemProvider("mips", {
       provideCompletionItems: (model: any, position: any) => {
-        const suggestions = [
-          ...keywords.map((k) => {
-            return {
-              label: k,
-              kind: monaco.languages.CompletionItemKind.Keyword,
-              insertText: k,
-            };
-          }),
-        ];
+        // const suggestions = [
+        //   ...keywords.map((k) => {
+        //     return {
+        //       label: k,
+        //       kind: monaco.languages.CompletionItemKind.Keyword,
+        //       insertText: k,
+        //     };
+        //   }),
+        // ];
         return { suggestions: suggestions };
       },
     });

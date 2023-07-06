@@ -16,6 +16,8 @@ export default class Logger {
     return Logger._instance;
   }
 
+  // ******** TODO: Refactor ***********
+
   public error(message: string, errortype: ErrorType): void {
     this._log += `ERROR: ${message} [${errortype}]\n`;
     this._onchange();
@@ -32,6 +34,8 @@ export default class Logger {
     this._onchange();
   }
 
+  // ************************************
+
   public debug(message: string): void {
     this._log += `DEBUG: ${message}\n`;
     this._debug.push(message);
@@ -40,9 +44,16 @@ export default class Logger {
     this._ondebugchange();
   }
 
+  public console(message: string): void {
+    this._log += `[Out]: ${message}\n`;
+    this._console.push(message);
+
+    this._onchange();
+    this._onconsolechange();
+  }
+
   public getConsole(): string {
-    let logs = this._log.split("\n").filter((x) => x.startsWith("[Out]"));
-    return logs.join("\n");
+    return this._console.join("\n");
   }
 
   public getDebug(): string {
@@ -55,7 +66,8 @@ export default class Logger {
   }
 
   public clearConsole(): void {
-    this._log = "";
+    this._console = [];
+    this._onconsolechange();
   }
 
   public onLogChange(f: Function): void {

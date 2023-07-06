@@ -2,7 +2,7 @@ import * as React from "react";
 import { ChakraProvider, theme } from "@chakra-ui/react";
 
 import SidebarWithHeader from "./Components/Sidebar";
-import SimulatorView from "./Components/pages/SimulatorView";
+import SimulatorView from "./Components/pages/Simulator View/SimulatorView";
 import InstructionSetPage from "./Components/pages/InstructionSet";
 
 export const App = () => (
