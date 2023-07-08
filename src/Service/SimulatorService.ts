@@ -173,8 +173,8 @@ export default class SimulatorService {
 
       // if it's an instruction, add 4 to the PC
       if (this.instruction_set.includes(tokens[0].toLowerCase())) {
-        PC.addNumber(1) //TODO TEST
-        console.log(`Added ${tokens[0].toLowerCase()}`, PC.value)
+        PC.addNumber(1); //TODO TEST
+        console.log(`Added ${tokens[0].toLowerCase()}`, PC.value);
       }
       // if it's a label, save the PC value
       else {
@@ -429,7 +429,7 @@ export default class SimulatorService {
               ErrorType.ASSEMBLER
             );
 
-          instruction += new BinaryNumber(tokens[1]).getBinaryValue(26); //immediate value in binary
+          instruction += new BinaryNumber("0b" + tokens[1]).getBinaryValue(26); //immediate value in binary
 
           break;
 

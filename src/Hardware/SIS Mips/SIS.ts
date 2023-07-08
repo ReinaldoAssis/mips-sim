@@ -218,6 +218,14 @@ export default class SISMIPS implements Processor {
               `SLT a: ${a.value} b: ${b.value} result: ${result.value}`
             );
             break;
+
+          case "001000": //jr
+            rs = instruction.getBinaryValue(32).slice(6, 11);
+            this.warnRegisterNotInitialized([rs]);
+            this.pc = this.regbank[this.mapRegister(rs)];
+            console.log("JR PC ", this.pc.getBinaryValue(32));
+            this.share.currentPc = this.pc.value;
+            break;
         }
 
         break;
@@ -326,15 +334,23 @@ export default class SISMIPS implements Processor {
         break;
 
       case "000011": //jal
-          
-          imm = instruction.getBinaryValue(32).slice(6,32)
-          console.log("imm value in SIS",imm)
-          this.regbank[9] = this.pc;
-          console.log("0b"+this.pc.getBinaryValue(32).slice(0,6) + imm)
-          this.pc = BinaryNumber.parse("0b"+this.pc.getBinaryValue(32).slice(0,6) + imm)
-          console.log("SIS new pc",this.pc.value)
+        // get the 26 address bits
+        imm = instruction.getBinaryValue(32).slice(6, 32);
+        // save the return address in register 9 (ra)
+        this.regbank[9] = this.pc;
 
-      break;
+        console.log("------ JAL Debug ------");
+        console.log("Instruction", instruction.getBinaryValue(32));
+        console.log("imm value", imm);
+        console.log("pc value", this.pc.getBinaryValue(32));
+        console.log("0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm);
+
+        this.pc = new BinaryNumber(
+          "0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm
+        );
+        console.log("SIS new pc", this.pc.getBinaryValue(32));
+
+        break;
 
       case "111111": //call
         let call = instruction.getBinaryValue(32).slice(6, 32);
