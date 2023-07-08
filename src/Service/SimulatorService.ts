@@ -191,7 +191,13 @@ export default class SimulatorService {
     //removes the labels definitions from the code (such as "label:")
     labels.forEach((x) => (code = code.replaceAll(x.toString(), "")));
     //replaces the labels with their addresses
-    addrlabels.forEach((x) => (code = code.replaceAll(x.name, x.address)));
+    addrlabels.forEach(
+      (x) =>
+        (code = code.replaceAll(
+          new RegExp("\\b" + x.name + "\\b", "gm"),
+          x.address
+        ))
+    );
 
     this.found_labels = addrlabels;
 

@@ -7,7 +7,7 @@ import { ALU, Clock } from "../Descriptor";
 //compatible instructions:
 //arithmetics: add, addi, sub, and, or, slt, call 0, call 1
 //memory: lw, sw
-//branch: beq, bne
+//branch: beq, bne, j, jal, jr
 
 //registers: v0,v1, a0,a1, t0,t1,t2,t3, ra, pc, zero
 
@@ -123,11 +123,11 @@ export default class SISMIPS implements Processor {
     let instruction = this.memory.find(
       (x) => x.address.value == this.pc.value
     )?.value;
-    console.log(
-      `PC value: ${
-        this.pc.value - this.PCStart
-      } instruction: ${instruction?.getBinaryValue(32)}`
-    );
+    // console.log(
+    //   `PC value: ${
+    //     this.pc.value - this.PCStart
+    //   } instruction: ${instruction?.getBinaryValue(32)}`
+    // );
     this.pc.addNumber(1);
     this.share.currentPc = this.pc.value;
     return instruction ?? new BinaryNumber("0xfc000000"); //call 0 if the instruction is not found
@@ -141,7 +141,7 @@ export default class SISMIPS implements Processor {
   }
 
   public executeCycle(instruction: BinaryNumber): void {
-    console.log("Executing instruction: " + instruction.getBinaryValue(32));
+    // console.log("Executing instruction: " + instruction.getBinaryValue(32));
     let op = instruction.getBinaryValue(32).slice(0, 6);
     // console.log("op: " + op);
 
@@ -225,6 +225,13 @@ export default class SISMIPS implements Processor {
             this.pc = this.regbank[this.mapRegister(rs)];
             console.log("JR PC ", this.pc.getBinaryValue(32));
             this.share.currentPc = this.pc.value;
+
+            this.log.debug(
+              `JR address: ${new BinaryNumber(
+                "0b" + rs
+              ).toHex()} result: ${this.pc.toHex()}`
+            );
+
             break;
         }
 
@@ -339,16 +346,37 @@ export default class SISMIPS implements Processor {
         // save the return address in register 9 (ra)
         this.regbank[9] = this.pc;
 
-        console.log("------ JAL Debug ------");
-        console.log("Instruction", instruction.getBinaryValue(32));
-        console.log("imm value", imm);
-        console.log("pc value", this.pc.getBinaryValue(32));
-        console.log("0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm);
+        // console.log("------ JAL Debug ------");
+        // console.log("Instruction", instruction.getBinaryValue(32));
+        // console.log("imm value", imm);
+        // console.log("pc value", this.pc.getBinaryValue(32));
+        // console.log("0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm);
 
         this.pc = new BinaryNumber(
           "0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm
         );
         console.log("SIS new pc", this.pc.getBinaryValue(32));
+
+        this.log.debug(
+          `JAL address: ${new BinaryNumber(
+            "0b" + imm
+          ).toHex()} result: ${this.pc.toHex()}`
+        );
+
+        break;
+
+      case "000010": //j
+        // get the 26 address bits
+        imm = instruction.getBinaryValue(32).slice(6, 32);
+        this.pc = new BinaryNumber(
+          "0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm
+        );
+
+        this.log.debug(
+          `J address: ${new BinaryNumber(
+            "0b" + imm
+          ).toHex()} result: ${this.pc.toHex()}`
+        );
 
         break;
 
@@ -358,6 +386,7 @@ export default class SISMIPS implements Processor {
         if (n == 1) {
           a = this.regbank[this.mapRegister("00010")]; //v0
           this.log.console(`${a.value}`);
+          this.log.debug(`CALL 1 a: ${a.value}`);
         }
         break;
 
