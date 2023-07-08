@@ -44,16 +44,17 @@ export default class Logger {
     this._ondebugchange();
   }
 
-  public console(message: string): void {
+  public console(message: string, linebrak: boolean = true): void {
     this._log += `[Out]: ${message}\n`;
-    this._console.push(message);
+    if (linebrak) this._console.push(message + "\n");
+    else this._console.push(message);
 
     this._onchange();
     this._onconsolechange();
   }
 
   public getConsole(): string {
-    return this._console.join("\n");
+    return this._console.join("");
   }
 
   public getDebug(): string {

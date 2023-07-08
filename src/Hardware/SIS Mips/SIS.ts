@@ -5,7 +5,7 @@ import { ALU, Clock } from "../Descriptor";
 
 //simplified instruction set mips
 //compatible instructions:
-//arithmetics: add, addi, sub, and, or, slt, call 0, call 1
+//arithmetics: add, addi, sub, and, or, slt, call 0, call 1, call 2
 //memory: lw, sw
 //branch: beq, bne, j, jal, jr
 
@@ -409,10 +409,18 @@ export default class SISMIPS implements Processor {
       case "111111": //call
         let call = instruction.getBinaryValue(32).slice(6, 32);
         let n = BinaryNumber.parse("0b" + call, true).value;
+
+        console.log("call number ", n);
+
         if (n == 1) {
           a = this.regbank[this.mapRegister("00010")]; //v0
           this.log.console(`${a.value}`);
           this.log.debug(`CALL 1 a: ${a.value}`);
+        } else if (n == 2) {
+          a = this.regbank[this.mapRegister("00010")]; //v0
+          let char = String.fromCharCode(a.value);
+          this.log.console(`${char}`, false);
+          this.log.debug(`CALL 2 a: ${a.value} char: ${char}`);
         }
         break;
 
