@@ -173,7 +173,7 @@ export default class SimulatorService {
 
       // if it's an instruction, add 4 to the PC
       if (this.instruction_set.includes(tokens[0].toLowerCase())) {
-        PC.addNumber(1); //TODO TEST
+        PC.addNumber(4); //TODO TEST
         console.log(`Added ${tokens[0].toLowerCase()}`, PC.value);
       }
       // if it's a label, save the PC value
@@ -209,14 +209,8 @@ export default class SimulatorService {
     if (!token.toLowerCase().includes("0x")) {
       let offset = new BinaryNumber("0b" + token); //the label is already in binary
 
-      // console.log(
-      //   `beq offset: ${offset.getBinaryValue(16)} decimal: ${
-      //     offset.value
-      //   }`
-      // );
-
       offset = BinaryNumber.sub(offset.value, pc.value + 4);
-      offset.value = offset.value / 4;
+      //offset.value = offset.value / 4;
 
       console.log(
         `beq offset: ${offset.getBinaryValue(16)} decimal: ${offset.value}`

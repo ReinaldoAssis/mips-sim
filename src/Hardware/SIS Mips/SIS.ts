@@ -52,7 +52,7 @@ export default class SISMIPS implements Processor {
         this.initializedRegs.push(true);
       } else {
         this.regbank.push(
-          new BinaryNumber((Math.random() * 100000).toString())
+          new BinaryNumber((Math.random() * 10000000).toString())
         );
         this.initializedRegs.push(false);
       }
@@ -77,6 +77,10 @@ export default class SISMIPS implements Processor {
     });
   }
 
+  /* 
+    Executes a single step of the processor by fetching and calling executeCycle
+    Returns -1 if the instruction is call 0
+  */
   public executeStep(): number {
     let instruction: BinaryNumber =
       this.fetch() ?? new BinaryNumber("0xfc000000");
@@ -89,6 +93,12 @@ export default class SISMIPS implements Processor {
     return 0;
   }
 
+  /* 
+    Writes a value in the memory address
+    If the address is not initialized, it creates a new address
+    @param address: address to write to
+    @param value: value to write
+  */
   public writeMemory(address: BinaryNumber, value: BinaryNumber): void {
     let addr = this.memory.find((x) => x.address.value == address.value);
     if (addr == undefined) {
@@ -98,6 +108,12 @@ export default class SISMIPS implements Processor {
     this.memory[this.memory.indexOf(addr)].value = value;
   }
 
+  /*
+    Reads a value from the memory address
+    If the address is not initialized, it returns a random value to simulate garbage
+    @param address: address to read from
+    @returns: value at the address
+  */
   public readMemory(address: BinaryNumber): BinaryNumber {
     let addr = this.memory.find((x) => x.address.value == address.value);
     if (addr == undefined) {
@@ -107,39 +123,49 @@ export default class SISMIPS implements Processor {
     return addr.value;
   }
 
+  /*
+    Loads a program into the memory
+    @param program: array of instructions in hex
+  */
   public loadProgram(program: Array<string>): void {
     program.map((inst, i) => {
       if (inst != " " && inst != "") {
         let instruction = new BinaryNumber("0x" + inst);
         this.memory.push({
-          address: new BinaryNumber((this.PCStart + i).toString()),
+          address: new BinaryNumber((this.PCStart + i * 4).toString()),
           value: instruction,
         });
       }
     });
   }
 
+  /*
+    Fetches the instruction at the current pc
+    @returns: instruction at the current pc
+  */
   public fetch(): BinaryNumber {
     let instruction = this.memory.find(
       (x) => x.address.value == this.pc.value
     )?.value;
-    // console.log(
-    //   `PC value: ${
-    //     this.pc.value - this.PCStart
-    //   } instruction: ${instruction?.getBinaryValue(32)}`
-    // );
-    this.pc.addNumber(1);
+    this.pc.addNumber(4); //increment pc
     this.share.currentPc = this.pc.value;
     return instruction ?? new BinaryNumber("0xfc000000"); //call 0 if the instruction is not found
   }
 
+  /*
+    Tells the processor to execute the program
+  */
   public execute(): void {
-    //while (true) {
+    //caped for loop to prevent infinite loops
     for (let i = 0; i < 1000; i++) {
       if (this.executeStep() == -1) break;
     }
   }
 
+  /*
+    Executes a single cycle of the processor
+    @param instruction: instruction to execute
+  */
   public executeCycle(instruction: BinaryNumber): void {
     // console.log("Executing instruction: " + instruction.getBinaryValue(32));
     let op = instruction.getBinaryValue(32).slice(0, 6);
