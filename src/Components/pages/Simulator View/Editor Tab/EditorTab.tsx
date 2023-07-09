@@ -57,14 +57,17 @@ export default function EditorView(props: {
   // SharedData instance that holds the shared state of the application
   let share: SharedData = SharedData.instance;
 
+  //Logger instance
+  let log: Logger = Logger.instance;
+
   // SimulatorService instance that handles the assembly of the code
   let simservice: SimulatorService = SimulatorService.getInstance();
 
   // Updates the console and debug terminal when the log changes
   React.useEffect(() => {
     Logger.instance.onLogChange(() => {
-      setConsoleTxt(Logger.instance.getConsole());
-      setDebugTxt(Logger.instance.getDebug());
+      setConsoleTxt(log.getConsole() + log.getErrors());
+      setDebugTxt(log.getDebug());
 
       /* Responsible for scrolling the text areas */
       let debugTxtArea = document.getElementById("debugTxtArea");
@@ -228,7 +231,7 @@ export default function EditorView(props: {
               size="sm"
               onClick={() => {
                 share.currentProcessor = null;
-                share.currentPc = share.PcStart;
+                share.currentPc = share.pcStart;
               }}
             >
               Reset

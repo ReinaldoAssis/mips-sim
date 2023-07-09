@@ -46,6 +46,9 @@ export default function SimulatorView() {
   // Holds the shared state of the application
   let share: SharedData = SharedData.instance;
 
+  // Logger instance
+  let log: Logger = Logger.instance;
+
   // Updates the assembly code when the code changes
   function onEditorChange(value: string | undefined, event: any) {
     setCode(value!);
@@ -66,29 +69,33 @@ export default function SimulatorView() {
     // if code state is empty, get code from monaco editor and update share.code
     forceGetCode();
 
-    console.log("Running code");
+    // Assembles the code
     simservice.assembledCode = simservice.assemble(share.code);
 
-    toast({
-      title: "Code assembled",
-      description: "Your code has been assembled",
-      status: "success",
-      duration: 4000,
-      isClosable: true,
-    });
+    if (log.getErrors().length == 0) {
+      toast({
+        title: "Code assembled",
+        description: "Your code has been assembled",
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: "Assemble failed",
+        description:
+          "Your code has not been assembled, please check the terminal for errors",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    }
 
     let instructions = simservice.assembledCode.split(" ");
-    console.log(instructions);
-    //temporary
 
     let cpu = new SISMIPS();
     cpu.loadProgram(instructions);
 
-    cpu.memory.forEach((value, index) => {
-      console.log(
-        "CPU mem " + value.address.value + " " + value.value.getBinaryValue(32)
-      );
-    });
     cpu.execute();
   }
 

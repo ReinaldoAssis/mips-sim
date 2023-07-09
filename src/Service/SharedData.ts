@@ -27,7 +27,7 @@ export default class SharedData {
   // Current address of the program
   public currentPc: number = 0x00400000;
   // Start address of the program
-  public PcStart: number = 0x00400000;
+  public pcStart: number = 0x00400000;
   // Pure text code
   private _code: string = "";
   // Current model for simulation

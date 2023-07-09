@@ -1,4 +1,4 @@
-import Logger, { ErrorType, InfoType } from "../../Service/Logger";
+import Logger, { ErrorType } from "../../Service/Logger";
 import SharedData, { Processor } from "../../Service/SharedData";
 import BinaryNumber from "../BinaryNumber";
 import { ALU, Clock } from "../Descriptor";
@@ -22,8 +22,11 @@ export default class SISMIPS implements Processor {
   public frequency: number = 0; //frequency
   public memory: Array<addr> = new Array<addr>(); //memory
   public pc: BinaryNumber = new BinaryNumber(); //program counter
+  public cycle: number = 0; //number of cycles executed
   public regbank: Array<BinaryNumber> = []; //register bank
   public initializedRegs: Array<boolean> = []; //initialized registers
+
+  public currentInstruction: string = ""; //current instruction being executed
 
   public instructionSet: Array<string> = [
     "add",
@@ -42,7 +45,7 @@ export default class SISMIPS implements Processor {
 
   public log: Logger = Logger.instance;
 
-  public PCStart: number = this.share.PcStart;
+  public PCStart: number = this.share.pcStart;
 
   public constructor() {
     this.frequency = 1;
@@ -66,15 +69,16 @@ export default class SISMIPS implements Processor {
   }
 
   public warnRegisterNotInitialized(regs: string[]): void {
-    regs.map((reg) => {
-      if (!this.isRegisterInitialized(reg)) {
-        this.log.warning(
-          "Acessing register not initialized.",
-          ErrorType.SIMULATOR
-        );
-        this.initializedRegs[this.mapRegister(reg)] = true;
-      }
-    });
+    //TODO: fix this
+    // regs.map((reg) => {
+    //   if (!this.isRegisterInitialized(reg)) {
+    //     this.log.warning(
+    //       "Acessing register not initialized.",
+    //       ErrorType.SIMULATOR
+    //     );
+    //     this.initializedRegs[this.mapRegister(reg)] = true;
+    //   }
+    // });
   }
 
   /* 
@@ -84,6 +88,9 @@ export default class SISMIPS implements Processor {
   public executeStep(): number {
     let instruction: BinaryNumber =
       this.fetch() ?? new BinaryNumber("0xfc000000");
+
+    this.currentInstruction = instruction.toHex(8); //TODO: change instruction representation to assembly code not hex
+
     if (instruction.toHex(8) == "0xfc000000") {
       //call 0
       console.log("call 0");
@@ -117,7 +124,16 @@ export default class SISMIPS implements Processor {
   public readMemory(address: BinaryNumber): BinaryNumber {
     let addr = this.memory.find((x) => x.address.value == address.value);
     if (addr == undefined) {
-      this.log.warning("Memory location not initialized", ErrorType.SIMULATOR);
+      this.log.error(
+        "Memory location not initialized",
+        this.currentInstruction,
+        this.cycle,
+        this.pc.value,
+        -1,
+        ErrorType.Warning,
+        0
+      );
+      //this.log.warning("Memory location not initialized", ErrorType.SIMULATOR);
       return new BinaryNumber((Math.random() * 100000).toString());
     }
     return addr.value;
@@ -425,7 +441,16 @@ export default class SISMIPS implements Processor {
         break;
 
       default:
-        this.log.error("Invalid instruction", ErrorType.SIMULATOR);
+        this.log.error(
+          "Couldn't process instruction",
+          this.currentInstruction,
+          this.cycle,
+          this.pc.value,
+          -1,
+          ErrorType.InvalidInstruction,
+          1
+        );
+        // this.log.error("Invalid instruction", ErrorType.SIMULATOR);
         break;
     }
   }
@@ -453,7 +478,17 @@ export default class SISMIPS implements Processor {
       case "11111": //ra
         return 9;
       default:
-        throw new Error("Invalid register");
+        this.log.error(
+          "Couldn't process register",
+          this.currentInstruction,
+          this.cycle,
+          this.pc.value,
+          -1,
+          ErrorType.InvalidRegister,
+          1
+        );
+        return 0;
+      // throw new Error("Invalid register");
     }
   }
 }

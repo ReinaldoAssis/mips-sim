@@ -1,5 +1,6 @@
 import BinaryNumber from "../Hardware/BinaryNumber";
-import Logger, { ErrorType, InfoType } from "./Logger";
+import Logger, { ErrorType } from "./Logger";
+import SharedData from "./SharedData";
 
 // Label type
 type Label = {
@@ -11,7 +12,10 @@ export default class SimulatorService {
   public editorValue: string = "";
   public assembledCode: string = "";
   private log: Logger = Logger.instance;
-  private found_labels = new Array<Label>(); // map containing all the labels and their addresses
+  private share: SharedData = SharedData.instance;
+
+  public currentAddr = new BinaryNumber(this.share.pcStart + "");
+  public currentCodeInstruction: string = "";
 
   // an array containing all the instructions names
   private instruction_set = [
@@ -173,8 +177,7 @@ export default class SimulatorService {
 
       // if it's an instruction, add 4 to the PC
       if (this.instruction_set.includes(tokens[0].toLowerCase())) {
-        PC.addNumber(4); //TODO TEST
-        console.log(`Added ${tokens[0].toLowerCase()}`, PC.value);
+        PC.addNumber(4);
       }
       // if it's a label, save the PC value
       else {
@@ -199,7 +202,7 @@ export default class SimulatorService {
         ))
     );
 
-    this.found_labels = addrlabels;
+    // this.found_labels = addrlabels;
 
     return code;
   }
@@ -228,6 +231,19 @@ export default class SimulatorService {
     return instruction;
   }
 
+  private checkInvalidLabel(label: string) {
+    if (new RegExp("/[a-zA-Z]/g").test(label)) {
+      this.log.error(
+        `Couldn't find label ${label}`,
+        this.currentCodeInstruction,
+        0,
+        this.currentAddr.value,
+        -1,
+        ErrorType.InvalidLabel
+      );
+    }
+  }
+
   // assemble the code to machine code
   // @param {string} code - The code to be assembled
   // @returns {string} The machine code
@@ -250,12 +266,16 @@ export default class SimulatorService {
 
     // final machine code
     let machineCode = "";
-    let PC: BinaryNumber = new BinaryNumber("0x00400000"); //TODO: verify this value (PC starts at 0x00400000)?
+    // let PC: BinaryNumber = new BinaryNumber("0x00400000");
 
     // one line is converted at a time
     for (let i = 0; i < lines.length; i++) {
+      this.currentCodeInstruction = lines[i];
+
       // split the line into tokens (arguments)
       let tokens = lines[i].split(" ");
+      tokens = tokens.filter((x) => x !== "" && x.startsWith("#") == false);
+      if (tokens.length == 0) continue;
 
       // result of the assembly of the line
       let instruction: string = "";
@@ -270,8 +290,12 @@ export default class SimulatorService {
         case "add":
           if (tokens.length < 4)
             this.log.error(
-              `[Assembler] Invalid number of arguments for add instruction!`,
-              ErrorType.ASSEMBLER
+              "Invalid number of arguments for ADD instruction",
+              tokens.join(" "),
+              0,
+              this.currentAddr.value,
+              -1,
+              ErrorType.InvalidNumberOfArguments
             );
 
           instruction = "000000"; //opcode
@@ -286,10 +310,16 @@ export default class SimulatorService {
         case "addi":
           instruction = "001000";
 
-          if (tokens.length < 4)
+          if (tokens.length < 4 || tokens.length > 4)
             this.log.error(
-              `[Assembler] Invalid number of arguments for addi instruction!`,
-              ErrorType.ASSEMBLER
+              `Invalid number of arguments for ADDI instruction (expected 3, got ${
+                tokens.length - 1
+              })`,
+              tokens.join(" "),
+              0,
+              this.currentAddr.value,
+              -1,
+              ErrorType.InvalidNumberOfArguments
             );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
@@ -306,11 +336,11 @@ export default class SimulatorService {
         case "addiu":
           instruction = "001001";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for addiu instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for addiu instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
@@ -321,11 +351,11 @@ export default class SimulatorService {
         case "addu":
           instruction = "000000";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for addu instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for addu instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[3]); //source register rt
@@ -338,11 +368,11 @@ export default class SimulatorService {
         case "and":
           instruction = "000000";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for and instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for and instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[3]); //source register rt
@@ -355,11 +385,11 @@ export default class SimulatorService {
         case "andi":
           instruction = "001100";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for andi instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for andi instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
@@ -370,11 +400,11 @@ export default class SimulatorService {
         case "beq":
           instruction = "000100";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for beq instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for beq instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[1]); //source register rs
           instruction += this.assembleRegister(tokens[2]); //source register rt
@@ -386,36 +416,37 @@ export default class SimulatorService {
           //but first we need to make some checks
           //check if its number or label, only hex are allowed as numbers
 
-          instruction += this.computeBrenchOffset(tokens[3], PC);
+          instruction += this.computeBrenchOffset(tokens[3], this.currentAddr);
 
           break;
 
         case "bne":
           instruction = "000101";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for bne instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for bne instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[1]); //source register rs
           instruction += this.assembleRegister(tokens[2]); //source register rt
 
-          instruction += this.computeBrenchOffset(tokens[3], PC);
+          instruction += this.computeBrenchOffset(tokens[3], this.currentAddr);
 
           break;
 
         case "j":
           instruction = "000010";
 
-          if (tokens.length < 2)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for j instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 2)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for j instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
-          //instruction += new BinaryNumber(tokens[1]).getBinaryValue(26); //immediate value in binary
+          this.checkInvalidLabel(tokens[1]);
+
           instruction += tokens[1]; // the value tokens[1] is the label already in binary
 
           break;
@@ -423,11 +454,11 @@ export default class SimulatorService {
         case "jal":
           instruction = "000011";
 
-          if (tokens.length < 2)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for jal instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 2)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for jal instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += new BinaryNumber("0b" + tokens[1]).getBinaryValue(26); //immediate value in binary
 
@@ -436,11 +467,11 @@ export default class SimulatorService {
         case "jr":
           instruction = "000000";
 
-          if (tokens.length < 2)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for jr instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 2)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for jr instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[1]); //source register rs
           instruction += "000000000000000"; //shift amount shamt
@@ -451,11 +482,11 @@ export default class SimulatorService {
         case "lui":
           instruction = "001111";
 
-          if (tokens.length < 3)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for lui instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 3)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for lui instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += "00000"; //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
@@ -466,11 +497,11 @@ export default class SimulatorService {
         case "nor":
           instruction = "000000";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for nor instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for nor instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[3]); //source register rt
@@ -483,11 +514,11 @@ export default class SimulatorService {
         case "or":
           instruction = "000000";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for or instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for or instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[3]); //source register rt
@@ -500,11 +531,11 @@ export default class SimulatorService {
         case "lw":
           instruction = "100011";
 
-          if (tokens.length < 3)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for lw instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 3)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for lw instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[3]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
@@ -515,11 +546,11 @@ export default class SimulatorService {
         case "sw":
           instruction = "101011";
 
-          if (tokens.length < 3)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for sw instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 3)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for sw instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[3]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
@@ -530,11 +561,11 @@ export default class SimulatorService {
         case "ori":
           instruction = "001101";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for ori instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for ori instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
@@ -545,11 +576,11 @@ export default class SimulatorService {
         case "slt":
           instruction = "000000";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for slt instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for slt instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[3]); //source register rt
@@ -562,11 +593,11 @@ export default class SimulatorService {
         case "slti":
           instruction = "001010";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for slti instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for slti instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
@@ -577,11 +608,11 @@ export default class SimulatorService {
         case "sltiu":
           instruction = "001011";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for sltiu instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for sltiu instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
@@ -592,11 +623,11 @@ export default class SimulatorService {
         case "sltu":
           instruction = "000000";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for sltu instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for sltu instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[3]); //source register rt
@@ -609,11 +640,11 @@ export default class SimulatorService {
         case "sub":
           instruction = "000000";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for sub instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for sub instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[3]); //source register rt
@@ -626,11 +657,11 @@ export default class SimulatorService {
         case "subu":
           instruction = "000000";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for subu instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for subu instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[3]); //source register rt
@@ -643,11 +674,11 @@ export default class SimulatorService {
         case "xor":
           instruction = "000000";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for xor instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for xor instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[3]); //source register rt
@@ -660,11 +691,11 @@ export default class SimulatorService {
         case "xori":
           instruction = "001110";
 
-          if (tokens.length < 4)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for xori instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 4)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for xori instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
@@ -675,18 +706,18 @@ export default class SimulatorService {
         case "call":
           instruction = "111111";
 
-          if (tokens.length < 2)
-            this.log.error(
-              `[Assembler] Invalid number of arguments for call instruction!`,
-              ErrorType.ASSEMBLER
-            );
+          // if (tokens.length < 2)
+          //   this.log.error(
+          //     `[Assembler] Invalid number of arguments for call instruction!`,
+          //     ErrorType.ASSEMBLER
+          //   );
 
           instruction += new BinaryNumber(tokens[1]).getBinaryValue(26); //immediate value in binary
 
           break;
       }
 
-      PC.addNumber(4); //increment PC by 4 TODO: check if this is correct
+      this.currentAddr.addNumber(4); //increment PC by 4
       machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
       console.log(
         `[Assembler] Assembled instruction ${instruction} to ${new BinaryNumber(
@@ -763,8 +794,13 @@ export default class SimulatorService {
     let regNumber = Number.parseInt(reg);
     if (regNumber < 0 || regNumber > 31) {
       this.log.error(
-        `[Assembler] Invalid register number!`,
-        ErrorType.ASSEMBLER
+        "Invalid register number",
+        register,
+        0,
+        -1,
+        -1,
+        ErrorType.InvalidRegister,
+        1
       );
     }
     return regNumber.toString(2).padStart(5, "0");
