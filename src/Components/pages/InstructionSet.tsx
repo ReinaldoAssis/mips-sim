@@ -119,6 +119,14 @@ export default class InstructionSetPage extends React.Component<{}> {
                 <Td>Dumps the value of the $v0 register to the console</Td>
               </Tr>
               <Tr>
+                <Td>CALL 2</Td>
+                <Td>print $v0</Td>
+                <Td>
+                  Dumps the value of the $v0 register as an ascii char to the
+                  console
+                </Td>
+              </Tr>
+              <Tr>
                 <Td>LW</Td>
                 <Td>A = offset(B)</Td>
                 <Td>
@@ -148,6 +156,26 @@ export default class InstructionSetPage extends React.Component<{}> {
                 <Td>
                   Branches to the label C if the value of the A register is
                   different to the value of the B register
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>J</Td>
+                <Td>Jump to address</Td>
+                <Td>
+                  Incondicionally jumps to the address specified in the label
+                </Td>
+              </Tr>
+              <Tr>
+                <Td>JAL</Td>
+                <Td>Jump and link</Td>
+                <Td>Jumps to label and saves the PC to $RA (return address)</Td>
+              </Tr>
+              <Tr>
+                <Td>JR</Td>
+                <Td>Jump register</Td>
+                <Td>
+                  Jumps to the address stored in the register specified in the
+                  instruction
                 </Td>
               </Tr>
             </Tbody>
