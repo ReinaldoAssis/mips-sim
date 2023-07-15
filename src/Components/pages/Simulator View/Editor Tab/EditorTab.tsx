@@ -185,13 +185,14 @@ export default function EditorView(props: {
               borderRadius={50}
               size="sm"
               onClick={() => {
-                share.monacoEditor?.setPosition(
-                  new share.monaco.Position(share.currentStepLine, 0)
-                );
+                // share.monacoEditor?.setPosition(
+                //   new share.monaco.Position(share.currentStepLine, 0)
+                // );
 
                 if (share.currentProcessor) {
                   share.currentProcessor.executeStep();
                 } else {
+                  share.program = [];
                   share.currentProcessor = new SISMIPS();
                   const assembly = simservice.assemble(share.code);
                   share.currentProcessor.loadProgram(assembly.split(" "));

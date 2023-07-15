@@ -2,6 +2,7 @@ import BinaryNumber from "../Hardware/BinaryNumber";
 
 export interface Instruction {
   humanCode: string;
+  index: number;
   machineCode: BinaryNumber;
   memAddress: BinaryNumber;
 }
@@ -41,6 +42,7 @@ export default class SharedData {
   // Current model for simulation
   private _currentProcessor: Processor | null = null;
 
+  //Stores the original program and the machine code
   public program: Array<Instruction> = [];
 
   public onProcessorChange: Function = (processor: Processor) => {};
@@ -63,6 +65,17 @@ export default class SharedData {
 
   public get currentStepLine(): number {
     return 1; //this.currentPc - this.PcStart;
+  }
+
+  public set currentStepLine(value: number) {
+    if (!this.monacoEditor || !this.monaco) return;
+    var selectionRange = new this.monaco.Range(
+      value + 1,
+      0,
+      value + 1,
+      this.monacoEditor.getModel().getLineMaxColumn(value + 1)
+    );
+    this.monacoEditor.setSelection(selectionRange);
   }
 
   public get code(): string {

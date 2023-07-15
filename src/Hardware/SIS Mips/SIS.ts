@@ -86,10 +86,31 @@ export default class SISMIPS implements Processor {
     Returns -1 if the instruction is call 0
   */
   public executeStep(): number {
+    let programInstruction = this.share.program.find(
+      (x) => x.memAddress.getBinaryValue(32) == this.pc.getBinaryValue(32)
+    );
+
     let instruction: BinaryNumber =
       this.fetch() ?? new BinaryNumber("0xfc000000");
 
-    this.currentInstruction = instruction.toHex(8); //TODO: change instruction representation to assembly code not hex
+    this.currentInstruction = programInstruction?.humanCode ?? "call 0";
+    console.log("SIS pc", this.pc.toHex());
+    console.log("SIS program", this.share.program);
+    console.log(
+      "SIS program inst",
+      this.share.program.map(
+        (x) =>
+          x.humanCode +
+          " machine:" +
+          x.machineCode.toHex() +
+          " addr:" +
+          x.memAddress.toHex()
+      )
+    );
+    console.log("SIS current instruction", programInstruction?.humanCode);
+    console.log("SIS current line index", programInstruction?.index);
+
+    this.share.currentStepLine = programInstruction?.index ?? 0;
 
     if (instruction.toHex(8) == "0xfc000000") {
       //call 0

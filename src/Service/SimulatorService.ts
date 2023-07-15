@@ -720,8 +720,9 @@ export default class SimulatorService {
       // Saves the state so we can look up the instruction later in a readable format
       this.share.program.push({
         humanCode: lines[i],
+        index: i,
         machineCode: new BinaryNumber("0b" + instruction),
-        memAddress: this.currentAddr,
+        memAddress: new BinaryNumber(this.currentAddr.value + ""),
       });
 
       this.currentAddr.addNumber(4); //increment PC by 4
