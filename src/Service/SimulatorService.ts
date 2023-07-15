@@ -726,6 +726,7 @@ export default class SimulatorService {
       );
     }
 
+    this.currentAddr = new BinaryNumber(this.share.pcStart + "");
     return machineCode;
   }
 
