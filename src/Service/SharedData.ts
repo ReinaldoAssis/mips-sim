@@ -76,6 +76,7 @@ export default class SharedData {
       this.monacoEditor.getModel().getLineMaxColumn(value + 1)
     );
     this.monacoEditor.setSelection(selectionRange);
+    this.monacoEditor.revealLineInCenter(value + 1);
   }
 
   public get code(): string {
