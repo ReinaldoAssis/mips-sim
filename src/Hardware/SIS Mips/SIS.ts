@@ -178,6 +178,15 @@ export default class SISMIPS implements Processor {
     }
   }
 
+  private getHumanInstruction(instruction: BinaryNumber): string {
+    return (
+      this.share.program.find(
+        (x) =>
+          x.machineCode.getBinaryValue(32) == instruction.getBinaryValue(32)
+      )?.humanCode ?? "Undefined"
+    );
+  }
+
   /*
     Executes a single cycle of the processor
     @param instruction: instruction to execute
@@ -209,7 +218,9 @@ export default class SISMIPS implements Processor {
             this.regbank[this.mapRegister(rd)] = result;
 
             this.log.debug(
-              `ADD a: ${a.value} b: ${b.value} result: ${result.value}`
+              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
+                b.value
+              } result: ${result.value}`
             );
 
             break;
@@ -221,7 +232,9 @@ export default class SISMIPS implements Processor {
             this.regbank[this.mapRegister(rd)] = result;
 
             this.log.debug(
-              `SUB a: ${a.value} b: ${b.value} result: ${result.value}`
+              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
+                b.value
+              } result: ${result.value}`
             );
             break;
 
@@ -232,7 +245,9 @@ export default class SISMIPS implements Processor {
             this.regbank[this.mapRegister(rd)] = result;
 
             this.log.debug(
-              `AND a: ${a.value} b: ${b.value} result: ${result.value}`
+              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
+                b.value
+              } result: ${result.value}`
             );
             break;
 
@@ -243,7 +258,9 @@ export default class SISMIPS implements Processor {
             this.regbank[this.mapRegister(rd)] = result;
 
             this.log.debug(
-              `OR a: ${a.value} b: ${b.value} result: ${result.value}`
+              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
+                b.value
+              } result: ${result.value}`
             );
             break;
 
@@ -257,7 +274,9 @@ export default class SISMIPS implements Processor {
             this.regbank[this.mapRegister(rd)] = result;
 
             this.log.debug(
-              `SLT a: ${a.value} b: ${b.value} result: ${result.value}`
+              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
+                b.value
+              } result: ${result.value}`
             );
             break;
 
@@ -269,7 +288,9 @@ export default class SISMIPS implements Processor {
             this.share.currentPc = this.pc.value;
 
             this.log.debug(
-              `JR address: ${new BinaryNumber(
+              `${this.getHumanInstruction(
+                instruction
+              )} address: ${new BinaryNumber(
                 "0b" + rs
               ).toHex()} result: ${this.pc.toHex()}`
             );
@@ -292,7 +313,9 @@ export default class SISMIPS implements Processor {
         this.regbank[this.mapRegister(rt)] = result;
 
         this.log.debug(
-          `ADDI a: ${a.value} b: ${b.value} result: ${result.value}`
+          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
+            b.value
+          } result: ${result.value}`
         );
 
         break;
@@ -313,7 +336,9 @@ export default class SISMIPS implements Processor {
         result = this.readMemory(address);
 
         this.log.debug(
-          `LW base: ${base.value} address: ${address.value} result: ${result.value}`
+          `${this.getHumanInstruction(instruction)} base: ${
+            base.value
+          } address: ${address.value} result: ${result.value}`
         );
 
         this.regbank[this.mapRegister(rt)] = result;
@@ -336,7 +361,11 @@ export default class SISMIPS implements Processor {
         result = this.regbank[this.mapRegister(rt)];
         this.writeMemory(address, result);
 
-        this.log.debug(`SW address: ${address.value} result: ${result.value}`);
+        this.log.debug(
+          `${this.getHumanInstruction(instruction)} address: ${
+            address.value
+          } result: ${result.value}`
+        );
 
         break;
 
@@ -356,7 +385,7 @@ export default class SISMIPS implements Processor {
         this.share.currentPc = this.pc.value;
 
         this.log.debug(
-          `BEQ a: ${a.value} b: ${
+          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
             b.value
           } [${b.getBinaryValue()}] offset: ${imm}`
         );
@@ -378,7 +407,11 @@ export default class SISMIPS implements Processor {
 
         this.share.currentPc = this.pc.value;
 
-        this.log.debug(`BNE a: ${a.value} b: ${b.value} offset: ${imm}`);
+        this.log.debug(
+          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
+            b.value
+          } offset: ${imm}`
+        );
 
         break;
 
@@ -400,7 +433,7 @@ export default class SISMIPS implements Processor {
         console.log("SIS new pc", this.pc.getBinaryValue(32));
 
         this.log.debug(
-          `JAL address: ${new BinaryNumber(
+          `${this.getHumanInstruction(instruction)} address: ${new BinaryNumber(
             "0b" + imm
           ).toHex()} result: ${this.pc.toHex()}`
         );
@@ -415,7 +448,7 @@ export default class SISMIPS implements Processor {
         );
 
         this.log.debug(
-          `J address: ${new BinaryNumber(
+          `${this.getHumanInstruction(instruction)} address: ${new BinaryNumber(
             "0b" + imm
           ).toHex()} result: ${this.pc.toHex()}`
         );

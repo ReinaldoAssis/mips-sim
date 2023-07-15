@@ -69,6 +69,9 @@ export default function SimulatorView() {
     // if code state is empty, get code from monaco editor and update share.code
     forceGetCode();
 
+    //resets the program
+    share.program = [];
+
     // Assembles the code
     simservice.assembledCode = simservice.assemble(share.code);
 

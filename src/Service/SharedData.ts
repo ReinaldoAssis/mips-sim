@@ -1,3 +1,11 @@
+import BinaryNumber from "../Hardware/BinaryNumber";
+
+export interface Instruction {
+  humanCode: string;
+  machineCode: BinaryNumber;
+  memAddress: BinaryNumber;
+}
+
 export interface Processor {
   frequency: number;
   executeStep(): number;
@@ -32,6 +40,8 @@ export default class SharedData {
   private _code: string = "";
   // Current model for simulation
   private _currentProcessor: Processor | null = null;
+
+  public program: Array<Instruction> = [];
 
   public onProcessorChange: Function = (processor: Processor) => {};
 

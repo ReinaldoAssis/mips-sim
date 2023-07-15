@@ -717,6 +717,13 @@ export default class SimulatorService {
           break;
       }
 
+      // Saves the state so we can look up the instruction later in a readable format
+      this.share.program.push({
+        humanCode: lines[i],
+        machineCode: new BinaryNumber("0b" + instruction),
+        memAddress: this.currentAddr,
+      });
+
       this.currentAddr.addNumber(4); //increment PC by 4
       machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
       console.log(
