@@ -24,11 +24,12 @@ export default function DebugTerminal(props: {
       />
       <Textarea
         readOnly={true}
+        userSelect={"text"}
         border={"hidden"}
         placeholder={"Empty"}
         value={props.value}
         height={"150px"}
-        style={{ position: "relative", bottom: 50 }}
+        style={{ position: "relative", bottom: 50, userSelect: "text" }}
         id={"debugTxtArea"}
         scrollBehavior={"smooth"}
       ></Textarea>

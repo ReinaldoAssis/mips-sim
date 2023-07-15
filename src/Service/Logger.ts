@@ -94,7 +94,10 @@ export default class Logger {
 
   public getErrors(): string {
     if (this._error.length == 0) return "";
-    return this._error.map(this.simErrorToString).join("\n");
+    return this._error
+      .filter((x) => x.type != ErrorType.Warning)
+      .map(this.simErrorToString)
+      .join("\n");
   }
 
   public getConsole(): string {

@@ -28,7 +28,7 @@ export default function ConsoleTerminal(props: {
         placeholder={"Empty"}
         value={props.value}
         height={"150px"}
-        style={{ position: "relative", bottom: 50 }}
+        style={{ position: "relative", bottom: 50, userSelect: "text" }}
         id={"consoleTxtArea"}
         scrollBehavior={"smooth"}
       ></Textarea>
