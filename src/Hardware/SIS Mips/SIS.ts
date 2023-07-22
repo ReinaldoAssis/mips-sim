@@ -39,8 +39,12 @@ export default class SISMIPS implements IProcessor {
     "sw",
     "beq",
     "bne",
+    "j",
+    "jal",
+    "jr",
     "call 0",
     "call 1",
+    "call 2",
   ];
 
   public log: Logger = Logger.instance;
