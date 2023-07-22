@@ -1,7 +1,7 @@
 import Editor from "@monaco-editor/react";
 import React from "react";
 import { useRef } from "react";
-import SharedData, { Processor } from "../Service/SharedData";
+import SharedData, { IProcessor } from "../Service/SharedData";
 
 function AssemblyEditor(props: {
   onEditorChange: (value: string | undefined, event: any) => void;

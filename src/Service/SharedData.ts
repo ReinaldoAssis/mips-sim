@@ -1,4 +1,5 @@
 import BinaryNumber from "../Hardware/BinaryNumber";
+import Logger from "./Logger";
 
 export interface Instruction {
   humanCode: string;
@@ -7,7 +8,7 @@ export interface Instruction {
   memAddress: BinaryNumber;
 }
 
-export interface Processor {
+export interface IProcessor {
   frequency: number;
   executeStep(): number;
   loadProgram(program: Array<string>): void;
@@ -20,6 +21,7 @@ export interface ThemeData {
 
 export default class SharedData {
   private static _instance: SharedData;
+  private log = Logger.instance;
 
   //public stepMode: boolean = false;
   //   public currentLine: number = 0;
@@ -37,23 +39,28 @@ export default class SharedData {
   public currentPc: number = 0x00400000;
   // Start address of the program
   public pcStart: number = 0x00400000;
+  // Interval responsible for running steps at frequency
+  public interval : NodeJS.Timeout | null = null;
   // Pure text code
   private _code: string = "";
   // Current model for simulation
-  private _currentProcessor: Processor | null = null;
+  private _currentProcessor: IProcessor | null = null;
+
+  private _processorFrequency: number = 20;
 
   //Stores the original program and the machine code
   public program: Array<Instruction> = [];
 
-  public onProcessorChange: Function = (processor: Processor) => {};
+  public onProcessorChange: Function = (processor: IProcessor) => {};
 
-  public get currentProcessor(): Processor | null {
-    this.onProcessorChange(this._currentProcessor);
-
+  public get currentProcessor(): IProcessor | null {
+    //this.onProcessorChange(this._currentProcessor);
+    if(this._currentProcessor) this._currentProcessor.frequency = this.processorFrequency;
     return this._currentProcessor;
   }
 
-  public set currentProcessor(value: Processor | null) {
+  public set currentProcessor(value: IProcessor | null) {
+
     this._currentProcessor = value;
     let instructionSet = this._currentProcessor?.instructionSet ?? [];
 
@@ -68,7 +75,19 @@ export default class SharedData {
   }
 
   public set currentStepLine(value: number) {
-    if (!this.monacoEditor || !this.monaco) return;
+    if (!this.monacoEditor || !this.monaco) {
+      this.log.pushInternalMessage("Monaco editor not initialized");
+      return;
+    }
+    // Displaying the current line is only useful if the processor is running 
+    // at a low frequency
+    if (this.processorFrequency > 100){
+      this.log.pushInternalMessage(`Processor frequency (${this.processorFrequency}) is too high to display current line`)
+      return;
+    }
+
+    this.log.pushInternalMessage(`Current frequency ${this.processorFrequency} and p ${this.currentProcessor?.frequency}`)
+
     var selectionRange = new this.monaco.Range(
       value + 1,
       0,
@@ -86,6 +105,15 @@ export default class SharedData {
 
   public set code(value: string) {
     this._code = value;
+  }
+
+  public set processorFrequency(value: number) {
+    this._processorFrequency = value;
+    if (this.currentProcessor) this.currentProcessor.frequency = value;
+  }
+
+  public get processorFrequency(): number {
+    return this._processorFrequency;
   }
 
   private constructor() {}

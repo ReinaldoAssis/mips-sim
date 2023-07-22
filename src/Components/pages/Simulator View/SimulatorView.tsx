@@ -56,6 +56,12 @@ export default function SimulatorView() {
   }
 
   function forceGetCode() {
+
+    if(share.monacoEditor == null) {
+      log.pushAppError("Monaco editor is null")
+      return;
+    }
+
     console.log("monaco editor value ", share.monacoEditor.getValue());
     console.log("code ", code);
     if (code == "" && share.monacoEditor != null) {
@@ -96,7 +102,11 @@ export default function SimulatorView() {
 
     let instructions = simservice.assembledCode.split(" ");
 
+    let f = share.processorFrequency;
+
     let cpu = new SISMIPS();
+    cpu.frequency = f;
+    share.currentProcessor = cpu;
     cpu.loadProgram(instructions);
 
     cpu.execute();

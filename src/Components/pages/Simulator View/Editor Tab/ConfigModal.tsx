@@ -15,21 +15,37 @@ import {
   SliderThumb,
   Select,
   Button,
+  Flex,
+  Input,
 } from "@chakra-ui/react";
 import SISMIPS from "../../../../Hardware/SIS Mips/SIS";
 import SharedData from "../../../../Service/SharedData";
+import React from "react";
 
 export default function ConfigModal(props: {
   isOpen: boolean;
   close: Function;
 }) {
   const share: SharedData = SharedData.instance;
+  const [clockSpeed, setClockSpeed] = React.useState<number>(0);
+
+  React.useEffect(() => {
+    setClockSpeed(share.processorFrequency);
+  }, [share.processorFrequency]);
 
   function handleSelectChange(e: any) {
     let simModelValue: string = e.target.value;
     // if (simModelValue == "sis") share.currentProcessor = new SISMIPS();
 
     console.log("changed model to ", simModelValue);
+  }
+
+  function clockSpeedChange(e: any)
+  {
+    setClockSpeed( e.target.value)
+    share.processorFrequency = e.target.value;
+    if(share.currentProcessor) share.currentProcessor.frequency = e.target.value;
+    console.log(`Share set at ${share.processorFrequency}`)
   }
 
   return (
@@ -40,7 +56,10 @@ export default function ConfigModal(props: {
         <ModalCloseButton />
         <ModalBody>
           <Stack direction="column" spacing={2}>
+            <Flex >
             <Text>Clock speed</Text>
+            <Input onChange={clockSpeedChange} value={clockSpeed} style={{width:"40px", marginLeft:10, alignSelf:"center"}} placeholder="10" size="xs"/>
+            </Flex>
             <Slider
               aria-label="Clock speed"
               defaultValue={30}

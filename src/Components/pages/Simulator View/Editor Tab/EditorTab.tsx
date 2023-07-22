@@ -189,7 +189,7 @@ export default function EditorView(props: {
                 //   new share.monaco.Position(share.currentStepLine, 0)
                 // );
 
-                if (share.currentProcessor) {
+                if (share.currentProcessor && share.program.length > 0) {
                   share.currentProcessor.executeStep();
                 } else {
                   share.program = [];
@@ -233,6 +233,7 @@ export default function EditorView(props: {
               onClick={() => {
                 share.currentProcessor = null;
                 share.currentPc = share.pcStart;
+                clearInterval(share.interval ?? 0);
               }}
             >
               Reset

@@ -1,129 +1,96 @@
-import Logger, { ErrorType } from "../../Service/Logger";
-import SharedData, { IProcessor } from "../../Service/SharedData";
-import BinaryNumber from "../BinaryNumber";
-import { ALU, Clock } from "../Descriptor";
-
-//simplified instruction set mips
-//compatible instructions:
-//arithmetics: add, addi, sub, and, or, slt, call 0, call 1, call 2
-//memory: lw, sw
-//branch: beq, bne, j, jal, jr
-
-//registers: v0,v1, a0,a1, t0,t1,t2,t3, ra, pc, zero
+import Logger, { ErrorType } from "../Service/Logger";
+import SharedData, { IProcessor } from "../Service/SharedData";
+import BinaryNumber from "./BinaryNumber";
 
 type addr = {
-  address: BinaryNumber;
-  value: BinaryNumber; //value of the address in binary
-};
+    address: BinaryNumber;
+    value: BinaryNumber; //value of the address in binary
+  };
 
-export default class SISMIPS implements IProcessor {
-  public share: SharedData = SharedData.instance;
+export default class Processor implements IProcessor 
+{
+    public share: SharedData = SharedData.instance;
 
-  public frequency: number = 0; //frequency
-  public memory: Array<addr> = new Array<addr>(); //memory
-  public pc: BinaryNumber = new BinaryNumber(); //program counter
-  public cycle: number = 0; //number of cycles executed
-  public regbank: Array<BinaryNumber> = []; //register bank
-  public initializedRegs: Array<boolean> = []; //initialized registers
+    public frequency: number = 0; //frequency
+    public memory: Array<addr> = new Array<addr>(); //memory
+    public pc: BinaryNumber = new BinaryNumber(); //program counter
+    public cycle: number = 0; //number of cycles executed
+    public regbank: Array<BinaryNumber> = []; //register bank
+    public initializedRegs: Array<boolean> = []; //initialized registers
 
-  public currentInstruction: string = ""; //current instruction being executed
+    public currentInstruction: string = ""; //current instruction being executed
 
-  public instructionSet: Array<string> = [
-    "add",
-    "addi",
-    "sub",
-    "and",
-    "or",
-    "slt",
-    "lw",
-    "sw",
-    "beq",
-    "bne",
-    "call 0",
-    "call 1",
-  ];
+    public instructionSet: Array<string> = [];
 
-  public log: Logger = Logger.instance;
+    public log: Logger = Logger.instance;
 
-  public PCStart: number = this.share.pcStart;
+    public PCStart: number = this.share.pcStart;
 
-  public constructor() {
-    this.frequency = 1;
-    for (let i = 0; i < 10; i++) {
-      if (i == 0) {
-        this.regbank.push(new BinaryNumber("0"));
-        this.initializedRegs.push(true);
-      } else {
-        this.regbank.push(
-          new BinaryNumber((Math.random() * 10000000).toString())
-        );
-        this.initializedRegs.push(false);
-      }
-    }
-
-    this.pc = new BinaryNumber(this.PCStart.toString());
-  }
-
-  public isRegisterInitialized(reg: string): boolean {
-    return this.initializedRegs[this.mapRegister(reg)];
-  }
-
-  public warnRegisterNotInitialized(regs: string[]): void {
-    //TODO: fix this
-    // regs.map((reg) => {
-    //   if (!this.isRegisterInitialized(reg)) {
-    //     this.log.warning(
-    //       "Acessing register not initialized.",
-    //       ErrorType.SIMULATOR
-    //     );
-    //     this.initializedRegs[this.mapRegister(reg)] = true;
-    //   }
-    // });
-  }
-
-  /* 
-    Executes a single step of the processor by fetching and calling executeCycle
-    Returns -1 if the instruction is call 0
-  */
-  public executeStep(): number {
-    let programInstruction = this.share.program.find(
-      (x) => x.memAddress.getBinaryValue(32) == this.pc.getBinaryValue(32)
-    );
-
-    //if the instruction is not found, call 0 to stop the execution
-    let instruction: BinaryNumber =
-      this.fetch() ?? new BinaryNumber("0xfc000000");
-
-    this.currentInstruction = programInstruction?.humanCode ?? "call 0";
+    public constructor() {
+        this.frequency = 1;
+        for (let i = 0; i < 10; i++) {
+          if (i == 0) {
+            this.regbank.push(new BinaryNumber("0"));
+            this.initializedRegs.push(true);
+          } else {
+            this.regbank.push(
+              new BinaryNumber((Math.random() * 10000000).toString())
+            );
+            this.initializedRegs.push(false);
+          }
+        }
     
-    //update the current step line
-    this.share.currentStepLine = programInstruction?.index ?? 0;
+        this.pc = new BinaryNumber(this.PCStart.toString());
+      }
 
-    if (instruction.toHex(8) == "0xfc000000") {
-      //call 0
-      return -1;
+      public warnRegisterNotInitialized(regs: string[]): void {
+        
+      }
+
+        /* 
+        Executes a single step of the processor by fetching and calling executeCycle
+        Returns -1 if the instruction is call 0
+        */
+      public executeStep(): number {
+        let programInstruction = this.share.program.find(
+          (x) => x.memAddress.getBinaryValue(32) == this.pc.getBinaryValue(32)
+        );
+    
+        //if the instruction is not found, call 0 to stop the execution
+        let instruction: BinaryNumber =
+          this.fetch() ?? new BinaryNumber("0xfc000000");
+    
+        this.currentInstruction = programInstruction?.humanCode ?? "call 0";
+        
+        //update the current step line
+        this.share.currentStepLine = programInstruction?.index ?? 0;
+    
+        if (instruction.toHex(8) == "0xfc000000") {
+          //call 0
+          return -1;
+        }
+    
+        //execute the instruction
+        this.executeCycle(instruction);
+        return 0;
+      }
+
+    /* 
+        Writes a value in the memory address
+        If the address is not initialized, it creates a new address
+        @param address: address to write to
+        @param value: value to write
+    */
+    public writeMemory(address: BinaryNumber, value: BinaryNumber): void {
+        let addr = this.memory.find((x) => x.address.value == address.value);
+        if (addr == undefined) {
+        this.memory.push({ address: address, value: value });
+        return;
+        }
+        this.memory[this.memory.indexOf(addr)].value = value;
     }
 
-    //execute the instruction
-    this.executeCycle(instruction);
-    return 0;
-  }
-
-  /* 
-    Writes a value in the memory address
-    If the address is not initialized, it creates a new address
-    @param address: address to write to
-    @param value: value to write
-  */
-  public writeMemory(address: BinaryNumber, value: BinaryNumber): void {
-    let addr = this.memory.find((x) => x.address.value == address.value);
-    if (addr == undefined) {
-      this.memory.push({ address: address, value: value });
-      return;
-    }
-    this.memory[this.memory.indexOf(addr)].value = value;
-  }
-
+    
   /*
     Reads a value from the memory address
     If the address is not initialized, it returns a random value to simulate garbage
@@ -208,13 +175,19 @@ export default class SISMIPS implements IProcessor {
   }
 
   /*
+    This should be implemented in the subclass
+  */
+  public executeCycle(instruction: BinaryNumber)
+  {
+    return;
+  }
+
+  /*
     Executes a single cycle of the processor
     @param instruction: instruction to execute
   */
-  public executeCycle(instruction: BinaryNumber): void {
-    // console.log("Executing instruction: " + instruction.getBinaryValue(32));
+  public executeSISCycle(instruction: BinaryNumber): void {
     let op = instruction.getBinaryValue(32).slice(0, 6);
-    // console.log("op: " + op);
 
     let rs, rt, rd, funct, imm: string;
     let a, b, result, base, address: BinaryNumber;
@@ -493,18 +466,6 @@ export default class SISMIPS implements IProcessor {
         }
         break;
 
-      default:
-        this.log.error(
-          "Couldn't process instruction",
-          this.currentInstruction,
-          this.cycle,
-          this.pc.value,
-          -1,
-          ErrorType.InvalidInstruction,
-          1
-        );
-        // this.log.error("Invalid instruction", ErrorType.SIMULATOR);
-        break;
     }
   }
 

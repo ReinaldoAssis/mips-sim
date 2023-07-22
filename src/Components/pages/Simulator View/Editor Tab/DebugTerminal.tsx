@@ -31,7 +31,7 @@ export default function DebugTerminal(props: {
         height={"150px"}
         style={{ position: "relative", bottom: 50, userSelect: "text" }}
         id={"debugTxtArea"}
-        scrollBehavior={"smooth"}
+        scrollBehavior={"auto"}
       ></Textarea>
     </>
   );

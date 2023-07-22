@@ -30,6 +30,9 @@ export default class Logger {
   private _console: Array<string> = [];
   private _error: Array<SimError> = [];
 
+  private _appErrors: Array<string> = [];
+  private _appInternalMsgs: Array<string> = [];
+
   private _onchange: Function = () => {};
   private _ondebugchange: Function = () => {};
   private _onconsolechange: Function = () => {};
@@ -81,6 +84,44 @@ export default class Logger {
     this._log += `ERROR: ${this.simErrorToString(err)}\n`;
 
     this._onchange();
+  }
+
+  /* 
+    App errors are errors that are not related to the simulation, but to the app itself.
+  */
+  public pushAppError(message:string)
+  {
+    this._appErrors.push(message);
+  }
+
+  /*
+    Debug messages that should not be presented to the end user
+  */
+  public pushInternalMessage(message:string)
+  {
+    if(this._appInternalMsgs.includes(message) == false)
+    {
+      this._appInternalMsgs.push(message);
+    }
+    
+  }
+
+  public get appErrors(): Array<string>
+  {
+    return this._appErrors;
+  }
+
+  public get appInternalMessages(): Array<string>
+  {
+    return this._appInternalMsgs;
+  }
+
+  public popAppError(): string{
+    return this._appErrors.pop() ?? "";
+  }
+
+  public popAppInternalMessage(): string{
+    return this._appInternalMsgs.pop() ?? "";
   }
 
   private simErrorToString(error: SimError): string {
