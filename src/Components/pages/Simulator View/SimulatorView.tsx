@@ -30,6 +30,7 @@ import SISMIPS from "../../../Hardware/SIS Mips/SIS";
 import Logger from "../../../Service/Logger";
 import SharedData from "../../../Service/SharedData";
 import EditorView from "./Editor Tab/EditorTab";
+import MonoMIPS from "../../../Hardware/Mono Mips/MonoMIPS";
 
 export default function SimulatorView() {
   // Handles the assembly code present in the editor
@@ -85,7 +86,7 @@ export default function SimulatorView() {
 
     let f = share.processorFrequency;
 
-    if(share.currentProcessor == null) share.currentProcessor = new SISMIPS();
+    if(share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 
     let cpu = share.currentProcessor;
     cpu.reset();

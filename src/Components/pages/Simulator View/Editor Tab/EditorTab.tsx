@@ -29,6 +29,7 @@ import AssemblyEditor from "../../../AssemblyEditor";
 import ConfigModal from "./ConfigModal";
 import ConsoleTerminal from "./ConsoleTerminal";
 import DebugTerminal from "./DebugTerminal";
+import MonoMIPS from "../../../../Hardware/Mono Mips/MonoMIPS";
 
 export default function EditorView(props: {
   runBtn: Function;
@@ -73,7 +74,7 @@ export default function EditorView(props: {
 
     } else {
       share.program = [];
-      share.currentProcessor = new SISMIPS();
+      share.currentProcessor = new MonoMIPS();
       const assembly = simservice.assemble(share.code);
       share.currentProcessor.loadProgram(assembly.split(" "));
       share.currentProcessor.executeStep();

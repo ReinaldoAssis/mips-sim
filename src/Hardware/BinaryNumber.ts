@@ -64,6 +64,7 @@ export default class BinaryNumber {
 
   public shiftRight(n:number): BinaryNumber {
     let bin = this.getBinaryValue();
+    if(bin.length <= n) return new BinaryNumber(0);
     bin = bin.slice(0, bin.length - n);
     this._value = BinaryNumber.parse("0b"+bin).value;
     return this;
@@ -72,7 +73,7 @@ export default class BinaryNumber {
   public static shiftLeft(a: number | BinaryNumber, n: number | BinaryNumber): BinaryNumber {
     if (typeof a != "number") a = a.value;
     if (typeof n != "number") n = n.value;
-    console.log("a", a, "n", n)
+
     return new BinaryNumber(a).shiftLeft(n);
   }
 
@@ -87,8 +88,9 @@ export default class BinaryNumber {
     return binary;
   }
 
-  public static parse(value: string, signed = false): BinaryNumber {
+  public static parse(value: string | number, signed = false): BinaryNumber {
     let binary = new BinaryNumber();
+    if (typeof value == "number") value = value + "";
     if (value.startsWith("0x")) {
       binary.value = Number.parseInt(value.substring(2), 16);
       return binary;

@@ -100,7 +100,7 @@ export default function ConfigModal(props: {
               onChange={handleSelectChange}
               id="sim-model-select"
               ref={simModelSelector}
-              value={share.currentProcessor?.refname ?? "sis"}
+              value={share.currentProcessor?.refname ?? "mono"}
             >
               <option value="sis">Simplified Instruction Set</option>
               <option value="mono">Monocycle</option>

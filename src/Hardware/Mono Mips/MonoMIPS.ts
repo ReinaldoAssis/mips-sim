@@ -32,6 +32,7 @@ export default class MonoMIPS implements IProcessor {
     "add",
     "addi",
     "sub",
+    "mult",
     "and",
     "or",
     "slt",
@@ -47,6 +48,7 @@ export default class MonoMIPS implements IProcessor {
     "call 0",
     "call 1",
     "call 2",
+    "call 42"
   ];
 
   public log: Logger = Logger.instance;
@@ -238,7 +240,7 @@ export default class MonoMIPS implements IProcessor {
     let op = instruction.getBinaryValue(32).slice(0, 6);
     // console.log("op: " + op);
 
-    let rs, rt, rd, funct, imm : string;
+    let rs, rt, rd, funct, imm, aux : string;
     let shift: number;
     let a, b, result, base, address: BinaryNumber;
 
@@ -261,9 +263,29 @@ export default class MonoMIPS implements IProcessor {
             result = BinaryNumber.shiftLeft(a, shift);
             this.regbank[this.mapRegister(rd)] = result;
 
-            console.log("SLL ", instruction.getBinaryValue(32), instruction.slice(21,26).getBinaryValue(), shift)
             this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} shift: ${shift} result: ${result.value}`);
             break;
+
+          case "000010": //srl
+            a = this.regbank[this.mapRegister(rt)];
+            shift = instruction.slice(21, 26).value;
+            result = BinaryNumber.shiftRight(a, shift);
+            this.regbank[this.mapRegister(rd)] = result;
+
+            this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} shift: ${shift} result: ${result.value}`);
+            break;
+
+          case "011000": //mult
+            a = this.regbank[this.mapRegister(rs)];
+            b = this.regbank[this.mapRegister(rt)];
+
+            aux = BinaryNumber.parse(a.value * b.value,true).getBinaryValue(64);
+            this.regbank[10] = BinaryNumber.parse(aux.slice(0, 32), true); //hi
+            this.regbank[11] = BinaryNumber.parse(aux.slice(32, 64), true); //lo
+
+            this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${BinaryNumber.parse("0b"+aux).value}`);
+            
+          break;
 
           case "100000": //add
             a = this.regbank[this.mapRegister(rs)];
@@ -515,15 +537,28 @@ export default class MonoMIPS implements IProcessor {
 
         console.log("call number ", n);
 
+        //print integer
         if (n == 1) {
           a = this.regbank[this.mapRegister("00010")]; //v0
           this.log.console(`${a.value}`);
           this.log.debug(`CALL 1 a: ${a.value}`);
-        } else if (n == 2) {
+        } //print char
+        else if (n == 2) {
           a = this.regbank[this.mapRegister("00010")]; //v0
           let char = String.fromCharCode(a.value);
           this.log.console(`${char}`, false);
           this.log.debug(`CALL 2 a: ${a.value} char: ${char}`);
+        } //random int from a0 to a1
+        else if (n == 42) {
+          a = this.regbank[this.mapRegister("00100")]; //a0
+          b = this.regbank[this.mapRegister("00101")]; //a1
+          result = BinaryNumber.parse(
+            Math.floor(Math.random() * (b.value - a.value) + a.value)
+          );
+          this.regbank[this.mapRegister("00010")] = result; //v0
+          this.log.debug(
+            `CALL 42 a: ${a.value} b: ${b.value} result: ${result.value}`
+          );
         }
         break;
 
@@ -564,6 +599,10 @@ export default class MonoMIPS implements IProcessor {
         return 8;
       case "11111": //ra
         return 9;
+      case "hi":
+        return 10;
+      case "lo":
+        return 11;
       default:
         this.log.error(
           "Couldn't process register",

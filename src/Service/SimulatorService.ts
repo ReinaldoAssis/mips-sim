@@ -361,6 +361,15 @@ export default class SimulatorService {
 
           break;
 
+        case "mult":
+          instruction = "000000";
+          instruction += this.assembleRegister(tokens[1]); //source register rs
+          instruction += this.assembleRegister(tokens[2]); //source register rt
+          instruction += "0000000000"; //shift amount and rd are 0
+          instruction += "011000"; //function code funct
+
+        break;
+
         case "and":
           instruction = "000000";
 
