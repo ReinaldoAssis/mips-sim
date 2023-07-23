@@ -58,17 +58,32 @@ export default class BinaryNumber {
   }
 
   public shiftLeft(n: number): BinaryNumber {
-    this._value = this._value << n;
-    return new BinaryNumber(this._value);
+    this._value = BinaryNumber.parse("0b"+this.getBinaryValue() + "0".repeat(n)).value;
+    return this;
   }
 
   public shiftRight(n:number): BinaryNumber {
-    this._value = this._value >> n;
-    return new BinaryNumber(this._value);
+    let bin = this.getBinaryValue();
+    bin = bin.slice(0, bin.length - n);
+    this._value = BinaryNumber.parse("0b"+bin).value;
+    return this;
+  }
+
+  public static shiftLeft(a: number | BinaryNumber, n: number | BinaryNumber): BinaryNumber {
+    if (typeof a != "number") a = a.value;
+    if (typeof n != "number") n = n.value;
+    console.log("a", a, "n", n)
+    return new BinaryNumber(a).shiftLeft(n);
+  }
+
+  public static shiftRight(a: number | BinaryNumber, n: number | BinaryNumber): BinaryNumber {
+    if (typeof a != "number") a = a.value;
+    if (typeof n != "number") n = n.value;
+    return new BinaryNumber(a).shiftRight(n);
   }
 
   public slice(start: number, end: number, pad:number=32): BinaryNumber {
-    let binary = new BinaryNumber(this.getBinaryValue(pad).slice(start, end));
+    let binary = new BinaryNumber("0b"+this.getBinaryValue(pad).slice(start, end));
     return binary;
   }
 
