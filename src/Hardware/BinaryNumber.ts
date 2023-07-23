@@ -2,7 +2,8 @@ export default class BinaryNumber {
   private _value: number = 0;
   private _length: number = 0;
 
-  public constructor(value: string = "0") {
+  public constructor(value: string | number = "0") {
+    if (typeof value == "number") value = value + "";
     if (value == "0") {
       this._value = 0;
       this._length = 1;
@@ -56,14 +57,19 @@ export default class BinaryNumber {
     return (this._value >> index) & 1;
   }
 
-  public shiftLeft(): number {
-    this._value = this._value << 1;
-    return this._value;
+  public shiftLeft(n: number): BinaryNumber {
+    this._value = this._value << n;
+    return new BinaryNumber(this._value);
   }
 
-  public shiftRight(): number {
-    this._value = this._value >> 1;
-    return this._value;
+  public shiftRight(n:number): BinaryNumber {
+    this._value = this._value >> n;
+    return new BinaryNumber(this._value);
+  }
+
+  public slice(start: number, end: number, pad:number=32): BinaryNumber {
+    let binary = new BinaryNumber(this.getBinaryValue(pad).slice(start, end));
+    return binary;
   }
 
   public static parse(value: string, signed = false): BinaryNumber {

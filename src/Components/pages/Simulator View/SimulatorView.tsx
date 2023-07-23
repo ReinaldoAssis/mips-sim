@@ -81,6 +81,20 @@ export default function SimulatorView() {
     // Assembles the code
     simservice.assembledCode = simservice.assemble(share.code);
 
+    let instructions = simservice.assembledCode.split(" ");
+
+    let f = share.processorFrequency;
+
+    if(share.currentProcessor == null) share.currentProcessor = new SISMIPS();
+
+    let cpu = share.currentProcessor;
+    cpu.reset();
+    cpu.frequency = f;
+    //share.currentProcessor = cpu;
+    cpu.loadProgram(instructions);
+
+    cpu.execute();
+
     if (log.getErrors().length == 0) {
       toast({
         title: "Code assembled",
@@ -99,17 +113,6 @@ export default function SimulatorView() {
         isClosable: true,
       });
     }
-
-    let instructions = simservice.assembledCode.split(" ");
-
-    let f = share.processorFrequency;
-
-    let cpu = new SISMIPS();
-    cpu.frequency = f;
-    share.currentProcessor = cpu;
-    cpu.loadProgram(instructions);
-
-    cpu.execute();
   }
 
   /* DESCRIPTION */

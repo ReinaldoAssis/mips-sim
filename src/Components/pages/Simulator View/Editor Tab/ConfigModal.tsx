@@ -21,6 +21,7 @@ import {
 import SISMIPS from "../../../../Hardware/SIS Mips/SIS";
 import SharedData from "../../../../Service/SharedData";
 import React from "react";
+import MonoMIPS from "../../../../Hardware/Mono Mips/MonoMIPS";
 
 export default function ConfigModal(props: {
   isOpen: boolean;
@@ -28,14 +29,21 @@ export default function ConfigModal(props: {
 }) {
   const share: SharedData = SharedData.instance;
   const [clockSpeed, setClockSpeed] = React.useState<number>(0);
+  const simModelSelector = React.useRef<HTMLSelectElement>(null);
 
   React.useEffect(() => {
     setClockSpeed(share.processorFrequency);
   }, [share.processorFrequency]);
 
+  // React.useEffect(() => {
+  //   console.log("ref", simModelSelector.current)
+  //   if(simModelSelector.current) simModelSelector.current.value = share.currentProcessor?.refname ?? "sis";
+  // },[props.isOpen]);
+
   function handleSelectChange(e: any) {
     let simModelValue: string = e.target.value;
-    // if (simModelValue == "sis") share.currentProcessor = new SISMIPS();
+    if (simModelValue == "sis") share.currentProcessor = new SISMIPS();
+    else if (simModelValue == "mono") share.currentProcessor = new MonoMIPS();
 
     console.log("changed model to ", simModelValue);
   }
@@ -88,9 +96,11 @@ export default function ConfigModal(props: {
 
             <Text style={{ marginTop: 30 }}>Processor model</Text>
             <Select
-              defaultValue={"sis"}
               size="md"
               onChange={handleSelectChange}
+              id="sim-model-select"
+              ref={simModelSelector}
+              value={share.currentProcessor?.refname ?? "sis"}
             >
               <option value="sis">Simplified Instruction Set</option>
               <option value="mono">Monocycle</option>

@@ -1,7 +1,6 @@
 import Logger, { ErrorType } from "../../Service/Logger";
 import SharedData, { IProcessor } from "../../Service/SharedData";
 import BinaryNumber from "../BinaryNumber";
-import { ALU, Clock } from "../Descriptor";
 
 //simplified instruction set mips
 //compatible instructions:
@@ -18,6 +17,7 @@ type addr = {
 
 export default class SISMIPS implements IProcessor {
   public share: SharedData = SharedData.instance;
+  public refname = "sis";
 
   public frequency: number = 0; //frequency
   public memory: Array<addr> = new Array<addr>(); //memory
@@ -51,8 +51,7 @@ export default class SISMIPS implements IProcessor {
 
   public PCStart: number = this.share.pcStart;
 
-  public constructor() {
-    this.frequency = 1;
+  public initialize(): void {
     for (let i = 0; i < 10; i++) {
       if (i == 0) {
         this.regbank.push(new BinaryNumber("0"));
@@ -66,6 +65,19 @@ export default class SISMIPS implements IProcessor {
     }
 
     this.pc = new BinaryNumber(this.PCStart.toString());
+  }
+
+  public constructor() {
+    this.initialize();
+  }
+
+  public reset(): void {
+    this.memory = [];
+    this.pc = new BinaryNumber(this.PCStart.toString());
+    this.cycle = 0;
+    this.regbank = [];
+    this.initializedRegs = [];
+    this.initialize();
   }
 
   public isRegisterInitialized(reg: string): boolean {
@@ -184,10 +196,11 @@ export default class SISMIPS implements IProcessor {
   /*
     Tells the processor to execute the program
   */
- 
   public async execute() {
     //caped for loop to prevent infinite loops
-    let i = 0;
+    
+    const stepper = () => {
+      let i = 0;
     let interval : NodeJS.Timeout = setInterval(() => {
       if (this.executeStep() == -1) {
         i = 99999999;
@@ -200,6 +213,17 @@ export default class SISMIPS implements IProcessor {
     }, 1000/this.frequency);
     
     this.share.interval = interval;
+    }
+
+    const continuous = () => 
+    {
+      for(let i=0; i<this.share.cycles_cap; i++)
+        if(this.executeStep() == -1) break;
+    }
+
+    if(this.frequency > 50) continuous();
+    else stepper();
+
   }
 
   private getHumanInstruction(instruction: BinaryNumber): string {

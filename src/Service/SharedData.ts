@@ -1,4 +1,6 @@
 import BinaryNumber from "../Hardware/BinaryNumber";
+import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
+import SISMIPS from "../Hardware/SIS Mips/SIS";
 import Logger from "./Logger";
 
 export interface Instruction {
@@ -9,9 +11,12 @@ export interface Instruction {
 }
 
 export interface IProcessor {
+  refname: string;
   frequency: number;
   executeStep(): number;
   loadProgram(program: Array<string>): void;
+  execute(): void;
+  reset(): void;
   instructionSet: Array<string>;
 }
 
@@ -23,14 +28,11 @@ export default class SharedData {
   private static _instance: SharedData;
   private log = Logger.instance;
 
-  //public stepMode: boolean = false;
-  //   public currentLine: number = 0;
-  //   public onStep: Function = (n: number) => {};
-
   public static theme: ThemeData = {
     editorBackground: "#282a36",
   };
 
+  public cycles_cap: number = 10000;
   // monaco editor instance
   public monacoEditor: any = null;
   // monaco instance
@@ -46,7 +48,7 @@ export default class SharedData {
   // Current model for simulation
   private _currentProcessor: IProcessor | null = null;
 
-  private _processorFrequency: number = 20;
+  private _processorFrequency: number = 100;
 
   //Stores the original program and the machine code
   public program: Array<Instruction> = [];

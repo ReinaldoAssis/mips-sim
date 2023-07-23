@@ -325,11 +325,7 @@ export default class SimulatorService {
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
           instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
-          console.log(
-            `addi immediate value: ${
-              new BinaryNumber(tokens[3]).getBinaryValue(16).length
-            }`
-          );
+          
 
           break;
 
@@ -573,6 +569,25 @@ export default class SimulatorService {
 
           break;
 
+        case "sll":
+          instruction = "000000";
+            instruction += "00000"; //source register rs
+            instruction += this.assembleRegister(tokens[2]); //destination register rt
+            instruction += this.assembleRegister(tokens[1]); //destination register rd
+            instruction += new BinaryNumber(tokens[3]).getBinaryValue(5); //shift amount shamt
+            instruction += "000000"; //function code funct
+
+        break;
+
+        case "srl":
+          instruction = "000000";
+            instruction += "00000"; //source register rs
+            instruction += this.assembleRegister(tokens[2]); //destination register rt
+            instruction += this.assembleRegister(tokens[1]); //destination register rd
+            instruction += new BinaryNumber(tokens[3]).getBinaryValue(5); //shift amount shamt
+            instruction += "000010"; //function code funct
+          break;
+
         case "slt":
           instruction = "000000";
 
@@ -728,7 +743,7 @@ export default class SimulatorService {
       this.currentAddr.addNumber(4); //increment PC by 4
       machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
       console.log(
-        `[Assembler] Assembled instruction ${instruction} to ${new BinaryNumber(
+        `[Assembler] Assembled instruction ${this.currentCodeInstruction} to ${new BinaryNumber(
           "0b" + instruction
         ).toHex(8)}!`
       );

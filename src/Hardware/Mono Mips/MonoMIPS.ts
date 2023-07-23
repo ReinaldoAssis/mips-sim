@@ -1,7 +1,6 @@
 import Logger, { ErrorType } from "../../Service/Logger";
 import SharedData, { IProcessor } from "../../Service/SharedData";
 import BinaryNumber from "../BinaryNumber";
-import { ALU, Clock } from "../Descriptor";
 
 //simplified instruction set mips
 //compatible instructions:
@@ -18,6 +17,7 @@ type addr = {
 
 export default class MonoMIPS implements IProcessor {
   public share: SharedData = SharedData.instance;
+  public refname: string = "mono";
 
   public frequency: number = 0; //frequency
   public memory: Array<addr> = new Array<addr>(); //memory
@@ -43,6 +43,7 @@ export default class MonoMIPS implements IProcessor {
     "jal",
     "jr",
     "sll",
+    "srl",
     "call 0",
     "call 1",
     "call 2",
@@ -52,8 +53,7 @@ export default class MonoMIPS implements IProcessor {
 
   public PCStart: number = this.share.pcStart;
 
-  public constructor() {
-    this.frequency = 1;
+  public initialize(): void {
     for (let i = 0; i < 10; i++) {
       if (i == 0) {
         this.regbank.push(new BinaryNumber("0"));
@@ -69,21 +69,26 @@ export default class MonoMIPS implements IProcessor {
     this.pc = new BinaryNumber(this.PCStart.toString());
   }
 
+  public constructor() {
+    this.initialize();
+  }
+
+  public reset(): void {
+    this.memory = [];
+    this.pc = new BinaryNumber(this.PCStart.toString());
+    this.cycle = 0;
+    this.regbank = [];
+    this.initializedRegs = [];
+    this.initialize();
+  }
+
   public isRegisterInitialized(reg: string): boolean {
     return this.initializedRegs[this.mapRegister(reg)];
   }
 
   public warnRegisterNotInitialized(regs: string[]): void {
     //TODO: fix this
-    // regs.map((reg) => {
-    //   if (!this.isRegisterInitialized(reg)) {
-    //     this.log.warning(
-    //       "Acessing register not initialized.",
-    //       ErrorType.SIMULATOR
-    //     );
-    //     this.initializedRegs[this.mapRegister(reg)] = true;
-    //   }
-    // });
+   
   }
 
   /* 
@@ -153,6 +158,15 @@ export default class MonoMIPS implements IProcessor {
     return addr.value;
   }
 
+  private getHumanInstruction(instruction: BinaryNumber): string {
+    return (
+      this.share.program.find(
+        (x) =>
+          x.machineCode.getBinaryValue(32) == instruction.getBinaryValue(32)
+      )?.humanCode ?? "Undefined"
+    );
+  }
+
   /*
     Loads a program into the memory
     @param program: array of instructions in hex
@@ -185,32 +199,35 @@ export default class MonoMIPS implements IProcessor {
   /*
     Tells the processor to execute the program
   */
- 
-  public async execute() {
-    //caped for loop to prevent infinite loops
-    let i = 0;
-    let interval : NodeJS.Timeout = setInterval(() => {
-      if (this.executeStep() == -1) {
-        i = 99999999;
-        clearInterval(interval);
+    public async execute() {
+      //caped for loop to prevent infinite loops
+      
+      const stepper = () => {
+        let i = 0;
+      let interval : NodeJS.Timeout = setInterval(() => {
+        if (this.executeStep() == -1) {
+          i = 99999999;
+          clearInterval(interval);
+        }
+        i++;
+        if (i > 2000) clearInterval(interval);
+          
+        console.log("SIS cycle", this.cycle);
+      }, 1000/this.frequency);
+      
+      this.share.interval = interval;
       }
-      i++;
-      if (i > 2000) clearInterval(interval);
-        
-      console.log("SIS cycle", this.cycle);
-    }, 1000/this.frequency);
-    
-    this.share.interval = interval;
-  }
-
-  private getHumanInstruction(instruction: BinaryNumber): string {
-    return (
-      this.share.program.find(
-        (x) =>
-          x.machineCode.getBinaryValue(32) == instruction.getBinaryValue(32)
-      )?.humanCode ?? "Undefined"
-    );
-  }
+  
+      const continuous = () => 
+      {
+        for(let i=0; i<this.share.cycles_cap; i++)
+          if(this.executeStep() == -1) break;
+      }
+  
+      if(this.frequency > 50) continuous();
+      else stepper();
+  
+    }
 
   /*
     Executes a single cycle of the processor
@@ -221,7 +238,8 @@ export default class MonoMIPS implements IProcessor {
     let op = instruction.getBinaryValue(32).slice(0, 6);
     // console.log("op: " + op);
 
-    let rs, rt, rd, funct, imm: string;
+    let rs, rt, rd, funct, imm : string;
+    let shift: number;
     let a, b, result, base, address: BinaryNumber;
 
     switch (op) {
@@ -231,11 +249,21 @@ export default class MonoMIPS implements IProcessor {
         rs = instruction.getBinaryValue(32).slice(6, 11);
         rt = instruction.getBinaryValue(32).slice(11, 16);
 
+
         // Write to the debug log a warning if the register has not been initialized
         // and set the register as initialized
         this.warnRegisterNotInitialized([rs, rt]);
 
         switch (funct) {
+            case "000000": //sll
+            a = this.regbank[this.mapRegister(rt)];
+            shift = instruction.slice(21, 26).value;
+            result = a.shiftLeft(shift)
+            this.regbank[this.mapRegister(rd)] = result;
+
+            this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} shift: ${shift} result: ${result.value}`);
+            break;
+
           case "100000": //add
             a = this.regbank[this.mapRegister(rs)];
             b = this.regbank[this.mapRegister(rt)];

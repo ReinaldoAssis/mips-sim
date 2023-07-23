@@ -231,7 +231,7 @@ export default function EditorView(props: {
               borderRadius={50}
               size="sm"
               onClick={() => {
-                share.currentProcessor = null;
+                share.currentProcessor?.reset();
                 share.currentPc = share.pcStart;
                 clearInterval(share.interval ?? 0);
               }}
