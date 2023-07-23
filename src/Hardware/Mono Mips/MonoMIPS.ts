@@ -258,9 +258,10 @@ export default class MonoMIPS implements IProcessor {
             case "000000": //sll
             a = this.regbank[this.mapRegister(rt)];
             shift = instruction.slice(21, 26).value;
-            result = a.shiftLeft(shift)
+            result = BinaryNumber.shiftLeft(a, shift);
             this.regbank[this.mapRegister(rd)] = result;
 
+            console.log("SLL ", instruction.getBinaryValue(32), instruction.slice(21,26).getBinaryValue(), shift)
             this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} shift: ${shift} result: ${result.value}`);
             break;
 

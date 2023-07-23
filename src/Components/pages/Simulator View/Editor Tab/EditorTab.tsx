@@ -63,6 +63,23 @@ export default function EditorView(props: {
   // SimulatorService instance that handles the assembly of the code
   let simservice: SimulatorService = SimulatorService.getInstance();
 
+  function callExecuteStep()
+  {
+    if (share.currentProcessor && share.program.length > 0) {
+      //check if the program is finished
+      let highestMemAddr = share.program.sort(x => x.memAddress.value)[share.program.length - 1].memAddress.value;
+      if(share.currentPc >= highestMemAddr) share.currentProcessor.reset();
+      else share.currentProcessor.executeStep();
+
+    } else {
+      share.program = [];
+      share.currentProcessor = new SISMIPS();
+      const assembly = simservice.assemble(share.code);
+      share.currentProcessor.loadProgram(assembly.split(" "));
+      share.currentProcessor.executeStep();
+    }
+  }
+
   // Updates the console and debug terminal when the log changes
   React.useEffect(() => {
     Logger.instance.onLogChange(() => {
@@ -184,24 +201,7 @@ export default function EditorView(props: {
               variant="solid"
               borderRadius={50}
               size="sm"
-              onClick={() => {
-                // share.monacoEditor?.setPosition(
-                //   new share.monaco.Position(share.currentStepLine, 0)
-                // );
-
-                if (share.currentProcessor && share.program.length > 0) {
-                  share.currentProcessor.executeStep();
-                } else {
-                  share.program = [];
-                  share.currentProcessor = new SISMIPS();
-                  const assembly = simservice.assemble(share.code);
-                  share.currentProcessor.loadProgram(assembly.split(" "));
-                  console.log(
-                    `Current assembly code: ${assembly} code: ${share.code}`
-                  );
-                  share.currentProcessor.executeStep();
-                }
-              }}
+              onClick={() => callExecuteStep()}
             >
               Step
             </IconButton>
