@@ -370,6 +370,24 @@ export default class SimulatorService {
 
         break;
 
+        case "mfhi":
+          instruction = "000000";
+          instruction += "00000000000"; //rs, rt are 0
+          instruction += this.assembleRegister(tokens[1]); //destination register rd
+          instruction += "00000";
+          instruction += "010000"; //function code funct
+
+        break;
+
+        case "mflo":
+          instruction = "000000";
+          instruction += "00000000000"; //rs, rt are 0
+          instruction += this.assembleRegister(tokens[1]); //destination register rd
+          instruction += "00000";
+          instruction += "010010"; //function code funct
+
+        break;
+
         case "and":
           instruction = "000000";
 
