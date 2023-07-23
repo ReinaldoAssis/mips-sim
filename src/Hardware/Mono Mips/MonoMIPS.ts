@@ -33,6 +33,8 @@ export default class MonoMIPS implements IProcessor {
     "addi",
     "sub",
     "mult",
+    "mfhi",
+    "mflo",
     "and",
     "or",
     "slt",
@@ -280,12 +282,24 @@ export default class MonoMIPS implements IProcessor {
             b = this.regbank[this.mapRegister(rt)];
 
             aux = BinaryNumber.parse(a.value * b.value,true).getBinaryValue(64);
-            this.regbank[10] = BinaryNumber.parse(aux.slice(0, 32), true); //hi
-            this.regbank[11] = BinaryNumber.parse(aux.slice(32, 64), true); //lo
+            this.regbank[10] = BinaryNumber.parse("0b"+aux.slice(0, 32), true); //hi
+            this.regbank[11] = BinaryNumber.parse("0b"+aux.slice(32, 64), true); //lo
 
             this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${BinaryNumber.parse("0b"+aux).value}`);
             
           break;
+
+          case "010000": //mfhi
+            this.regbank[this.mapRegister(rd)] = this.regbank[10]; //hi
+
+            this.log.debug(`${this.getHumanInstruction(instruction)} result: ${this.regbank[10].value}`);
+            break;
+
+          case "010010": //mflo
+            this.regbank[this.mapRegister(rd)] = this.regbank[11]; //lo
+
+            this.log.debug(`${this.getHumanInstruction(instruction)} result: ${this.regbank[11].value}`);
+            break;
 
           case "100000": //add
             a = this.regbank[this.mapRegister(rs)];
