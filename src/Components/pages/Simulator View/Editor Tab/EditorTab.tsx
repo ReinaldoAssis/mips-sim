@@ -66,18 +66,28 @@ export default function EditorView(props: {
 
   function callExecuteStep()
   {
+
+    const initialExecution = () => {
+      if(share && share.currentProcessor && share.program.length > 0) {
+      const assembly = simservice.assemble(share.code);
+      share.currentProcessor.loadProgram(assembly.split(" "));
+      share.currentProcessor.executeStep();
+      }
+    }
+
     if (share.currentProcessor && share.program.length > 0) {
-      //check if the program is finished
-      let highestMemAddr = share.program.sort(x => x.memAddress.value)[share.program.length - 1].memAddress.value;
-      if(share.currentPc >= highestMemAddr) share.currentProcessor.reset();
-      else share.currentProcessor.executeStep();
+      
+      if(!share.currentProcessor.halted) share.currentProcessor.executeStep();
+      else {
+        share.currentProcessor.reset();
+        initialExecution();
+      }
+      //share.currentProcessor.executeStep();
 
     } else {
       share.program = [];
       share.currentProcessor = new MonoMIPS();
-      const assembly = simservice.assemble(share.code);
-      share.currentProcessor.loadProgram(assembly.split(" "));
-      share.currentProcessor.executeStep();
+      initialExecution();
     }
   }
 
