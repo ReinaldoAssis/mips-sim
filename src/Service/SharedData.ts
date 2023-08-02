@@ -17,6 +17,7 @@ export interface IProcessor {
   loadProgram(program: Array<string>): void;
   execute(): void;
   reset(): void;
+  halted: boolean;
   instructionSet: Array<string>;
 }
 
@@ -32,7 +33,7 @@ export default class SharedData {
     editorBackground: "#282a36",
   };
 
-  public cycles_cap: number = 10000;
+  public cycles_cap: number = 15000;
   // monaco editor instance
   public monacoEditor: any = null;
   // monaco instance
@@ -41,6 +42,8 @@ export default class SharedData {
   public currentPc: number = 0x00400000;
   // Start address of the program
   public pcStart: number = 0x00400000;
+  // Start address of the stack
+  public stackStart: number = 0xFFF9E57F;
   // Interval responsible for running steps at frequency
   public interval : NodeJS.Timeout | null = null;
   // Pure text code

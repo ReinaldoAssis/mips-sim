@@ -261,12 +261,30 @@ export default class SimulatorService {
     console.log(JSON.stringify(code));
     console.log("========");
 
+    const pushInstruction = (instruction: string, i:number, humanCode:string="") => {
+      // Saves the state so we can look up the instruction later in a readable format
+      this.share.program.push({
+        humanCode: humanCode == "" ? lines[i] : humanCode,
+        index: i,
+        machineCode: new BinaryNumber("0b" + instruction),
+        memAddress: new BinaryNumber(this.currentAddr.value + ""),
+      });
+
+      this.currentAddr.addNumber(4); //increment PC by 4
+      machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
+      console.log(
+        `[Assembler] Assembled instruction ${this.currentCodeInstruction} to ${new BinaryNumber(
+          "0b" + instruction
+        ).toHex(8)}!`
+      );
+    }
+
     // split the code into lines
     let lines = code.split("\n");
 
     // final machine code
     let machineCode = "";
-    // let PC: BinaryNumber = new BinaryNumber("0x00400000");
+
 
     // one line is converted at a time
     for (let i = 0; i < lines.length; i++) {
@@ -368,6 +386,14 @@ export default class SimulatorService {
           instruction += "0000000000"; //shift amount and rd are 0
           instruction += "011000"; //function code funct
 
+        break;
+
+        case "div":
+          instruction = "000000";
+          instruction += this.assembleRegister(tokens[1]); //source register rs
+          instruction += this.assembleRegister(tokens[2]); //source register rt
+          instruction += "0000000000"; //shift amount and rd are 0
+          instruction += "011010"; //function code funct
         break;
 
         case "mfhi":
@@ -581,6 +607,38 @@ export default class SimulatorService {
 
           break;
 
+        case "push": //pseudo instruction
+          instruction = "001000"; //addi
+          instruction += this.assembleRegister("$sp"); //source register rs
+          instruction += this.assembleRegister("$sp"); //destination register rt
+          instruction += BinaryNumber.parse(-4,true).getBinaryValue(16); //immediate value in binary
+          pushInstruction(instruction, i, "addi");
+          instruction = "101011"; //sw
+          instruction += this.assembleRegister("$sp"); //source register rs
+          instruction += this.assembleRegister(tokens[1]); //destination register rt
+          instruction += BinaryNumber.parse(0,true).getBinaryValue(16); //offset value
+          pushInstruction(instruction, i, "sw");
+          continue;
+          
+          break;
+
+        case "pop": //pseudo instruction
+          instruction = "100011"; //lw
+          instruction += this.assembleRegister("$sp"); //source register rs
+          instruction += this.assembleRegister(tokens[1]); //destination register rt
+          instruction += BinaryNumber.parse(0,true).getBinaryValue(16); //offset value
+          pushInstruction(instruction, i, "lw");
+          instruction = "001000"; //addi
+          instruction += this.assembleRegister("$sp"); //source register rs
+          instruction += this.assembleRegister("$sp"); //destination register rt
+          instruction += BinaryNumber.parse(4,true).getBinaryValue(16); //immediate value in binary
+          pushInstruction(instruction, i, "addi");
+          continue;
+          
+          break;
+
+
+
         case "ori":
           instruction = "001101";
 
@@ -759,24 +817,10 @@ export default class SimulatorService {
           break;
       }
 
-      // Saves the state so we can look up the instruction later in a readable format
-      this.share.program.push({
-        humanCode: lines[i],
-        index: i,
-        machineCode: new BinaryNumber("0b" + instruction),
-        memAddress: new BinaryNumber(this.currentAddr.value + ""),
-      });
-
-      this.currentAddr.addNumber(4); //increment PC by 4
-      machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
-      console.log(
-        `[Assembler] Assembled instruction ${this.currentCodeInstruction} to ${new BinaryNumber(
-          "0b" + instruction
-        ).toHex(8)}!`
-      );
+      pushInstruction(instruction, i);
     }
 
-    this.currentAddr = new BinaryNumber(this.share.pcStart + "");
+    this.currentAddr = new BinaryNumber(this.share.pcStart);
     return machineCode;
   }
 
@@ -838,6 +882,9 @@ export default class SimulatorService {
 
       case p + "ra":
         return "11111";
+
+      case p + "sp":
+        return "11101";
     }
     // }
 

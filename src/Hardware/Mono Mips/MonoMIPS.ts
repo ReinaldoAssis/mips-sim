@@ -18,6 +18,7 @@ type addr = {
 export default class MonoMIPS implements IProcessor {
   public share: SharedData = SharedData.instance;
   public refname: string = "mono";
+  public halted = false;
 
   public frequency: number = 0; //frequency
   public memory: Array<addr> = new Array<addr>(); //memory
@@ -33,6 +34,7 @@ export default class MonoMIPS implements IProcessor {
     "addi",
     "sub",
     "mult",
+    "div",
     "mfhi",
     "mflo",
     "and",
@@ -70,6 +72,11 @@ export default class MonoMIPS implements IProcessor {
       }
     }
 
+    this.regbank[9] = new BinaryNumber(this.PCStart);
+    this.regbank[16] = new BinaryNumber(this.share.stackStart);
+    this.initializedRegs[9] = true;
+    this.initializedRegs[16] = true;
+
     this.pc = new BinaryNumber(this.PCStart.toString());
   }
 
@@ -79,7 +86,8 @@ export default class MonoMIPS implements IProcessor {
 
   public reset(): void {
     this.memory = [];
-    this.pc = new BinaryNumber(this.PCStart.toString());
+    this.halted = false;
+    this.pc = new BinaryNumber(this.PCStart);
     this.cycle = 0;
     this.regbank = [];
     this.initializedRegs = [];
@@ -115,6 +123,7 @@ export default class MonoMIPS implements IProcessor {
 
     if (instruction.toHex(8) == "0xfc000000") {
       //call 0
+      this.halted = true;
       return -1;
     }
 
@@ -289,6 +298,17 @@ export default class MonoMIPS implements IProcessor {
             
           break;
 
+          case "011010": //div
+            a = this.regbank[this.mapRegister(rs)];
+            b = this.regbank[this.mapRegister(rt)];
+
+            this.regbank[10] = BinaryNumber.parse(Math.floor(a.value / b.value).toString()); //hi
+            this.regbank[11] = BinaryNumber.parse((a.value % b.value).toString()); //lo
+
+            this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${Math.floor(a.value / b.value)}`);
+
+            break;
+
           case "010000": //mfhi
             this.regbank[this.mapRegister(rd)] = this.regbank[10]; //hi
 
@@ -374,7 +394,6 @@ export default class MonoMIPS implements IProcessor {
             rs = instruction.getBinaryValue(32).slice(6, 11);
             this.warnRegisterNotInitialized([rs]);
             this.pc = this.regbank[this.mapRegister(rs)];
-            console.log("JR PC ", this.pc.getBinaryValue(32));
             this.share.currentPc = this.pc.value;
 
             this.log.debug(
@@ -520,7 +539,6 @@ export default class MonoMIPS implements IProcessor {
         this.pc = new BinaryNumber(
           "0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm
         );
-        console.log("SIS new pc", this.pc.getBinaryValue(32));
 
         this.log.debug(
           `${this.getHumanInstruction(instruction)} address: ${new BinaryNumber(
@@ -603,6 +621,10 @@ export default class MonoMIPS implements IProcessor {
         return 3;
       case "00101": //a1
         return 4;
+      case "00110": //a2
+        return 12;
+      case "00111": //a3
+        return 17;
       case "01000": //t0
         return 5;
       case "01001": //t1
@@ -611,6 +633,14 @@ export default class MonoMIPS implements IProcessor {
         return 7;
       case "01011": //t3
         return 8;
+      case "01100": //t4
+        return 13;
+      case "01101": //t5
+        return 14;
+      case "01110": //t6
+        return 15;
+      case "11101": //sp
+        return 16;
       case "11111": //ra
         return 9;
       case "hi":

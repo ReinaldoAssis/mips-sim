@@ -19,6 +19,8 @@ export default class SISMIPS implements IProcessor {
   public share: SharedData = SharedData.instance;
   public refname = "sis";
 
+  public halted = false; 
+
   public frequency: number = 0; //frequency
   public memory: Array<addr> = new Array<addr>(); //memory
   public pc: BinaryNumber = new BinaryNumber(); //program counter
@@ -73,6 +75,7 @@ export default class SISMIPS implements IProcessor {
 
   public reset(): void {
     this.memory = [];
+    this.halted = false;
     this.pc = new BinaryNumber(this.PCStart.toString());
     this.cycle = 0;
     this.regbank = [];
@@ -117,6 +120,7 @@ export default class SISMIPS implements IProcessor {
 
     if (instruction.toHex(8) == "0xfc000000") {
       //call 0
+      this.halted = true;
       return -1;
     }
 
