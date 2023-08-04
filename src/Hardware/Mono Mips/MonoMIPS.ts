@@ -40,6 +40,7 @@ export default class MonoMIPS implements IProcessor {
     "and",
     "or",
     "slt",
+    "slti",
     "lw",
     "sw",
     "beq",
@@ -52,6 +53,7 @@ export default class MonoMIPS implements IProcessor {
     "call 0",
     "call 1",
     "call 2",
+    "call 3",
     "call 42"
   ];
 
@@ -409,6 +411,29 @@ export default class MonoMIPS implements IProcessor {
 
         break;
 
+      case "001010": //slti
+        rs = instruction.getBinaryValue(32).slice(6, 11);
+        rt = instruction.getBinaryValue(32).slice(11, 16);
+        imm = instruction.getBinaryValue(32).slice(16, 32);
+
+        //this.warnRegisterNotInitialized([rs]);
+
+        a = this.regbank[this.mapRegister(rs)];
+        b = BinaryNumber.parse("0b" + imm, true);
+        result =
+          a.value < b.value
+            ? new BinaryNumber(1)
+            : new BinaryNumber(0);
+        this.regbank[this.mapRegister(rt)] = result;
+
+        this.log.debug(
+          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
+            b.value
+          } result: ${result.value}`
+        );
+
+        break;
+
       case "001000": //addi
         rs = instruction.getBinaryValue(32).slice(6, 11);
         rt = instruction.getBinaryValue(32).slice(11, 16);
@@ -580,7 +605,14 @@ export default class MonoMIPS implements IProcessor {
           let char = String.fromCharCode(a.value);
           this.log.console(`${char}`, false);
           this.log.debug(`CALL 2 a: ${a.value} char: ${char}`);
-        } //random int from a0 to a1
+        } 
+        //dump integer without newline
+        else if(n == 3){
+          a = this.regbank[this.mapRegister("00010")]; //v0
+          this.log.console(`${a.value}`, false);
+          this.log.debug(`CALL 3 a: ${a.value}`);
+        }
+        //random int from a0 to a1
         else if (n == 42) {
           a = this.regbank[this.mapRegister("00100")]; //a0
           b = this.regbank[this.mapRegister("00101")]; //a1
