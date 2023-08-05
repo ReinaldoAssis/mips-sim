@@ -3,7 +3,7 @@ import { ChakraProvider, theme, useToast } from "@chakra-ui/react";
 
 import SidebarWithHeader from "./Components/Sidebar";
 import SimulatorView from "./Components/pages/Simulator View/SimulatorView";
-import InstructionSetPage from "./Components/pages/InstructionSet";
+import InstructionSetPage from "./Components/pages/InstructionSet/InstructionSet";
 import Logger from "./Service/Logger";
 
 export function App()
