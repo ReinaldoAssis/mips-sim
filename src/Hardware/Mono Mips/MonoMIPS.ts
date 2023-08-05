@@ -239,7 +239,7 @@ export default class MonoMIPS implements IProcessor {
           if(this.executeStep() == -1) break;
       }
   
-      if(this.frequency > 50) continuous();
+      if(this.frequency > 90) continuous();
       else stepper();
   
     }

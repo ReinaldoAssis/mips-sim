@@ -45,6 +45,8 @@ export default class SimulatorService {
     "jal",
     "jr",
     "sll",
+    "push",
+    "pop",
     "sllv",
     "sra",
     "srav",
@@ -177,7 +179,12 @@ export default class SimulatorService {
 
       // if it's an instruction, add 4 to the PC
       if (this.instruction_set.includes(tokens[0].toLowerCase())) {
-        PC.addNumber(4);
+        let tk = tokens[0].toLowerCase();
+        if (tk == "push" || tk == "pop") {
+          PC.addNumber(8);
+          console.log("achrei push ou pop")
+        }
+        else PC.addNumber(4);
       }
       // if it's a label, save the PC value
       else {
