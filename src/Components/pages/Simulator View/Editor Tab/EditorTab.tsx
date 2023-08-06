@@ -67,6 +67,8 @@ export default function EditorView(props: {
   function callExecuteStep()
   {
 
+    share.updateCode();
+
     const initialExecution = () => {
       if(share && share.currentProcessor && share.program.length > 0) {
       const assembly = simservice.assemble(share.code);

@@ -1,5 +1,5 @@
 import Editor from "@monaco-editor/react";
-import React from "react";
+import React, { useEffect } from "react";
 import { useRef } from "react";
 import SharedData, { IProcessor } from "../Service/SharedData";
 
@@ -136,6 +136,7 @@ function AssemblyEditor(props: {
         return { suggestions: suggestions };
       },
     });
+
   }
 
   function handleEditorDidMount(editor: any, monaco: any) {
@@ -146,6 +147,13 @@ function AssemblyEditor(props: {
     share.monaco = monaco;
 
     monaco.editor.setTheme("mipsdark");
+
+    // makes sure the editor mounts with the right code
+    if(share.code != "") {
+      editor.setValue(share.code);
+    }
+    else editor.setValue(defaultcode);
+    
   }
 
   const defaultcode = `addi $t0, $zero, 0 #f1\naddi $t1, $zero, 1 #f2\naddi $a0, $zero, 14 #n - 1\n\nfibonacci:\n\taddi $a0, $a0, -1\n\tadd $t2, $t0, $t1 #soma\n\tadd $t0, $zero, $t1 #f1 = f2\n\tadd $t1, $zero, $t2 #f2 = soma\n\tbeq $a0, $zero, main\n\tbne $a0, $zero, fibonacci\n\nmain:\n\taddi $v0, $t1, 0\n\tcall 1`;
@@ -157,8 +165,7 @@ function AssemblyEditor(props: {
       defaultLanguage="mips"
       theme="vs-dark"
       defaultValue={
-        "# MIPS Assembly Sim. by Reinaldo Assis \n# Project supervisor: prof. Bruno Costa\n\n" +
-        defaultcode
+        "# MIPS Assembly Sim. by Reinaldo Assis \n# Project supervisor: prof. Bruno Costa\n\n"
       }
       options={{
         scrollBeyondLastLine: false,

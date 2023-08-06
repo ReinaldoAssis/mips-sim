@@ -103,9 +103,14 @@ export default class SharedData {
     this.monacoEditor.revealLineInCenter(value + 1);
   }
 
+  public updateCode(){
+    if(this.monacoEditor) this._code = this.monacoEditor.getValue();
+  }
+
   public get code(): string {
-    if (this.monacoEditor) return this.monacoEditor.getValue();
-    else return this._code;
+    // if (this.monacoEditor) return this.monacoEditor.getValue();
+    // else return this._code;
+    return this._code;
   }
 
   public set code(value: string) {

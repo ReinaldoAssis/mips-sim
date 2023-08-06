@@ -54,6 +54,7 @@ export default function SimulatorView() {
   function onEditorChange(value: string | undefined, event: any) {
     setCode(value!);
     share.code = code;
+    console.log("updated code ", code)
   }
 
   function forceGetCode() {
