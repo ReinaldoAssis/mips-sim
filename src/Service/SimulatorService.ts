@@ -592,10 +592,17 @@ export default class SimulatorService {
           //     `[Assembler] Invalid number of arguments for lw instruction!`,
           //     ErrorType.ASSEMBLER
           //   );
-
+          
+          // first we need to check if an offset value was provided
+          if(tokens.length == 4 && tokens[2].includes("(")){
           instruction += this.assembleRegister(tokens[3]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
           instruction += new BinaryNumber(tokens[2]).getBinaryValue(16); //offset value
+          } else {
+            instruction += this.assembleRegister(tokens[2]); //source register rs
+            instruction += this.assembleRegister(tokens[1]); //destination register rt
+            instruction += new BinaryNumber(0).getBinaryValue(16); //offset value
+          }
 
           break;
 
@@ -608,9 +615,17 @@ export default class SimulatorService {
           //     ErrorType.ASSEMBLER
           //   );
 
-          instruction += this.assembleRegister(tokens[3]); //source register rs
-          instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += new BinaryNumber(tokens[2]).getBinaryValue(16); //offset value
+          // first we need to check if an offset value was provided
+          if(tokens.length == 4 && tokens[2].includes("(")){
+
+            instruction += this.assembleRegister(tokens[3]); //source register rs
+            instruction += this.assembleRegister(tokens[1]); //destination register rt
+            instruction += new BinaryNumber(tokens[2]).getBinaryValue(16); //offset value
+          } else {
+            instruction += this.assembleRegister(tokens[2]); //source register rs
+            instruction += this.assembleRegister(tokens[1]); //destination register rt
+            instruction += new BinaryNumber(0).getBinaryValue(16); //offset value
+          }
 
           break;
 
