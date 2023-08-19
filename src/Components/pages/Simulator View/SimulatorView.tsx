@@ -53,8 +53,7 @@ export default function SimulatorView() {
   // Updates the assembly code when the code changes
   function onEditorChange(value: string | undefined, event: any) {
     setCode(value!);
-    share.code = code;
-    console.log("updated code ", code)
+    share.code = value ?? code;
   }
 
   function forceGetCode() {
