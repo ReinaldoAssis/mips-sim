@@ -21,6 +21,12 @@ export interface IProcessor {
   instructionSet: Array<string>;
 }
 
+export interface ICachedProgram {
+  name: string;
+  id: number;
+  code: string;
+}
+
 export interface ThemeData {
   editorBackground: string;
 }
@@ -117,6 +123,10 @@ export default class SharedData {
     this._code = value;
   }
 
+  public updateMonacoCode(){
+    if(this.monacoEditor) this.monacoEditor.setValue(this.code);
+  }
+
   public set processorFrequency(value: number) {
     this._processorFrequency = value;
     if (this.currentProcessor) this.currentProcessor.frequency = value;
@@ -125,6 +135,104 @@ export default class SharedData {
   public get processorFrequency(): number {
     return this._processorFrequency;
   }
+
+  /*
+    Gets a value from local storage
+    @param key: key of the item to be retrieved
+    @returns the value of the item, or null if it does not exist
+  */
+  public getCached(key:string){
+    let parsed = JSON.parse(localStorage.getItem(key) ?? "null");
+    console.log(`Getting ${key} from local storage, value: ${parsed}`)
+    return parsed;
+  }
+
+  /*
+    Stores a value in local storage
+    @param key: key of the item to be stored
+    @param value: value of the item to be stored
+    @param ignoreStringify: if true, the value will not be stringified
+  */
+  public setCached(key:string, value:any, ignoreStringify:boolean = false){
+    try{
+      if(!ignoreStringify) value = JSON.stringify(value);
+      localStorage.setItem(key, value);
+      console.log(`Saved ${key} in local storage`)
+    } catch{
+      //TODO: implementar tela de erro
+      console.log(`Error saving ${key} in local storage`)
+    }
+  }
+
+  /*
+   Removes a cached item from local storage if it exists
+    @param key: key of the item to be removed
+    @returns true if the item was removed, false otherwise
+  */
+  public removeCached(key:string) : boolean {
+    if (this.existsCached(key) == false) return false;
+    localStorage.removeItem(key);
+    return true;
+  }
+
+  /*
+    Checks if a cached item exists
+    @param key: key of the item to be checked
+    @returns true if the item exists, false otherwise
+  */
+  public existsCached(key:string){
+    return localStorage.getItem(key) !== null;
+  }
+
+  /*
+    Updates a cached item if it exists, otherwise creates it
+    @param key: key of the item to be updated
+    @param value: value of the item to be updated
+    @param ignoreStringify: if true, the value will not be stringified
+  */
+  public updateCached(key:string, value:any, ignoreStringify:boolean = false){
+    this.removeCached(key);
+    this.setCached(key, value, ignoreStringify);
+  }
+
+  /*
+    Saves a program in local storage and updates the list of cached programs
+    @param programName: name of the program to be saved
+    @returns void
+  */
+  public saveProgram(programName: string, code: string){
+    if(this.existsCached("cached_programs")){
+      let list = this.getCached("cached_programs") as Array<string>;
+      if (!list.includes(programName)){
+        list.push(programName);
+      this.updateCached("cached_programs", list);
+      }
+
+      this.setCached(programName, code);
+      return;
+    }
+
+    this.setCached("cached_programs", [programName]);
+    this.setCached(programName, code);
+
+  }
+
+  /*
+    Load program from local storage if it exists
+    @param programName: name of the program to be loaded
+    @returns code or null
+  */
+  public loadProgram(programName: string){
+    if (!this.existsCached(programName)) return null;
+    return this.getCached(programName);
+  }
+
+  public getListOfCachedPrograms() : Array<string> {
+    let chached_programs = this.getCached("cached_programs");
+    if(chached_programs) return chached_programs as Array<string>;
+    else return [];
+  }
+
 
   private constructor() {}
 

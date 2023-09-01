@@ -18,6 +18,7 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { BsTerminalFill } from "react-icons/bs";
+import {IoMdSave} from "react-icons/io";
 import { HiPlay } from "react-icons/hi";
 import { MdDelete } from "react-icons/md";
 import { RiRewindFill, RiSettings2Fill } from "react-icons/ri";
@@ -30,6 +31,8 @@ import ConfigModal from "./ConfigModal";
 import ConsoleTerminal from "./ConsoleTerminal";
 import DebugTerminal from "./DebugTerminal";
 import MonoMIPS from "../../../../Hardware/Mono Mips/MonoMIPS";
+import { FaFolderOpen } from "react-icons/fa";
+import LoadProgramModal from "./LoadProgramModal";
 
 export default function EditorView(props: {
   runBtn: Function;
@@ -53,7 +56,11 @@ export default function EditorView(props: {
   // Handles the information text of the debug terminal
   const [debugTxt, setDebugTxt] = React.useState<string>("");
 
+  // Handles the visibility of the configuration modal
   const [configModalOpen, setConfigModalOpen] = React.useState<boolean>(false);
+
+  // Handles the visibility of the load program modal
+  const [loadProgramModalOpen, setLoadProgramModalOpen] = React.useState<boolean>(false);
 
   // SharedData instance that holds the shared state of the application
   let share: SharedData = SharedData.instance;
@@ -270,11 +277,48 @@ export default function EditorView(props: {
               Configuration
             </IconButton>
           </Tooltip>
+          <Tooltip label="Save">
+            <IconButton
+              icon={
+                <Icon
+                  as={IoMdSave}
+                  style={{ transform: "scale(1.2)" }}
+                />
+              }
+              aria-label="Save"
+              backgroundColor={SharedData.theme.editorBackground}
+              color="white"
+              borderRadius={50}
+              size="sm"
+              onClick={() => share.saveProgram("recent", share.code)}
+            >
+              Save
+            </IconButton>
+          </Tooltip>
+          <Tooltip label="Load">
+            <IconButton
+              icon={
+                <Icon
+                  as={FaFolderOpen}
+                  style={{ transform: "scale(1.2)" }}
+                />
+              }
+              aria-label="Load"
+              backgroundColor={SharedData.theme.editorBackground}
+              color="white"
+              borderRadius={50}
+              size="sm"
+              onClick={() => setLoadProgramModalOpen(true)}
+            >
+              Load
+            </IconButton>
+          </Tooltip>
         </Stack>
         <ConfigModal
           isOpen={configModalOpen}
           close={() => setConfigModalOpen(false)}
         />
+        <LoadProgramModal isOpen={loadProgramModalOpen} close={() => setLoadProgramModalOpen(false)} />
       </Stack>
     </Stack>
   );
