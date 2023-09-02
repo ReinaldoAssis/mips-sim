@@ -15,6 +15,7 @@ import {
   Text,
   Tooltip,
   Select,
+  useToast,
 } from "@chakra-ui/react";
 import React from "react";
 import { BsTerminalFill } from "react-icons/bs";
@@ -70,6 +71,8 @@ export default function EditorView(props: {
 
   // SimulatorService instance that handles the assembly of the code
   let simservice: SimulatorService = SimulatorService.getInstance();
+
+  const toast = useToast();
 
   function callExecuteStep()
   {
@@ -290,7 +293,16 @@ export default function EditorView(props: {
               color="white"
               borderRadius={50}
               size="sm"
-              onClick={() => share.saveProgram("recent", share.code)}
+              onClick={() => {
+                share.saveProgram(share.programTitle.toLowerCase(), share.code);
+                toast({
+                  title: "Code saved",
+                  description: "Your code has been saved",
+                  status: "success",
+                  duration: 3000,
+                  isClosable: true,
+                });
+            }}
             >
               Save
             </IconButton>

@@ -17,6 +17,7 @@ import {
   Button,
   Flex,
   Input,
+  Switch,
 } from "@chakra-ui/react";
 import SISMIPS from "../../../../Hardware/SIS Mips/SIS";
 import SharedData from "../../../../Service/SharedData";
@@ -29,11 +30,19 @@ export default function ConfigModal(props: {
 }) {
   const share: SharedData = SharedData.instance;
   const [clockSpeed, setClockSpeed] = React.useState<number>(0);
+  
+  // controls whether the simulator should run in debug mode
+  const [ useDebug, setUseDebug ] = React.useState<boolean>(false);
+
   const simModelSelector = React.useRef<HTMLSelectElement>(null);
 
   React.useEffect(() => {
     setClockSpeed(share.processorFrequency);
   }, [share.processorFrequency]);
+
+  React.useEffect(() => {
+    setUseDebug(share.debugInstructions);
+  }, [share.debugInstructions]);
 
   // React.useEffect(() => {
   //   console.log("ref", simModelSelector.current)
@@ -105,6 +114,13 @@ export default function ConfigModal(props: {
               <option value="sis">Simplified Instruction Set</option>
               <option value="mono">Monocycle</option>
             </Select>
+
+            <Text style={{ marginTop: 30 }}>Debug instructions</Text>
+            <Switch checked={useDebug} onChange={(e) => {
+              share.debugInstructions = e.target.checked;
+              setUseDebug(e.target.checked);
+            }} />
+
           </Stack>
         </ModalBody>
 

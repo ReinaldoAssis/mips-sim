@@ -23,6 +23,7 @@ import {
   Box,
   IconButton,
   Tooltip,
+  Input,
 } from "@chakra-ui/react";
 import SimulatorService from "../../../Service/SimulatorService";
 import HardwareView from "../../HardwareView";
@@ -35,6 +36,9 @@ import MonoMIPS from "../../../Hardware/Mono Mips/MonoMIPS";
 export default function SimulatorView() {
   // Handles the assembly code present in the editor
   const [code, setCode] = React.useState<string>("");
+
+  // Handles the title of the program
+  //const [programTitle, setProgramTitle] = React.useState<string>("Recent");
 
   // const [assemblyCode, setAssemblyCode] = React.useState<string>("");
 
@@ -49,6 +53,12 @@ export default function SimulatorView() {
 
   // Logger instance
   let log: Logger = Logger.instance;
+
+  const txtProgramtitle = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if(txtProgramtitle.current) txtProgramtitle.current.value = share.programTitle;
+  }, [share.programTitle])
 
   // Updates the assembly code when the code changes
   function onEditorChange(value: string | undefined, event: any) {
@@ -129,7 +139,13 @@ export default function SimulatorView() {
 
       <TabPanels>
         <TabPanel>
+          <Stack>
+          <Input placeholder="Recent" ref={txtProgramtitle} variant={"unstyled"} defaultValue={share.programTitle} onChange={(e) => {
+            // setProgramTitle(e.target.value);
+              share.programTitle = e.target.value;
+          }} />
           <EditorView onEditorChange={onEditorChange} runBtn={runCode} />
+          </Stack>
         </TabPanel>
 
         <TabPanel>

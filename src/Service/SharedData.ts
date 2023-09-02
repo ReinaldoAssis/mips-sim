@@ -1,3 +1,4 @@
+import React from "react";
 import BinaryNumber from "../Hardware/BinaryNumber";
 import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
@@ -39,7 +40,7 @@ export default class SharedData {
     editorBackground: "#282a36",
   };
 
-  public cycles_cap: number = 7000;
+  public cycles_cap: number = 170000;
   // monaco editor instance
   public monacoEditor: any = null;
   // monaco instance
@@ -52,6 +53,12 @@ export default class SharedData {
   public stackStart: number = 0xFFF9E57F;
   // Interval responsible for running steps at frequency
   public interval : NodeJS.Timeout | null = null;
+  // If true, the program will generate a debug log
+  public debugInstructions: boolean = false;
+  // Title of the current program
+  public programTitle : string = "Recent";
+
+
   // Pure text code
   private _code: string = "";
   // Current model for simulation
@@ -225,6 +232,15 @@ export default class SharedData {
   public loadProgram(programName: string){
     if (!this.existsCached(programName)) return null;
     return this.getCached(programName);
+  }
+
+  public removeProgram(programName: string){
+    if (!this.existsCached(programName)) return false;
+    this.removeCached(programName);
+    let list = this.getCached("cached_programs") as Array<string>;
+    list = list.filter((item) => item !== programName);
+    this.updateCached("cached_programs", list);
+    return true;
   }
 
   public getListOfCachedPrograms() : Array<string> {

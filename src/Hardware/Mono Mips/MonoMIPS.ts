@@ -121,7 +121,8 @@ export default class MonoMIPS implements IProcessor {
     this.currentInstruction = programInstruction?.humanCode ?? "call 0";
     
     //update the current step line
-    this.share.currentStepLine = programInstruction?.index ?? 0;
+    if (this.share.processorFrequency < 90)
+      this.share.currentStepLine = programInstruction?.index ?? 0;
 
     if (instruction.toHex(8) == "0xfc000000") {
       //call 0
@@ -226,8 +227,7 @@ export default class MonoMIPS implements IProcessor {
         }
         i++;
         if (i > 2000) clearInterval(interval);
-          
-        console.log("SIS cycle", this.cycle);
+
       }, 1000/this.frequency);
       
       this.share.interval = interval;
@@ -242,6 +242,10 @@ export default class MonoMIPS implements IProcessor {
       if(this.frequency > 90) continuous();
       else stepper();
   
+    }
+
+    public writeDebug(msg:string){
+      if(this.share.debugInstructions) this.log.debug(msg);
     }
 
   /*
@@ -276,7 +280,7 @@ export default class MonoMIPS implements IProcessor {
             result = BinaryNumber.shiftLeft(a, shift);
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} shift: ${shift} result: ${result.value}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a.value} shift: ${shift} result: ${result.value}`);
             break;
 
           case "000010": //srl
@@ -285,7 +289,7 @@ export default class MonoMIPS implements IProcessor {
             result = BinaryNumber.shiftRight(a, shift);
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} shift: ${shift} result: ${result.value}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a.value} shift: ${shift} result: ${result.value}`);
             break;
 
           case "011000": //mult
@@ -296,7 +300,7 @@ export default class MonoMIPS implements IProcessor {
             this.regbank[10] = BinaryNumber.parse("0b"+aux.slice(0, 32), true); //hi
             this.regbank[11] = BinaryNumber.parse("0b"+aux.slice(32, 64), true); //lo
 
-            this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${BinaryNumber.parse("0b"+aux).value}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${BinaryNumber.parse("0b"+aux).value}`);
             
           break;
 
@@ -307,20 +311,20 @@ export default class MonoMIPS implements IProcessor {
             this.regbank[10] = BinaryNumber.parse(Math.floor(a.value / b.value).toString()); //hi
             this.regbank[11] = BinaryNumber.parse((a.value % b.value).toString()); //lo
 
-            this.log.debug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${Math.floor(a.value / b.value)}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${Math.floor(a.value / b.value)}`);
 
             break;
 
           case "010000": //mfhi
             this.regbank[this.mapRegister(rd)] = this.regbank[10]; //hi
 
-            this.log.debug(`${this.getHumanInstruction(instruction)} result: ${this.regbank[10].value}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} result: ${this.regbank[10].value}`);
             break;
 
           case "010010": //mflo
             this.regbank[this.mapRegister(rd)] = this.regbank[11]; //lo
 
-            this.log.debug(`${this.getHumanInstruction(instruction)} result: ${this.regbank[11].value}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} result: ${this.regbank[11].value}`);
             break;
 
           case "100000": //add
@@ -329,7 +333,7 @@ export default class MonoMIPS implements IProcessor {
             result = BinaryNumber.add(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
                 b.value
               } result: ${result.value}`
@@ -343,7 +347,7 @@ export default class MonoMIPS implements IProcessor {
             result = BinaryNumber.sub(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
                 b.value
               } result: ${result.value}`
@@ -356,7 +360,7 @@ export default class MonoMIPS implements IProcessor {
             result = BinaryNumber.and(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
                 b.value
               } result: ${result.value}`
@@ -369,7 +373,7 @@ export default class MonoMIPS implements IProcessor {
             result = BinaryNumber.or(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
                 b.value
               } result: ${result.value}`
@@ -385,7 +389,7 @@ export default class MonoMIPS implements IProcessor {
                 : new BinaryNumber("0b0");
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
                 b.value
               } result: ${result.value}`
@@ -398,7 +402,7 @@ export default class MonoMIPS implements IProcessor {
             this.pc = this.regbank[this.mapRegister(rs)];
             this.share.currentPc = this.pc.value;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(
                 instruction
               )} address: ${new BinaryNumber(
@@ -426,7 +430,7 @@ export default class MonoMIPS implements IProcessor {
             : new BinaryNumber(0);
         this.regbank[this.mapRegister(rt)] = result;
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
             b.value
           } result: ${result.value}`
@@ -446,7 +450,7 @@ export default class MonoMIPS implements IProcessor {
         result = BinaryNumber.add(a.value, b.value);
         this.regbank[this.mapRegister(rt)] = result;
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
             b.value
           } result: ${result.value}`
@@ -469,7 +473,7 @@ export default class MonoMIPS implements IProcessor {
 
         result = this.readMemory(address);
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} base: ${
             base.value
           } address: ${address.value} result: ${result.value}`
@@ -495,7 +499,7 @@ export default class MonoMIPS implements IProcessor {
         result = this.regbank[this.mapRegister(rt)];
         this.writeMemory(address, result);
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} address: ${
             address.value
           } result: ${result.value}`
@@ -518,7 +522,7 @@ export default class MonoMIPS implements IProcessor {
 
         this.share.currentPc = this.pc.value;
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
             b.value
           } [${b.getBinaryValue()}] offset: ${imm}`
@@ -541,7 +545,7 @@ export default class MonoMIPS implements IProcessor {
 
         this.share.currentPc = this.pc.value;
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
             b.value
           } offset: ${imm}`
@@ -565,7 +569,7 @@ export default class MonoMIPS implements IProcessor {
           "0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm
         );
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} address: ${new BinaryNumber(
             "0b" + imm
           ).toHex()} result: ${this.pc.toHex()}`
@@ -580,7 +584,7 @@ export default class MonoMIPS implements IProcessor {
           "0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm
         );
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} address: ${new BinaryNumber(
             "0b" + imm
           ).toHex()} result: ${this.pc.toHex()}`
@@ -598,19 +602,19 @@ export default class MonoMIPS implements IProcessor {
         if (n == 1) {
           a = this.regbank[this.mapRegister("00010")]; //v0
           this.log.console(`${a.value}`);
-          this.log.debug(`CALL 1 a: ${a.value}`);
+          this.writeDebug(`CALL 1 a: ${a.value}`);
         } //print char
         else if (n == 2) {
           a = this.regbank[this.mapRegister("00010")]; //v0
           let char = String.fromCharCode(a.value);
           this.log.console(`${char}`, false);
-          this.log.debug(`CALL 2 a: ${a.value} char: ${char}`);
+          this.writeDebug(`CALL 2 a: ${a.value} char: ${char}`);
         } 
         //dump integer without newline
         else if(n == 3){
           a = this.regbank[this.mapRegister("00010")]; //v0
           this.log.console(`${a.value}`, false);
-          this.log.debug(`CALL 3 a: ${a.value}`);
+          this.writeDebug(`CALL 3 a: ${a.value}`);
         }
         //random int from a0 to a1
         else if (n == 42) {
@@ -620,7 +624,7 @@ export default class MonoMIPS implements IProcessor {
             Math.floor(Math.random() * (b.value - a.value) + a.value)
           );
           this.regbank[this.mapRegister("00010")] = result; //v0
-          this.log.debug(
+          this.writeDebug(
             `CALL 42 a: ${a.value} b: ${b.value} result: ${result.value}`
           );
         }
