@@ -326,10 +326,10 @@ export default function EditorView(props: {
             </IconButton>
           </Tooltip>
         </Stack>
-        <ConfigModal
+        {configModalOpen ? <ConfigModal
           isOpen={configModalOpen}
           close={() => setConfigModalOpen(false)}
-        />
+        /> : <></>}
         <LoadProgramModal isOpen={loadProgramModalOpen} close={() => setLoadProgramModalOpen(false)} />
       </Stack>
     </Stack>

@@ -36,23 +36,20 @@ export default function ConfigModal(props: {
 
   const simModelSelector = React.useRef<HTMLSelectElement>(null);
 
+  const [model, setModel] = React.useState<string>("mono");
+
   React.useEffect(() => {
     setClockSpeed(share.processorFrequency);
-  }, [share.processorFrequency]);
-
-  React.useEffect(() => {
     setUseDebug(share.debugInstructions);
-  }, [share.debugInstructions]);
-
-  // React.useEffect(() => {
-  //   console.log("ref", simModelSelector.current)
-  //   if(simModelSelector.current) simModelSelector.current.value = share.currentProcessor?.refname ?? "sis";
-  // },[props.isOpen]);
+    setModel(share.currentProcessor?.refname ?? "mono");
+  }, []);
 
   function handleSelectChange(e: any) {
     let simModelValue: string = e.target.value;
     if (simModelValue == "sis") share.currentProcessor = new SISMIPS();
     else if (simModelValue == "mono") share.currentProcessor = new MonoMIPS();
+
+    setModel(simModelValue);
 
     console.log("changed model to ", simModelValue);
   }
@@ -116,10 +113,10 @@ export default function ConfigModal(props: {
             </Select>
 
             <Text style={{ marginTop: 30 }}>Debug instructions</Text>
-            <Switch checked={useDebug} onChange={(e) => {
+            <Switch isChecked={share.debugInstructions} onChange={(e) => {
+              setUseDebug(e.target.checked)
               share.debugInstructions = e.target.checked;
-              setUseDebug(e.target.checked);
-            }} />
+            }}/>
 
           </Stack>
         </ModalBody>
