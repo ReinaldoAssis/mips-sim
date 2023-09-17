@@ -20,7 +20,7 @@ export default class MonoMIPS implements IProcessor {
   public refname: string = "mono";
   public halted = false;
 
-  public frequency: number = 0; //frequency
+  public frequency: number = 100; //frequency
   public memory: Array<addr> = new Array<addr>(); //memory
   public pc: BinaryNumber = new BinaryNumber(); //program counter
   public cycle: number = 0; //number of cycles executed
@@ -28,6 +28,9 @@ export default class MonoMIPS implements IProcessor {
   public initializedRegs: Array<boolean> = []; //initialized registers
 
   public currentInstruction: string = ""; //current instruction being executed
+
+  public workerPostMessage: ((channel:string, message: any) => void) = (channel:string, message: any) => {};
+  private stdoutBatch : Array<string> = []; // batch that stores the stdout messages
 
   public instructionSet: Array<string> = [
     "add",
@@ -86,6 +89,18 @@ export default class MonoMIPS implements IProcessor {
     this.initialize();
   }
 
+  public stdout (value:string, linebreak=true, forceBatch=false) {
+    if(forceBatch || this.stdoutBatch.length > 100){
+      this.workerPostMessage("console", {log: this.stdoutBatch.join(""), linebreak: true});
+      this.stdoutBatch = [];
+      return;
+    }
+
+    if(linebreak) this.stdoutBatch.push(value+"\n");
+    else this.stdoutBatch.push(value);
+
+  }
+
   public reset(): void {
     this.memory = [];
     this.halted = false;
@@ -127,6 +142,8 @@ export default class MonoMIPS implements IProcessor {
     if (instruction.toHex(8) == "0xfc000000") {
       //call 0
       this.halted = true;
+      this.stdout("", true, true);
+      this.workerPostMessage("halted", true)
       return -1;
     }
 
@@ -596,24 +613,29 @@ export default class MonoMIPS implements IProcessor {
         let call = instruction.getBinaryValue(32).slice(6, 32);
         let n = BinaryNumber.parse("0b" + call, true).value;
 
-        console.log("call number ", n);
 
-        //print integer
         if (n == 1) {
           a = this.regbank[this.mapRegister("00010")]; //v0
-          this.log.console(`${a.value}`);
+          // this.workerPostMessage("console", {log: a.value, linebreak: true});
+          this.stdout(a.value.toString(), true, false);
+          
           this.writeDebug(`CALL 1 a: ${a.value}`);
         } //print char
         else if (n == 2) {
           a = this.regbank[this.mapRegister("00010")]; //v0
           let char = String.fromCharCode(a.value);
-          this.log.console(`${char}`, false);
+          // this.log.console(`${char}`, false);
+          this.stdout(char, false, false);
+
           this.writeDebug(`CALL 2 a: ${a.value} char: ${char}`);
         } 
         //dump integer without newline
         else if(n == 3){
           a = this.regbank[this.mapRegister("00010")]; //v0
-          this.log.console(`${a.value}`, false);
+          // this.log.console(`${a.value}`, false);
+          // this.workerPostMessage("console", {log: a.value, linebreak: false});
+          this.stdout(a.value.toString(), false, false);
+
           this.writeDebug(`CALL 3 a: ${a.value}`);
         }
         //random int from a0 to a1

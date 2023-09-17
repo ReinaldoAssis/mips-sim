@@ -37,8 +37,11 @@ export default function LoadProgramModal(props: {
     const [cachedPrograms, setCachedPrograms] = React.useState<string[]>([]);
 
     React.useEffect(() => {
-      setCachedPrograms(share.getListOfCachedPrograms() as string[]);
-    }, [props.isOpen])
+      if(cachedPrograms.length == 0){
+        setCachedPrograms(share.getListOfCachedPrograms() as string[]);
+
+      }
+    }, [])
 
     const [deletePromptOpen, setDeletePromptOpen] = React.useState<boolean>(false);
     const [selectedProgram, setSelectedProgram] = React.useState<string>("");
@@ -55,7 +58,7 @@ export default function LoadProgramModal(props: {
               <Stack direction="column" spacing={2}>
                 <Text>Programs</Text>
                 {
-                    (share.getListOfCachedPrograms() as Array<string>).map((program, index) => {
+                    cachedPrograms.map((program, index) => {
                         return (
                             <Flex style={{verticalAlign:"center"}}>
                               <Button key={index} width="80%" onClick={() => {

@@ -52,11 +52,16 @@ export default class Logger {
     this._ondebugchange();
   }
 
+  public debugAll(...messages: Array<string>): void {
+    messages.forEach((m) => this.debug(m));
+  }
+
   public console(message: string, linebrak: boolean = true): void {
     this._log += `[Out]: ${message}\n`;
     if (linebrak) this._console.push(message + "\n");
     else this._console.push(message);
 
+    //remove this
     this._onchange();
     this._onconsolechange();
   }

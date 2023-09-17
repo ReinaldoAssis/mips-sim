@@ -32,6 +32,9 @@ import Logger from "../../../Service/Logger";
 import SharedData from "../../../Service/SharedData";
 import EditorView from "./Editor Tab/EditorTab";
 import MonoMIPS from "../../../Hardware/Mono Mips/MonoMIPS";
+import WorkerService from "../../../Service/WorkerService";
+
+// const cpuWorker = new Worker(new URL('./MonoMIPSWorker.ts', import.meta.url));
 
 export default function SimulatorView() {
   // Handles the assembly code present in the editor
@@ -98,13 +101,18 @@ export default function SimulatorView() {
 
     if(share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 
-    let cpu = share.currentProcessor;
-    cpu.reset();
-    cpu.frequency = f;
-    //share.currentProcessor = cpu;
-    cpu.loadProgram(instructions);
+    //TODO: fix this
+    // let cpu = share.currentProcessor;
+    // cpu.reset();
+    // cpu.frequency = f;
+    // cpu.loadProgram(instructions);
 
-    cpu.execute();
+    // cpu.execute();
+
+    // handleCpuWorker(instructions);
+    WorkerService.instance.runCode(instructions);
+
+
 
     if (log.getErrors().length == 0) {
       toast({

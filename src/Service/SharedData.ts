@@ -16,6 +16,7 @@ export interface IProcessor {
   frequency: number;
   executeStep(): number;
   loadProgram(program: Array<string>): void;
+  workerPostMessage?: (channel:string, message: any) => void;
   execute(): void;
   reset(): void;
   halted: boolean;
@@ -40,7 +41,7 @@ export default class SharedData {
     editorBackground: "#282a36",
   };
 
-  public cycles_cap: number = 170000;
+  public cycles_cap: number = 17000000;
   // monaco editor instance
   public monacoEditor: any = null;
   // monaco instance
@@ -54,17 +55,16 @@ export default class SharedData {
   // Interval responsible for running steps at frequency
   public interval : NodeJS.Timeout | null = null;
   // If true, the program will generate a debug log
-  public debugInstructions: boolean = false;
+  public debugInstructions: boolean = true;
   // Title of the current program
   public programTitle : string = "Recent";
-
 
   // Pure text code
   private _code: string = "";
   // Current model for simulation
   private _currentProcessor: IProcessor | null = null;
 
-  private _processorFrequency: number = 100;
+  private _processorFrequency: number = 1000;
 
   //Stores the original program and the machine code
   public program: Array<Instruction> = [];
