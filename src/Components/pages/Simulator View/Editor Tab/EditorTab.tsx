@@ -82,7 +82,7 @@ export default function EditorView(props: {
     const initialExecution = () => {
       if(share && share.currentProcessor && share.program.length > 0) {
       const assembly = simservice.assemble(share.code);
-      share.currentProcessor.loadProgram(assembly.split(" "));
+      share.currentProcessor.loadProgram(share.program);
       share.currentProcessor.executeStep();
       }
     }

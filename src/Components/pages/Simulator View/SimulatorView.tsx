@@ -110,7 +110,7 @@ export default function SimulatorView() {
     // cpu.execute();
 
     // handleCpuWorker(instructions);
-    WorkerService.instance.runCode(instructions);
+    WorkerService.instance.runCode(share.program);
 
 
 

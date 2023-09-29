@@ -15,7 +15,7 @@ export interface IProcessor {
   refname: string;
   frequency: number;
   executeStep(): number;
-  loadProgram(program: Array<string>): void;
+  loadProgram(program: Array<Instruction>): void;
   workerPostMessage: (channel:string, message: any) => void;
   execute(): void;
   reset(): void;

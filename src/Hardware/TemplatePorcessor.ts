@@ -49,12 +49,10 @@ export default class TemplateProcessor implements IProcessor {
     "jr",
     "sll",
     "srl",
-    "call 0",
-    "call 1",
-    "call 2",
-    "call 3",
-    "call 42"
+    "call",
   ];
+
+  public availableRegisters: Array<string> = ["All"];
 
   public PCStart: number = this.share.pcStart;
 
@@ -99,6 +97,10 @@ export default class TemplateProcessor implements IProcessor {
 
   }
 
+  public error(msg: string, instruction: string): void {
+    this.workerPostMessage("error", {msg: msg, instruction: instruction, cycle: this.cycle, pc:this.pc.value, line:-1});
+  }
+
   public reset(): void {
     this.memory = [];
     this.halted = false;
@@ -123,23 +125,20 @@ export default class TemplateProcessor implements IProcessor {
     Returns -1 if the instruction is call 0
   */
   public executeStep(): number {
-    let programInstruction = this.share.program.find(
+    let programInstruction = this.program.find(
       (x) => x.memAddress.getBinaryValue(32) == this.pc.getBinaryValue(32)
     );
 
-    if (programInstruction?.humanCode.split(" ")[0] !in this.instructionSet) {
-        this.log.error(
-            "Instruction not found",
-            this.currentInstruction,
-            this.cycle,
-            this.pc.value,
-            -1,
-            ErrorType.Warning,
-            0
-        );
-        //this.log.warning("Instruction not found", ErrorType.SIMULATOR);
-        return -1;
-    }
+      if(programInstruction == undefined || programInstruction == null) console.log('programInstruction undefined')
+
+
+      // console.log(programInstruction?.humanCode.split(" ")[0])
+    
+    if (programInstruction)
+      if (this.instructionSet.indexOf(programInstruction?.humanCode.split(" ")[0] ?? "") == -1) {
+          this.error("Instruction not found", programInstruction?.humanCode ?? "null");
+          return -1;
+      }
 
     //if the instruction is not found, call 0 to stop the execution
     let instruction: BinaryNumber =
@@ -216,16 +215,23 @@ export default class TemplateProcessor implements IProcessor {
     Loads a program into the memory
     @param program: array of instructions in hex
   */
-  public loadProgram(program: Array<string>): void {
-    program.map((inst, i) => {
-      if (inst != " " && inst != "") {
-        let instruction = new BinaryNumber("0x" + inst);
-        this.memory.push({
-          address: new BinaryNumber((this.PCStart + i * 4).toString()),
-          value: instruction,
-        });
-      }
-    });
+  public loadProgram(program: Array<Instruction>): void {
+
+    this.program = program;
+
+    this.program.map(inst => {
+      this.memory.push({address: inst.memAddress, value: inst.machineCode})
+    })
+
+    // program.map((inst, i) => {
+    //   if (inst != " " && inst != "") {
+    //     let instruction = new BinaryNumber("0x" + inst);
+    //     this.memory.push({
+    //       address: new BinaryNumber((this.PCStart + i * 4).toString()),
+    //       value: instruction,
+    //     });
+    //   }
+    // });
   }
 
   /*
@@ -249,8 +255,10 @@ export default class TemplateProcessor implements IProcessor {
   */
     public async execute() {
       //caped for loop to prevent infinite loops
-
-      console.log("runing MONO");
+      // console.log('program debug')
+      // this.program.map(x => {
+      //   console.log(`${x.humanCode} ${x.memAddress.value} ${x.machineCode.value} ${x.index}`)
+      // })
       
       const stepper = () => {
         let i = 0;
@@ -670,21 +678,18 @@ export default class TemplateProcessor implements IProcessor {
         break;
 
       default:
-        this.log.error(
-          "Couldn't process instruction",
-          this.currentInstruction,
-          this.cycle,
-          this.pc.value,
-          -1,
-          ErrorType.InvalidInstruction,
-          1
-        );
-        // this.log.error("Invalid instruction", ErrorType.SIMULATOR);
+        this.error(`Invalid instruction.`, this.currentInstruction)
         break;
     }
   }
 
   public mapRegister(reg: string): number {
+
+    if (this.availableRegisters[0] != "All" && this.availableRegisters.indexOf(reg) == -1){
+      this.error(`Invalid register ${reg}.`, this.currentInstruction)
+      return 0;
+    } 
+
     switch (reg) {
       case "00000": //zero
         return 0;
@@ -723,15 +728,7 @@ export default class TemplateProcessor implements IProcessor {
       case "lo":
         return 11;
       default:
-        this.log.error(
-          "Couldn't process register",
-          this.currentInstruction,
-          this.cycle,
-          this.pc.value,
-          -1,
-          ErrorType.InvalidRegister,
-          1
-        );
+        this.error(`Invalid register ${reg}.`, this.currentInstruction)
         return 0;
       // throw new Error("Invalid register");
     }

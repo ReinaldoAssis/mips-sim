@@ -9,7 +9,7 @@ const share = SharedData.instance;
 
 export type WorkCpuMessage = {
     command: string,
-    instructions: Array<string>,
+    instructions: Array<Instruction>,
     processorref: string,
     processorFrequency: number,
     useDebug: boolean,

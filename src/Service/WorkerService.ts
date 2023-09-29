@@ -1,7 +1,7 @@
 import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
 import Logger from "./Logger";
 import { WorkCpuMessage } from "./MIPSWorker";
-import SharedData, { IProcessor } from "./SharedData";
+import SharedData, { Instruction, IProcessor } from "./SharedData";
 
 export default class WorkerService{
     private static _instance: WorkerService;
@@ -22,7 +22,7 @@ export default class WorkerService{
         this.cpuWorker = new Worker(new URL('./MIPSWorker.ts', import.meta.url));
     }
 
-    public runCode(instructions: Array<string>){
+    public runCode(instructions: Array<Instruction>){
         if(this.cpuWorker == null) return;
 
         let processor = this.shared.currentProcessor ?? new MonoMIPS();
@@ -46,8 +46,11 @@ export default class WorkerService{
             if (e.data.command == "debug"){
               this.log.debug(e.data.value.log);
             }
-            if (e.data.command == "halted"){
-              console.log(`Worker ended processing: ${e.data.value}`)
+            if (e.data.command == "error"){
+              let packet = e.data.value as {msg: string, instruction: string, cycle: number, pc: number};
+              // this.log.error(packet.msg, packet.instruction, packet.cycle, packet.pc, -1, "Simulator")
+              this.log.pushAppError(`Error: ${packet.msg} at ${packet.instruction} at cycle ${packet.cycle} pc ${packet.pc}`)
+              console.log(`Error: ${packet.msg} at cycle ${packet.cycle} pc ${packet.pc}`)
             }
             if (e.data.command == "batch console"){
               console.log(`Received from worker: ${e.data.value}`);
