@@ -1,6 +1,8 @@
 import TemplateProcessor from "../TemplatePorcessor";
 
-export default class SIS extends TemplateProcessor {
+export default class SISMIPS extends TemplateProcessor {
+
+  public refname : string = "sis"
 
   public instructionSet: Array<string> = [
     "add",

@@ -2,6 +2,9 @@ import TemplateProcessor from "../TemplatePorcessor";
 
 export default class MonoMIPS extends TemplateProcessor {
 
+  public refname : string = "mono"
+
+
   public instructionSet: Array<string> = [
     "add",
     "addi",
