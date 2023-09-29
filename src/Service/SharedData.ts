@@ -16,11 +16,12 @@ export interface IProcessor {
   frequency: number;
   executeStep(): number;
   loadProgram(program: Array<string>): void;
-  workerPostMessage?: (channel:string, message: any) => void;
+  workerPostMessage: (channel:string, message: any) => void;
   execute(): void;
   reset(): void;
   halted: boolean;
   instructionSet: Array<string>;
+  useDebug: boolean;
 }
 
 export interface ICachedProgram {

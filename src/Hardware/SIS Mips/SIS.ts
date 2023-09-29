@@ -1,5 +1,5 @@
 import Logger, { ErrorType } from "../../Service/Logger";
-import SharedData, { IProcessor } from "../../Service/SharedData";
+import SharedData, { Instruction, IProcessor } from "../../Service/SharedData";
 import BinaryNumber from "../BinaryNumber";
 
 //simplified instruction set mips
@@ -29,6 +29,11 @@ export default class SISMIPS implements IProcessor {
   public initializedRegs: Array<boolean> = []; //initialized registers
 
   public currentInstruction: string = ""; //current instruction being executed
+  public useDebug: boolean = true; //if true, the processor will generate a debug log
+
+  public workerPostMessage: ((channel:string, message: any) => void) = (channel:string, message: any) => {};
+  private stdoutBatch : Array<string> = []; // batch that stores the stdout messages
+  private debugBatch : Array<string> = []; // batch that stores the debug messages
 
   public instructionSet: Array<string> = [
     "add",
@@ -100,6 +105,26 @@ export default class SISMIPS implements IProcessor {
     // });
   }
 
+  public stdout (value:string, linebreak=true, forceBatch=false, debug=false) {
+    if(forceBatch || this.stdoutBatch.length > 100){
+      this.workerPostMessage("console", {log: this.stdoutBatch.join(""), linebreak: false});
+      this.workerPostMessage("debug", {log: this.debugBatch.join(""), linebreak: false});
+      this.stdoutBatch = [];
+      this.debugBatch = [];
+      return;
+    }
+
+    if(linebreak) value += "\n";
+
+    if(debug && this.useDebug) this.debugBatch.push(value);
+    else if(!debug) this.stdoutBatch.push(value);
+
+  }
+
+  public writeDebug(msg:string){
+    this.stdout(msg, true, false, true);
+  }
+
   /* 
     Executes a single step of the processor by fetching and calling executeCycle
     Returns -1 if the instruction is call 0
@@ -120,6 +145,7 @@ export default class SISMIPS implements IProcessor {
 
     if (instruction.toHex(8) == "0xfc000000") {
       //call 0
+      this.stdout("", false, true)
       this.halted = true;
       return -1;
     }
@@ -203,6 +229,8 @@ export default class SISMIPS implements IProcessor {
   public async execute() {
     //caped for loop to prevent infinite loops
     
+    console.log("runing SIS");
+
     const stepper = () => {
       let i = 0;
     let interval : NodeJS.Timeout = setInterval(() => {
@@ -231,9 +259,11 @@ export default class SISMIPS implements IProcessor {
   }
 
   private getHumanInstruction(instruction: BinaryNumber): string {
+    //this.share.program.forEach(x => console.log(x.humanCode))
+    //return ""
     return (
       this.share.program.find(
-        (x) =>
+        (x : Instruction) =>
           x.machineCode.getBinaryValue(32) == instruction.getBinaryValue(32)
       )?.humanCode ?? "Undefined"
     );
@@ -269,7 +299,7 @@ export default class SISMIPS implements IProcessor {
             result = BinaryNumber.add(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
                 b.value
               } result: ${result.value}`
@@ -283,7 +313,7 @@ export default class SISMIPS implements IProcessor {
             result = BinaryNumber.sub(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
                 b.value
               } result: ${result.value}`
@@ -296,7 +326,7 @@ export default class SISMIPS implements IProcessor {
             result = BinaryNumber.and(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
                 b.value
               } result: ${result.value}`
@@ -309,7 +339,7 @@ export default class SISMIPS implements IProcessor {
             result = BinaryNumber.or(a.value, b.value);
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
                 b.value
               } result: ${result.value}`
@@ -325,7 +355,7 @@ export default class SISMIPS implements IProcessor {
                 : new BinaryNumber("0b0");
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
                 b.value
               } result: ${result.value}`
@@ -339,7 +369,7 @@ export default class SISMIPS implements IProcessor {
             console.log("JR PC ", this.pc.getBinaryValue(32));
             this.share.currentPc = this.pc.value;
 
-            this.log.debug(
+            this.writeDebug(
               `${this.getHumanInstruction(
                 instruction
               )} address: ${new BinaryNumber(
@@ -364,7 +394,7 @@ export default class SISMIPS implements IProcessor {
         result = BinaryNumber.add(a.value, b.value);
         this.regbank[this.mapRegister(rt)] = result;
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
             b.value
           } result: ${result.value}`
@@ -387,7 +417,7 @@ export default class SISMIPS implements IProcessor {
 
         result = this.readMemory(address);
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} base: ${
             base.value
           } address: ${address.value} result: ${result.value}`
@@ -413,7 +443,7 @@ export default class SISMIPS implements IProcessor {
         result = this.regbank[this.mapRegister(rt)];
         this.writeMemory(address, result);
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} address: ${
             address.value
           } result: ${result.value}`
@@ -436,7 +466,7 @@ export default class SISMIPS implements IProcessor {
 
         this.share.currentPc = this.pc.value;
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
             b.value
           } [${b.getBinaryValue()}] offset: ${imm}`
@@ -459,7 +489,7 @@ export default class SISMIPS implements IProcessor {
 
         this.share.currentPc = this.pc.value;
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
             b.value
           } offset: ${imm}`
@@ -484,7 +514,7 @@ export default class SISMIPS implements IProcessor {
         );
         console.log("SIS new pc", this.pc.getBinaryValue(32));
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} address: ${new BinaryNumber(
             "0b" + imm
           ).toHex()} result: ${this.pc.toHex()}`
@@ -499,7 +529,7 @@ export default class SISMIPS implements IProcessor {
           "0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm
         );
 
-        this.log.debug(
+        this.writeDebug(
           `${this.getHumanInstruction(instruction)} address: ${new BinaryNumber(
             "0b" + imm
           ).toHex()} result: ${this.pc.toHex()}`
@@ -515,13 +545,17 @@ export default class SISMIPS implements IProcessor {
 
         if (n == 1) {
           a = this.regbank[this.mapRegister("00010")]; //v0
-          this.log.console(`${a.value}`);
-          this.log.debug(`CALL 1 a: ${a.value}`);
+          
+
+          this.stdout(a.value.toString(), true, false);
+          this.stdout(`CALL 1 a: ${a.value}`, true, false, true);
+
         } else if (n == 2) {
           a = this.regbank[this.mapRegister("00010")]; //v0
           let char = String.fromCharCode(a.value);
-          this.log.console(`${char}`, false);
-          this.log.debug(`CALL 2 a: ${a.value} char: ${char}`);
+          this.stdout(char, false, false);
+
+          this.stdout(`CALL 2 a: ${a.value} char: ${char}`, true, false, true);
         }
         break;
 

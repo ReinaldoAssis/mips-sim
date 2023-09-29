@@ -1,23 +1,16 @@
-import Logger, { ErrorType } from "../../Service/Logger";
-import SharedData, { Instruction, IProcessor } from "../../Service/SharedData";
-import BinaryNumber from "../BinaryNumber";
-
-//simplified instruction set mips
-//compatible instructions:
-//arithmetics: add, addi, sub, and, or, slt, call 0, call 1, call 2, sll
-//memory: lw, sw
-//branch: beq, bne, j, jal, jr
-
-//registers: v0,v1, a0,a1, t0,t1,t2,t3, ra, pc, zero
+import Logger, { ErrorType } from "../Service/Logger";
+import SharedData, { Instruction, IProcessor } from "../Service/SharedData";
+import BinaryNumber from "./BinaryNumber";
 
 type addr = {
   address: BinaryNumber;
   value: BinaryNumber; //value of the address in binary
 };
 
-export default class MonoMIPS implements IProcessor {
+export default class TemplateProcessor implements IProcessor {
   public share: SharedData = SharedData.instance;
-  public refname: string = "mono";
+  public log : Logger = Logger.instance;
+  public refname: string = "template";
   public halted = false;
 
   public frequency: number = 100; //frequency
@@ -33,6 +26,7 @@ export default class MonoMIPS implements IProcessor {
 
   public workerPostMessage: ((channel:string, message: any) => void) = (channel:string, message: any) => {};
   private stdoutBatch : Array<string> = []; // batch that stores the stdout messages
+  private debugBatch : Array<string> = []; // batch that stores the debug messages
 
   public instructionSet: Array<string> = [
     "add",
@@ -62,8 +56,6 @@ export default class MonoMIPS implements IProcessor {
     "call 42"
   ];
 
-  public log: Logger = Logger.instance;
-
   public PCStart: number = this.share.pcStart;
 
   public initialize(): void {
@@ -91,15 +83,19 @@ export default class MonoMIPS implements IProcessor {
     this.initialize();
   }
 
-  public stdout (value:string, linebreak=true, forceBatch=false) {
+  public stdout (value:string, linebreak=true, forceBatch=false, debug=false) {
     if(forceBatch || this.stdoutBatch.length > 100){
-      this.workerPostMessage("console", {log: this.stdoutBatch.join(""), linebreak: true});
-      this.stdoutBatch = [];
-      return;
-    }
-
-    if(linebreak) this.stdoutBatch.push(value+"\n");
-    else this.stdoutBatch.push(value);
+        this.workerPostMessage("console", {log: this.stdoutBatch.join(""), linebreak: false});
+        this.workerPostMessage("debug", {log: this.debugBatch.join(""), linebreak: false});
+        this.stdoutBatch = [];
+        this.debugBatch = [];
+        return;
+      }
+  
+      if(linebreak) value += "\n";
+  
+      if(debug && this.useDebug) this.debugBatch.push(value);
+      else if(!debug) this.stdoutBatch.push(value);
 
   }
 
@@ -130,6 +126,20 @@ export default class MonoMIPS implements IProcessor {
     let programInstruction = this.share.program.find(
       (x) => x.memAddress.getBinaryValue(32) == this.pc.getBinaryValue(32)
     );
+
+    if (programInstruction?.humanCode.split(" ")[0] !in this.instructionSet) {
+        this.log.error(
+            "Instruction not found",
+            this.currentInstruction,
+            this.cycle,
+            this.pc.value,
+            -1,
+            ErrorType.Warning,
+            0
+        );
+        //this.log.warning("Instruction not found", ErrorType.SIMULATOR);
+        return -1;
+    }
 
     //if the instruction is not found, call 0 to stop the execution
     let instruction: BinaryNumber =
@@ -228,6 +238,9 @@ export default class MonoMIPS implements IProcessor {
     )?.value;
     this.pc.addNumber(4); //increment pc
     this.share.currentPc = this.pc.value;
+
+    
+
     return instruction ?? new BinaryNumber("0xfc000000"); //call 0 if the instruction is not found
   }
 
@@ -266,7 +279,7 @@ export default class MonoMIPS implements IProcessor {
     }
 
     public writeDebug(msg:string){
-      if(this.useDebug) this.log.debug(msg);
+        this.stdout(msg, true, false, true);
     }
 
   /*
