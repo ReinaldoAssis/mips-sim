@@ -50,6 +50,12 @@ export default class InstructionSetPage extends React.Component<{}> {
     {name: "CALL 3", operation: "Print integer Rs w/o newline", description: "Print the value in Rs as an integer without a newline", level: 1},
     {name: "MUL", operation: "LO = 0:31(Rs * Rt) | HI = 32:64(Rs * Rt)", description: "Multiplication", level: 1},
     {name: "DIV", operation: "HI = Rs / Rt | LO = Rs % Rt", description: "Integer Division", level: 1},
+    {name: "SLL", operation: "Rd = Rs << Shamt", description: "Shift Left Logical", level: 1},
+    // {name: "SRL", operation: "Rd = Rs >> Shamt", description: "Shift Right Logical", level: 1},
+    // {name: "SLI", operation: "Rd = Rs << Imm", description: "Shift Left Immediate", level: 1},
+    {name: "PUSH", operation: "Memory[SP] = Rs; SP = SP - 4", description: "Push onto the stack", level: 1},
+    {name: "POP", operation: "Rd = Memory[SP]; SP = SP + 4", description: "Pop from the stack", level: 1},
+
 
 
   ];

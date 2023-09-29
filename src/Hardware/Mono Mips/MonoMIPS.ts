@@ -5,6 +5,8 @@ export default class MonoMIPS extends TemplateProcessor {
   public refname : string = "mono"
 
 
+  // push and pop are not added because they are pseudo instructions
+  // the assembler converts them to addi and sw/lw
   public instructionSet: Array<string> = [
     "add",
     "addi",
