@@ -32,7 +32,7 @@ export default class WorkerService{
             instructions: instructions,
             processorref: processor.refname,
             processorFrequency: processor.frequency,
-            useDebug: processor.useDebug,
+            useDebug: this.shared.debugInstructions,
             program: this.shared.program
           });
         

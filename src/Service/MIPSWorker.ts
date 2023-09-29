@@ -41,7 +41,7 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
         
         cpu.reset();
         cpu.loadProgram(e.data.instructions);
-        share.debugInstructions = true;
+        share.debugInstructions = e.data.useDebug;
         cpu.execute();
         
     }
