@@ -101,20 +101,11 @@ export default function SimulatorView() {
 
     if(share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 
-    //TODO: fix this
-    // let cpu = share.currentProcessor;
-    // cpu.reset();
-    // cpu.frequency = f;
-    // cpu.loadProgram(instructions);
-
-    // cpu.execute();
-
-    // handleCpuWorker(instructions);
     WorkerService.instance.runCode(share.program);
 
 
 
-    if (log.getErrors().length == 0) {
+    if (log.getErrors().length == 0 && log.appErrors.length == 0) {
       toast({
         title: "Code assembled",
         description: "Your code has been assembled",
