@@ -69,6 +69,11 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
             share.currentProcessor = cpu;
         }
     }
+    else if (e.data.command == "reset"){
+        if (share.currentProcessor) cpu = share.currentProcessor;
+        cpu.reset();
+        share.currentProcessor = cpu;
+    }
 }
 
 

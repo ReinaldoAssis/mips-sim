@@ -130,4 +130,14 @@ export default class WorkerService{
 
 
     }
+
+    public terminate(){
+      if(this.cpuWorker == null) return;
+      this.cpuWorker.terminate();
+    }
+
+    public resetCpu(){
+      if(this.cpuWorker == null) return;
+      this.cpuWorker.postMessage({command: "reset"})
+    }
 }
