@@ -22,6 +22,7 @@ export interface IProcessor {
   halted: boolean;
   instructionSet: Array<string>;
   useDebug: boolean;
+  currentInstruction: Instruction;
 }
 
 export interface ICachedProgram {
@@ -105,7 +106,7 @@ export default class SharedData {
       return;
     }
 
-    this.log.pushInternalMessage(`Current frequency ${this.processorFrequency} and p ${this.currentProcessor?.frequency}`)
+    // this.log.pushInternalMessage(`Current frequency ${this.processorFrequency} and p ${this.currentProcessor?.frequency}`)
 
     var selectionRange = new this.monaco.Range(
       value + 1,

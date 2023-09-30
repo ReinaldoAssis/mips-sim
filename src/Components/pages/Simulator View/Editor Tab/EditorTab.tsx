@@ -34,6 +34,7 @@ import DebugTerminal from "./DebugTerminal";
 import MonoMIPS from "../../../../Hardware/Mono Mips/MonoMIPS";
 import { FaFolderOpen } from "react-icons/fa";
 import LoadProgramModal from "./LoadProgramModal";
+import WorkerService from "../../../../Service/WorkerService";
 
 export default function EditorView(props: {
   runBtn: Function;
@@ -78,29 +79,20 @@ export default function EditorView(props: {
   {
 
     share.updateCode();
+    if(share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 
-    const initialExecution = () => {
-      if(share && share.currentProcessor && share.program.length > 0) {
-      const assembly = simservice.assemble(share.code);
-      share.currentProcessor.loadProgram(share.program);
-      share.currentProcessor.executeStep();
-      }
+    if(share.currentProcessor.halted){
+      share.currentProcessor.halted = false;
+      console.log("processor was halted before")
+      simservice.assembledCode = simservice.assemble(share.code)
+      WorkerService.instance.stepCode();
+    }
+    else
+    {
+      console.log("processor was not halted before")
+      WorkerService.instance.stepCode();
     }
 
-    if (share.currentProcessor && share.program.length > 0) {
-      
-      if(!share.currentProcessor.halted) share.currentProcessor.executeStep();
-      else {
-        share.currentProcessor.reset();
-        initialExecution();
-      }
-      //share.currentProcessor.executeStep();
-
-    } else {
-      share.program = [];
-      share.currentProcessor = new MonoMIPS();
-      initialExecution();
-    }
   }
 
   // Updates the console and debug terminal when the log changes

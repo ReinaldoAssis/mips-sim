@@ -11,7 +11,7 @@ export default class TemplateProcessor implements IProcessor {
   public share: SharedData = SharedData.instance;
   public log : Logger = Logger.instance;
   public refname: string = "template";
-  public halted = false;
+  public halted = true;
 
   public frequency: number = 100; //frequency
   public memory: Array<addr> = new Array<addr>(); //memory
@@ -21,7 +21,7 @@ export default class TemplateProcessor implements IProcessor {
   public program: Instruction[] = []; //program
   public initializedRegs: Array<boolean> = []; //initialized registers
 
-  public currentInstruction: string = ""; //current instruction being executed
+  public currentInstruction: Instruction = {humanCode: "", machineCode: new BinaryNumber(), memAddress: new BinaryNumber(), index: -1}; //current instruction being executed
   public useDebug: boolean = true; //if true, the processor will generate a debug log
 
   public workerPostMessage: ((channel:string, message: any) => void) = (channel:string, message: any) => {};
@@ -82,7 +82,7 @@ export default class TemplateProcessor implements IProcessor {
   }
 
   public stdout (value:string, linebreak=true, forceBatch=false, debug=false) {
-    if(forceBatch || this.stdoutBatch.length > 100){
+    if(forceBatch || this.stdoutBatch.length > 0){
         this.workerPostMessage("console", {log: this.stdoutBatch.join(""), linebreak: false});
         this.workerPostMessage("debug", {log: this.debugBatch.join(""), linebreak: false});
         this.stdoutBatch = [];
@@ -103,7 +103,7 @@ export default class TemplateProcessor implements IProcessor {
 
   public reset(): void {
     this.memory = [];
-    this.halted = false;
+    this.halted = true;
     this.pc = new BinaryNumber(this.PCStart);
     this.cycle = 0;
     this.regbank = [];
@@ -125,6 +125,13 @@ export default class TemplateProcessor implements IProcessor {
     Returns -1 if the instruction is call 0
   */
   public executeStep(): number {
+
+    this.halted = false;
+
+    if (this.frequency < 90){
+      self.postMessage({command: "instruction", value: this.currentInstruction})
+    }
+
     let programInstruction = this.program.find(
       (x) => x.memAddress.getBinaryValue(32) == this.pc.getBinaryValue(32)
     );
@@ -144,16 +151,16 @@ export default class TemplateProcessor implements IProcessor {
     let instruction: BinaryNumber =
       this.fetch() ?? new BinaryNumber("0xfc000000");
 
-    this.currentInstruction = programInstruction?.humanCode ?? "call 0";
+    this.currentInstruction = programInstruction ?? {humanCode: "call 0", machineCode: new BinaryNumber("0xfc000000"), memAddress: new BinaryNumber("0x00000000"), index: this.memory.length};
     
     //update the current step line
-    if (this.share.processorFrequency < 90)
-      this.share.currentStepLine = programInstruction?.index ?? 0;
+    // if (this.share.processorFrequency < 90)
+    //   this.share.currentStepLine = programInstruction?.index ?? 0;
 
     if (instruction.toHex(8) == "0xfc000000") {
       //call 0
       this.halted = true;
-      this.stdout("", true, true);
+      // this.stdout("", true, true);
       this.workerPostMessage("halted", true)
       return -1;
     }
@@ -189,7 +196,7 @@ export default class TemplateProcessor implements IProcessor {
     if (addr == undefined) {
       this.log.error(
         "Memory location not initialized",
-        this.currentInstruction,
+        this.currentInstruction.humanCode,
         this.cycle,
         this.pc.value,
         -1,
@@ -259,6 +266,8 @@ export default class TemplateProcessor implements IProcessor {
       // this.program.map(x => {
       //   console.log(`${x.humanCode} ${x.memAddress.value} ${x.machineCode.value} ${x.index}`)
       // })
+
+      this.halted = false;
       
       const stepper = () => {
         let i = 0;
@@ -678,7 +687,7 @@ export default class TemplateProcessor implements IProcessor {
         break;
 
       default:
-        this.error(`Invalid instruction.`, this.currentInstruction)
+        this.error(`Invalid instruction.`, this.currentInstruction.humanCode)
         break;
     }
   }
@@ -686,7 +695,7 @@ export default class TemplateProcessor implements IProcessor {
   public mapRegister(reg: string): number {
 
     if (this.availableRegisters[0] != "All" && this.availableRegisters.indexOf(reg) == -1){
-      this.error(`Invalid register ${reg}.`, this.currentInstruction)
+      this.error(`Invalid register ${reg}.`, this.currentInstruction.humanCode)
       return 0;
     } 
 
@@ -728,7 +737,7 @@ export default class TemplateProcessor implements IProcessor {
       case "lo":
         return 11;
       default:
-        this.error(`Invalid register ${reg}.`, this.currentInstruction)
+        this.error(`Invalid register ${reg}.`, this.currentInstruction.humanCode)
         return 0;
       // throw new Error("Invalid register");
     }

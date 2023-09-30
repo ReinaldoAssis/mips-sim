@@ -95,10 +95,6 @@ export default function SimulatorView() {
     // Assembles the code
     simservice.assembledCode = simservice.assemble(share.code);
 
-    let instructions = simservice.assembledCode.split(" ");
-
-    let f = share.processorFrequency;
-
     if(share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 
     WorkerService.instance.runCode(share.program);
