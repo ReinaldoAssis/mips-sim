@@ -33,6 +33,7 @@ import SharedData from "../../../Service/SharedData";
 import EditorView from "./Editor Tab/EditorTab";
 import MonoMIPS from "../../../Hardware/Mono Mips/MonoMIPS";
 import WorkerService from "../../../Service/WorkerService";
+import { ScreenRenderer } from "./Editor Tab/Screen";
 
 // const cpuWorker = new Worker(new URL('./MonoMIPSWorker.ts', import.meta.url));
 
@@ -92,8 +93,11 @@ export default function SimulatorView() {
     //resets the program
     share.program = [];
 
+    ScreenRenderer.instance.reset_memory()
+
     // Assembles the code
     simservice.assembledCode = simservice.assemble(share.code);
+    // share._debugMemory();
 
     if(share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 

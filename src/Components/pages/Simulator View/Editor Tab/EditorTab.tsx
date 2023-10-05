@@ -21,6 +21,7 @@ import React from "react";
 import { BsTerminalFill } from "react-icons/bs";
 import {IoMdSave} from "react-icons/io";
 import { HiPlay } from "react-icons/hi";
+import {CgScreen} from "react-icons/cg";
 import { MdDelete } from "react-icons/md";
 import { RiRewindFill, RiSettings2Fill } from "react-icons/ri";
 import SISMIPS from "../../../../Hardware/SIS Mips/SIS";
@@ -35,6 +36,7 @@ import MonoMIPS from "../../../../Hardware/Mono Mips/MonoMIPS";
 import { FaFolderOpen } from "react-icons/fa";
 import LoadProgramModal from "./LoadProgramModal";
 import WorkerService from "../../../../Service/WorkerService";
+import Screen from "./Screen";
 
 export default function EditorView(props: {
   runBtn: Function;
@@ -63,6 +65,9 @@ export default function EditorView(props: {
 
   // Handles the visibility of the load program modal
   const [loadProgramModalOpen, setLoadProgramModalOpen] = React.useState<boolean>(false);
+
+  // Handles the visibility of the screen modal
+  const [screenModalOpen, setScreenModalOpen] = React.useState<boolean>(false);
 
   // SharedData instance that holds the shared state of the application
   let share: SharedData = SharedData.instance;
@@ -113,6 +118,7 @@ export default function EditorView(props: {
 
   return (
     <Stack direction={"row"}>
+      {screenModalOpen ? <Screen /> : <></>}
       <AssemblyEditor onEditorChange={props.onEditorChange} />
       <Slide
         direction="bottom"
@@ -254,6 +260,13 @@ export default function EditorView(props: {
             >
               Reset
             </IconButton>
+          </Tooltip>
+          <Tooltip label="Screen">
+            <IconButton icon={<CgScreen/>}  aria-label={"Screen"} backgroundColor={SharedData.theme.editorBackground}
+              color="white"
+              borderRadius={50}
+              size="sm"
+              onClick={() => setScreenModalOpen(!screenModalOpen)} />
           </Tooltip>
           <Tooltip label="Configuration">
             <IconButton

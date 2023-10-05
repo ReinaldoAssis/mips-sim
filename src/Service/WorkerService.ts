@@ -1,3 +1,4 @@
+import { ScreenRenderer } from "../Components/pages/Simulator View/Editor Tab/Screen";
 import BinaryNumber from "../Hardware/BinaryNumber";
 import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
@@ -46,6 +47,16 @@ export default class WorkerService{
             // this.log.error(packet.msg, packet.instruction, packet.cycle, packet.pc, -1, "Simulator")
             this.log.pushAppError(`Error: ${packet.msg} at ${packet.instruction} at cycle ${packet.cycle} pc ${packet.pc}`)
             console.log(`Error: ${packet.msg} at cycle ${packet.cycle} pc ${packet.pc}`)
+          }
+
+          if (e.data.command == "screen"){
+            let packet = e.data.value as {address: BinaryNumber, value: BinaryNumber};
+            Object.setPrototypeOf(packet.address, BinaryNumber.prototype);
+            Object.setPrototypeOf(packet.value, BinaryNumber.prototype);
+
+            ScreenRenderer.instance.write(packet.address, packet.value);
+            console.log(`Wrote to screen at ${packet.address.toHex()} value ${packet.value.toHex()}`)
+            ScreenRenderer.instance.drawScreen()
           }
 
           if (e.data.command == "instruction")
