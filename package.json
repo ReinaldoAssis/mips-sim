@@ -16,6 +16,7 @@
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.4",
     "framer-motion": "^6.2.9",
+    "pixi.js": "^7.3.1",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-icons": "^3.0.0",
@@ -31,7 +32,7 @@
   },
   "eslintConfig": {
     "extends": "react-app",
-    "rules":{
+    "rules": {
       "no-restricted-globals": "warn"
     }
   },
