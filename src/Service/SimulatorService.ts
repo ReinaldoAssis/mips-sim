@@ -1,6 +1,6 @@
 import BinaryNumber from "../Hardware/BinaryNumber";
 import Logger, { ErrorType } from "./Logger";
-import SharedData from "./SharedData";
+import SharedData, { Instruction } from "./SharedData";
 
 // Label type
 type Label = {
@@ -594,10 +594,12 @@ export default class SimulatorService {
           //   );
           
           // first we need to check if an offset value was provided
-          if(tokens.length == 4 && tokens[2].includes("(")){
+          if(tokens.length == 4){
           instruction += this.assembleRegister(tokens[3]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
           instruction += new BinaryNumber(tokens[2]).getBinaryValue(16); //offset value
+
+
           } else {
             instruction += this.assembleRegister(tokens[2]); //source register rs
             instruction += this.assembleRegister(tokens[1]); //destination register rt
@@ -616,7 +618,7 @@ export default class SimulatorService {
           //   );
 
           // first we need to check if an offset value was provided
-          if(tokens.length == 4 && tokens[2].includes("(")){
+          if(tokens.length == 4){
 
             instruction += this.assembleRegister(tokens[3]); //source register rs
             instruction += this.assembleRegister(tokens[1]); //destination register rt

@@ -2,7 +2,10 @@ import Logger, { ErrorType } from "../Service/Logger";
 import SharedData, { Instruction, IProcessor } from "../Service/SharedData";
 import BinaryNumber from "./BinaryNumber";
 
-type addr = {
+const SCREEN_MEM_START = 2000;
+const SCREEN_MEM_END = 162000;
+
+export type addr = {
   address: BinaryNumber;
   value: BinaryNumber; //value of the address in binary
 };
@@ -57,7 +60,7 @@ export default class TemplateProcessor implements IProcessor {
   public PCStart: number = this.share.pcStart;
 
   public initialize(): void {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 18; i++) {
       if (i == 0) {
         this.regbank.push(new BinaryNumber("0"));
         this.initializedRegs.push(true);
@@ -177,6 +180,14 @@ export default class TemplateProcessor implements IProcessor {
     @param value: value to write
   */
   public writeMemory(address: BinaryNumber, value: BinaryNumber): void {
+
+    console.log(`Writing to memory at ${address.value} value ${value.value}`)
+
+    if(address.value >= SCREEN_MEM_START && address.value <= SCREEN_MEM_END){
+      this.workerPostMessage("screen", {address: address, value: value})
+      return;
+    }
+
     let addr = this.memory.find((x) => x.address.value == address.value);
     if (addr == undefined) {
       this.memory.push({ address: address, value: value });
@@ -516,7 +527,10 @@ export default class TemplateProcessor implements IProcessor {
 
         this.warnRegisterNotInitialized([rs, rt]);
 
+        // console.log(`instruction ${instruction.getBinaryValue(32)} rs ${rs} rt ${rt} imm ${imm}`)
+
         base = this.regbank[this.mapRegister(rs)];
+
         address = BinaryNumber.add(
           base.value,
           BinaryNumber.parse("0b" + imm, true).value
@@ -541,13 +555,19 @@ export default class TemplateProcessor implements IProcessor {
 
         this.warnRegisterNotInitialized([rs, rt]);
 
+        
         base = this.regbank[this.mapRegister(rs)];
+        // console.log(`essa foi o valor de base: ${base.value}`)
         address = BinaryNumber.add(
           base.value,
           BinaryNumber.parse("0b" + imm, true).value
         );
+        // console.log(`essa foi o valor do addr: ${address.value}`)
+
 
         result = this.regbank[this.mapRegister(rt)];
+        // console.log(`essa foi o valor a ser guardado: ${result.value}`)
+
         this.writeMemory(address, result);
 
         this.writeDebug(
