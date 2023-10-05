@@ -108,6 +108,7 @@ export default class SharedData {
 
     // this.log.pushInternalMessage(`Current frequency ${this.processorFrequency} and p ${this.currentProcessor?.frequency}`)
 
+    try{ 
     var selectionRange = new this.monaco.Range(
       value + 1,
       0,
@@ -116,6 +117,9 @@ export default class SharedData {
     );
     this.monacoEditor.setSelection(selectionRange);
     this.monacoEditor.revealLineInCenter(value + 1);
+    } catch{
+      console.log(`Error setting current line to ${value}`)
+    }
   }
 
   public updateCode(){
@@ -257,5 +261,11 @@ export default class SharedData {
   public static get instance(): SharedData {
     if (!SharedData._instance) SharedData._instance = new SharedData();
     return SharedData._instance;
+  }
+
+  public _debugMemory(_program: Array<Instruction> = this.program){
+    _program.forEach(x => {
+      console.log(`${x.humanCode} [${x.memAddress}]`)
+    })
   }
 }
