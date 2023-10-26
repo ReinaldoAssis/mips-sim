@@ -1,3 +1,4 @@
+import { warn } from "console";
 import Logger, { ErrorType } from "../Service/Logger";
 import SharedData, { Instruction, IProcessor } from "../Service/SharedData";
 import BinaryNumber from "./BinaryNumber";
@@ -12,7 +13,7 @@ export type addr = {
 
 export default class TemplateProcessor implements IProcessor {
   public share: SharedData = SharedData.instance;
-  public log : Logger = Logger.instance;
+  public log: Logger = Logger.instance;
   public refname: string = "template";
   public halted = true;
 
@@ -24,12 +25,13 @@ export default class TemplateProcessor implements IProcessor {
   public program: Instruction[] = []; //program
   public initializedRegs: Array<boolean> = []; //initialized registers
 
-  public currentInstruction: Instruction = {humanCode: "", machineCode: new BinaryNumber(), memAddress: new BinaryNumber(), index: -1}; //current instruction being executed
+  public currentInstruction: Instruction = { humanCode: "", machineCode: new BinaryNumber(), memAddress: new BinaryNumber(), index: -1 }; //current instruction being executed
   public useDebug: boolean = true; //if true, the processor will generate a debug log
 
-  public workerPostMessage: ((channel:string, message: any) => void) = (channel:string, message: any) => {};
-  private stdoutBatch : Array<string> = []; // batch that stores the stdout messages
-  private debugBatch : Array<string> = []; // batch that stores the debug messages
+  public workerPostMessage: ((channel: string, message: any) => void) = (channel: string, message: any) => { };
+  private stdoutBatch: Array<string> = []; // batch that stores the stdout messages
+  private debugBatch: Array<string> = []; // batch that stores the debug messages
+  private screenWriteBatch: Array<{ address: number, value: number }> = []; // batch that stores the screen write messages
 
   public instructionSet: Array<string> = [
     "add",
@@ -84,24 +86,24 @@ export default class TemplateProcessor implements IProcessor {
     this.initialize();
   }
 
-  public stdout (value:string, linebreak=true, forceBatch=false, debug=false) {
-    if(forceBatch || this.stdoutBatch.length > 0){
-        this.workerPostMessage("console", {log: this.stdoutBatch.join(""), linebreak: false});
-        this.workerPostMessage("debug", {log: this.debugBatch.join(""), linebreak: false});
-        this.stdoutBatch = [];
-        this.debugBatch = [];
-        return;
-      }
-  
-      if(linebreak) value += "\n";
-  
-      if(debug && this.useDebug) this.debugBatch.push(value);
-      else if(!debug) this.stdoutBatch.push(value);
+  public stdout(value: string, linebreak = true, forceBatch = false, debug = false) {
+    if (forceBatch || this.stdoutBatch.length > 0) {
+      this.workerPostMessage("console", { log: this.stdoutBatch.join(""), linebreak: false });
+      this.workerPostMessage("debug", { log: this.debugBatch.join(""), linebreak: false });
+      this.stdoutBatch = [];
+      this.debugBatch = [];
+      return;
+    }
+
+    if (linebreak) value += "\n";
+
+    if (debug && this.useDebug) this.debugBatch.push(value);
+    else if (!debug) this.stdoutBatch.push(value);
 
   }
 
   public error(msg: string, instruction: string): void {
-    this.workerPostMessage("error", {msg: msg, instruction: instruction, cycle: this.cycle, pc:this.pc.value, line:-1});
+    this.workerPostMessage("error", { msg: msg, instruction: instruction, cycle: this.cycle, pc: this.pc.value, line: -1 });
   }
 
   public reset(): void {
@@ -120,7 +122,7 @@ export default class TemplateProcessor implements IProcessor {
 
   public warnRegisterNotInitialized(regs: string[]): void {
     //TODO: fix this
-   
+
   }
 
   /* 
@@ -131,31 +133,31 @@ export default class TemplateProcessor implements IProcessor {
 
     this.halted = false;
 
-    if (this.frequency < 90){
-      self.postMessage({command: "instruction", value: this.currentInstruction})
+    if (this.frequency < 90) {
+      self.postMessage({ command: "instruction", value: this.currentInstruction })
     }
 
     let programInstruction = this.program.find(
       (x) => x.memAddress.getBinaryValue(32) == this.pc.getBinaryValue(32)
     );
 
-      if(programInstruction == undefined || programInstruction == null) console.log('programInstruction undefined')
+    if (programInstruction == undefined || programInstruction == null) console.log('programInstruction undefined')
 
 
-      // console.log(programInstruction?.humanCode.split(" ")[0])
-    
+    // console.log(programInstruction?.humanCode.split(" ")[0])
+
     if (programInstruction)
       if (this.instructionSet.indexOf(programInstruction?.humanCode.split(" ")[0] ?? "") == -1) {
-          this.error("Instruction not found", programInstruction?.humanCode ?? "null");
-          return -1;
+        this.error("Instruction not found", programInstruction?.humanCode ?? "null");
+        return -1;
       }
 
     //if the instruction is not found, call 0 to stop the execution
     let instruction: BinaryNumber =
       this.fetch() ?? new BinaryNumber("0xfc000000");
 
-    this.currentInstruction = programInstruction ?? {humanCode: "call 0", machineCode: new BinaryNumber("0xfc000000"), memAddress: new BinaryNumber("0x00000000"), index: this.memory.length};
-    
+    this.currentInstruction = programInstruction ?? { humanCode: "call 0", machineCode: new BinaryNumber("0xfc000000"), memAddress: new BinaryNumber("0x00000000"), index: this.memory.length };
+
     //update the current step line
     // if (this.share.processorFrequency < 90)
     //   this.share.currentStepLine = programInstruction?.index ?? 0;
@@ -181,10 +183,19 @@ export default class TemplateProcessor implements IProcessor {
   */
   public writeMemory(address: BinaryNumber, value: BinaryNumber): void {
 
-    console.log(`Writing to memory at ${address.value} value ${value.value}`)
+    // if the address is in the screen memory range, send it to the screen
+    if (address.value >= SCREEN_MEM_START && address.value <= SCREEN_MEM_END) {
 
-    if(address.value >= SCREEN_MEM_START && address.value <= SCREEN_MEM_END){
-      this.workerPostMessage("screen", {address: address, value: value})
+      this.screenWriteBatch.push({ address: address.value, value: value.value });
+
+      if (this.screenWriteBatch.length > 10) {
+        this.workerPostMessage("screen", this.screenWriteBatch);
+        this.screenWriteBatch = [];
+
+        // console.log(`Elapsed ${Math.ceil(performance.now() - this._elapsed)}`)
+        // this._elapsed = performance.now();
+      }
+
       return;
     }
 
@@ -238,18 +249,8 @@ export default class TemplateProcessor implements IProcessor {
     this.program = program;
 
     this.program.map(inst => {
-      this.memory.push({address: inst.memAddress, value: inst.machineCode})
+      this.memory.push({ address: inst.memAddress, value: inst.machineCode })
     })
-
-    // program.map((inst, i) => {
-    //   if (inst != " " && inst != "") {
-    //     let instruction = new BinaryNumber("0x" + inst);
-    //     this.memory.push({
-    //       address: new BinaryNumber((this.PCStart + i * 4).toString()),
-    //       value: instruction,
-    //     });
-    //   }
-    // });
   }
 
   /*
@@ -263,7 +264,7 @@ export default class TemplateProcessor implements IProcessor {
     this.pc.addNumber(4); //increment pc
     this.share.currentPc = this.pc.value;
 
-    
+
 
     return instruction ?? new BinaryNumber("0xfc000000"); //call 0 if the instruction is not found
   }
@@ -271,57 +272,82 @@ export default class TemplateProcessor implements IProcessor {
   /*
     Tells the processor to execute the program
   */
-    public async execute() {
-      //caped for loop to prevent infinite loops
-      // console.log('program debug')
-      // this.program.map(x => {
-      //   console.log(`${x.humanCode} ${x.memAddress.value} ${x.machineCode.value} ${x.index}`)
-      // })
+  public execute() {
+    //caped for loop to prevent infinite loops
+    // console.log('program debug')
+    // this.program.map(x => {
+    //   console.log(`${x.humanCode} ${x.memAddress.value} ${x.machineCode.value} ${x.index}`)
+    // })
 
-      this.halted = false;
-      
-      const stepper = () => {
-        let i = 0;
-      let interval : NodeJS.Timeout = setInterval(() => {
-        if (this.executeStep() == -1) {
-          i = 99999999;
-          clearInterval(interval);
-        }
-        i++;
-        if (i > 2000) clearInterval(interval);
+    this.halted = false;
+    this._elapsed = performance.now(); //TODO: remove this
 
-      }, 1000/this.frequency);
-      
-      this.share.interval = interval;
-      }
-  
-      const continuous = () => 
-      {
-        for(let i=0; i<this.share.cycles_cap; i++)
-          if(this.executeStep() == -1) break;
-      }
-  
-      if(this.frequency > 90) continuous();
-      else stepper();
-  
+    // const stepper = () => {
+    //   let i = 0;
+    // let interval : NodeJS.Timeout = setInterval(() => {
+    //   if (this.executeStep() == -1) {
+    //     i = 99999999;
+    //     clearInterval(interval);
+    //   }
+    //   i++;
+    //   if (i > 2000) clearInterval(interval);
+
+    // }, 1000/this.frequency);
+
+    // this.share.interval = interval;
+    // }
+
+    const continuous = () => {
+      for (let i = 0; i < this.share.cycles_cap; i++)
+        if (this.halted) break;
+        else
+          if (this.executeStep() == -1) break;
     }
 
-    public writeDebug(msg:string){
-        this.stdout(msg, true, false, true);
+    continuous();
+    // if(this.frequency > 90) continuous();
+    // else stepper();
+
+  }
+
+  /* Since the webworker can't acess cache nor can it recieve messages when busy
+  i was forced into this solution: once in a while the cpu will be halted to check with the
+  worker service if there are any messesages to be processed. */
+  // also: no, i couldn't simple make the executecycle async, the cpu wouldn't work properly
+  private sleep(mili: number) {
+
+    let r = Math.random() * 100
+
+    let e = new Date().getTime() + mili;
+    if (r < 99) while (new Date().getTime() <= e) { }
+    else {
+      this.halted = true;
+      this.workerPostMessage("halt check", "");
     }
+
+  }
+
+  public writeDebug(msg: string) {
+    this.stdout(msg, true, false, true);
+  }
+
+
+  public _elapsed : number = 0; //TODO: remove this
 
   /*
     Executes a single cycle of the processor
-    @param instruction: instruction to execute
+    @param instruction: instruction to execute   
   */
-  public executeCycle(instruction: BinaryNumber): void {
+  public executeCycle(instruction: BinaryNumber) {
     // console.log("Executing instruction: " + instruction.getBinaryValue(32));
     let op = instruction.getBinaryValue(32).slice(0, 6);
     // console.log("op: " + op);
 
-    let rs, rt, rd, funct, imm, aux : string;
+    let rs, rt, rd, funct, imm, aux: string;
     let shift: number;
     let a, b, result, base, address: BinaryNumber;
+
+    // this.sleep(0.01 / this.frequency);
 
     switch (op) {
       case "000000": //R-type
@@ -336,7 +362,7 @@ export default class TemplateProcessor implements IProcessor {
         this.warnRegisterNotInitialized([rs, rt]);
 
         switch (funct) {
-            case "000000": //sll
+          case "000000": //sll
             a = this.regbank[this.mapRegister(rt)];
             shift = instruction.slice(21, 26).value;
             result = BinaryNumber.shiftLeft(a, shift);
@@ -358,13 +384,13 @@ export default class TemplateProcessor implements IProcessor {
             a = this.regbank[this.mapRegister(rs)];
             b = this.regbank[this.mapRegister(rt)];
 
-            aux = BinaryNumber.parse(a.value * b.value,true).getBinaryValue(64);
-            this.regbank[10] = BinaryNumber.parse("0b"+aux.slice(0, 32), true); //hi
-            this.regbank[11] = BinaryNumber.parse("0b"+aux.slice(32, 64), true); //lo
+            aux = BinaryNumber.parse(a.value * b.value, true).getBinaryValue(64);
+            this.regbank[10] = BinaryNumber.parse("0b" + aux.slice(0, 32), true); //hi
+            this.regbank[11] = BinaryNumber.parse("0b" + aux.slice(32, 64), true); //lo
 
-            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${BinaryNumber.parse("0b"+aux).value}`);
-            
-          break;
+            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${BinaryNumber.parse("0b" + aux).value}`);
+
+            break;
 
           case "011010": //div
             a = this.regbank[this.mapRegister(rs)];
@@ -396,8 +422,7 @@ export default class TemplateProcessor implements IProcessor {
             this.regbank[this.mapRegister(rd)] = result;
 
             this.writeDebug(
-              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
-                b.value
+              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
               } result: ${result.value}`
             );
 
@@ -410,8 +435,7 @@ export default class TemplateProcessor implements IProcessor {
             this.regbank[this.mapRegister(rd)] = result;
 
             this.writeDebug(
-              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
-                b.value
+              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
               } result: ${result.value}`
             );
             break;
@@ -423,8 +447,7 @@ export default class TemplateProcessor implements IProcessor {
             this.regbank[this.mapRegister(rd)] = result;
 
             this.writeDebug(
-              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
-                b.value
+              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
               } result: ${result.value}`
             );
             break;
@@ -436,8 +459,7 @@ export default class TemplateProcessor implements IProcessor {
             this.regbank[this.mapRegister(rd)] = result;
 
             this.writeDebug(
-              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
-                b.value
+              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
               } result: ${result.value}`
             );
             break;
@@ -452,8 +474,7 @@ export default class TemplateProcessor implements IProcessor {
             this.regbank[this.mapRegister(rd)] = result;
 
             this.writeDebug(
-              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
-                b.value
+              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
               } result: ${result.value}`
             );
             break;
@@ -493,8 +514,7 @@ export default class TemplateProcessor implements IProcessor {
         this.regbank[this.mapRegister(rt)] = result;
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
-            b.value
+          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
           } result: ${result.value}`
         );
 
@@ -513,8 +533,7 @@ export default class TemplateProcessor implements IProcessor {
         this.regbank[this.mapRegister(rt)] = result;
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
-            b.value
+          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
           } result: ${result.value}`
         );
 
@@ -539,8 +558,7 @@ export default class TemplateProcessor implements IProcessor {
         result = this.readMemory(address);
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} base: ${
-            base.value
+          `${this.getHumanInstruction(instruction)} base: ${base.value
           } address: ${address.value} result: ${result.value}`
         );
 
@@ -555,7 +573,7 @@ export default class TemplateProcessor implements IProcessor {
 
         this.warnRegisterNotInitialized([rs, rt]);
 
-        
+
         base = this.regbank[this.mapRegister(rs)];
         // console.log(`essa foi o valor de base: ${base.value}`)
         address = BinaryNumber.add(
@@ -571,8 +589,7 @@ export default class TemplateProcessor implements IProcessor {
         this.writeMemory(address, result);
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} address: ${
-            address.value
+          `${this.getHumanInstruction(instruction)} address: ${address.value
           } result: ${result.value}`
         );
 
@@ -594,8 +611,7 @@ export default class TemplateProcessor implements IProcessor {
         this.share.currentPc = this.pc.value;
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
-            b.value
+          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
           } [${b.getBinaryValue()}] offset: ${imm}`
         );
 
@@ -617,8 +633,7 @@ export default class TemplateProcessor implements IProcessor {
         this.share.currentPc = this.pc.value;
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${
-            b.value
+          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
           } offset: ${imm}`
         );
 
@@ -672,7 +687,7 @@ export default class TemplateProcessor implements IProcessor {
           a = this.regbank[this.mapRegister("00010")]; //v0
           // this.workerPostMessage("console", {log: a.value, linebreak: true});
           this.stdout(a.value.toString(), true, false);
-          
+
           this.writeDebug(`CALL 1 a: ${a.value}`);
         } //print char
         else if (n == 2) {
@@ -682,9 +697,9 @@ export default class TemplateProcessor implements IProcessor {
           this.stdout(char, false, false);
 
           this.writeDebug(`CALL 2 a: ${a.value} char: ${char}`);
-        } 
+        }
         //dump integer without newline
-        else if(n == 3){
+        else if (n == 3) {
           a = this.regbank[this.mapRegister("00010")]; //v0
           // this.log.console(`${a.value}`, false);
           // this.workerPostMessage("console", {log: a.value, linebreak: false});
@@ -714,10 +729,10 @@ export default class TemplateProcessor implements IProcessor {
 
   public mapRegister(reg: string): number {
 
-    if (this.availableRegisters[0] != "All" && this.availableRegisters.indexOf(reg) == -1){
+    if (this.availableRegisters[0] != "All" && this.availableRegisters.indexOf(reg) == -1) {
       this.error(`Invalid register ${reg}.`, this.currentInstruction.humanCode)
       return 0;
-    } 
+    }
 
     switch (reg) {
       case "00000": //zero

@@ -61,7 +61,7 @@ export default function SimulatorView() {
   const txtProgramtitle = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    if(txtProgramtitle.current) txtProgramtitle.current.value = share.programTitle;
+    if (txtProgramtitle.current) txtProgramtitle.current.value = share.programTitle;
   }, [share.programTitle])
 
   // Updates the assembly code when the code changes
@@ -72,7 +72,7 @@ export default function SimulatorView() {
 
   function forceGetCode() {
 
-    if(share.monacoEditor == null) {
+    if (share.monacoEditor == null) {
       log.pushAppError("Monaco editor is null")
       return;
     }
@@ -87,20 +87,24 @@ export default function SimulatorView() {
   }
 
   function runCode() {
+
+    // first, we have to link our canvas with our ScreenRenderer
+    let canva = (document.getElementById("screenCanvas") as HTMLCanvasElement).getContext("2d");
+    if (ScreenRenderer.instance.draw == null) ScreenRenderer.instance.draw = canva;
+
     // if code state is empty, get code from monaco editor and update share.code
     forceGetCode();
 
     //resets the program
     share.program = [];
 
-    ScreenRenderer.instance.reset_memory()
-
     // Assembles the code
     simservice.assembledCode = simservice.assemble(share.code);
     // share._debugMemory();
 
-    if(share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
+    if (share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 
+    share.currentProcessor.halted = false;
     WorkerService.instance.runCode(share.program);
 
 
@@ -139,11 +143,11 @@ export default function SimulatorView() {
       <TabPanels>
         <TabPanel>
           <Stack>
-          <Input placeholder="Recent" ref={txtProgramtitle} variant={"unstyled"} defaultValue={share.programTitle} onChange={(e) => {
-            // setProgramTitle(e.target.value);
+            <Input placeholder="Recent" ref={txtProgramtitle} variant={"unstyled"} defaultValue={share.programTitle} onChange={(e) => {
+              // setProgramTitle(e.target.value);
               share.programTitle = e.target.value;
-          }} />
-          <EditorView onEditorChange={onEditorChange} runBtn={runCode} />
+            }} />
+            <EditorView onEditorChange={onEditorChange} runBtn={runCode} />
           </Stack>
         </TabPanel>
 

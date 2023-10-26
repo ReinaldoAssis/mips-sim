@@ -43,7 +43,7 @@ export default class SharedData {
     editorBackground: "#282a36",
   };
 
-  public cycles_cap: number = 17000000;
+  public cycles_cap: number = 1700000000;
   // monaco editor instance
   public monacoEditor: any = null;
   // monaco instance

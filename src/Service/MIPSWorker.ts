@@ -13,6 +13,7 @@ const share = SharedData.instance;
 
 export type WorkCpuMessage = {
     command: string,
+    value: string,
     instructions: Array<Instruction>,
     processorref: string,
     processorFrequency: number,
@@ -22,8 +23,10 @@ export type WorkCpuMessage = {
 
 
 
+let cpu: IProcessor = new MonoMIPS();
 self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
-    let cpu: IProcessor = new MonoMIPS();
+
+    // console.log(`RECEBEU O COMANDO ${e.data.command}`)
     
     const setup = () => {
         console.log(`Worker processor: ${share.currentProcessor?.refname}`)
@@ -69,11 +72,21 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
             share.currentProcessor = cpu;
         }
     }
-    else if (e.data.command == "reset"){
+
+    if (e.data.command == "reset"){
+        console.log("RECEBEU O COMANDO DE RESET")
         if (share.currentProcessor) cpu = share.currentProcessor;
         cpu.reset();
         share.currentProcessor = cpu;
+    
     }
+
+    if (e.data.command == "halt check answer" && e.data.value == "continue"){
+        // console.log("RECEBEU O COMANDO DE CONTINUAR")
+        cpu.halted = false;
+        cpu.execute();
+    }
+
 }
 
 
