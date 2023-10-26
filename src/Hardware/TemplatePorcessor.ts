@@ -188,7 +188,7 @@ export default class TemplateProcessor implements IProcessor {
 
       this.screenWriteBatch.push({ address: address.value, value: value.value });
 
-      if (this.screenWriteBatch.length > 10) {
+      if (this.screenWriteBatch.length > 10000) {
         this.workerPostMessage("screen", this.screenWriteBatch);
         this.screenWriteBatch = [];
 
@@ -318,9 +318,14 @@ export default class TemplateProcessor implements IProcessor {
 
     let r = Math.random() * 100
 
-    let e = new Date().getTime() + mili;
-    if (r < 99) while (new Date().getTime() <= e) { }
-    else {
+    // let e = new Date().getTime() + mili;
+    // if (r < 99) while (new Date().getTime() <= e) { }
+    // else {
+    //   this.halted = true;
+    //   this.workerPostMessage("halt check", "");
+    // }
+
+    if (r > 99){
       this.halted = true;
       this.workerPostMessage("halt check", "");
     }
@@ -347,7 +352,7 @@ export default class TemplateProcessor implements IProcessor {
     let shift: number;
     let a, b, result, base, address: BinaryNumber;
 
-    // this.sleep(0.01 / this.frequency);
+    this.sleep(0.01 / this.frequency);
 
     switch (op) {
       case "000000": //R-type

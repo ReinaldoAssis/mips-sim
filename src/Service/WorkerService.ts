@@ -55,25 +55,11 @@ export default class WorkerService {
         if (e.data.command == "screen") {
           let packet = e.data.value as Array<{ address: number, value: number }>;
 
-          //packet.forEach(x => {
-          //  Object.setPrototypeOf(x.address, BinaryNumber.prototype);
-          //  Object.setPrototypeOf(x.value, BinaryNumber.prototype);
-
-          //  ScreenRenderer.instance.drawPixel(x);
-          //})
-
           for (let i = 0; i < packet.length; i++) {
-            let v = BinaryNumber.parse(packet[i].value);
-            let addr = BinaryNumber.parse(packet[i].address);
-            ScreenRenderer.instance.drawPixel({ address: addr, value: v })
+            ScreenRenderer.instance.drawPixel(packet[i].address, packet[i].value);
             // console.log(`pixel addr ${addr.value} value ${v.value}`);
           }
 
-
-
-
-          // ScreenRenderer.instance.write(packet.address, packet.value);
-          // ScreenRenderer.instance.drawPixel({address: packet.address, value: packet.value})
         }
 
         // As I've explained in the processor class, we need this check to avoid infinite loops since

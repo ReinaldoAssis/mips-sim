@@ -63,31 +63,21 @@ export class ScreenRenderer {
     this._draw.fillRect(x, y, pixelSize ?? RATIO, pixelSize ?? RATIO);
   }
 
-  public drawPixel(address: addr, pixelSize?: number) {
+  public drawPixel(address: number, value: number) {
     if (this._draw == null) return;
-
-    // let ratio = SCREEN_DIV_SIZE/SCREEN_SIZE;
-
     // where 2000 is the start address of screen memory map
     
-    let y = Math.floor((address.address.value - 2000)/SCREEN_SIZE);
-    let x = (address.address.value - 2000) % (SCREEN_SIZE);
+    let y = Math.floor((address - 2000)/SCREEN_SIZE);
+    let x = (address - 2000) % (SCREEN_SIZE);
 
     x *= RATIO;
     y *= RATIO;
 
     //convert hex to fillcolor
-    let color = address.value.toHex().replace("0x", "#");
+    let color = '#' + (value&0xffffff).toString(16);
 
-    if(color.length < 7)
-    {
-      let trail = color[color.length-1];
-      let missing = 7 - color.length;
-      for(let i = 0; i < missing; i++)
-        color += trail;
-    }
-
-    this._setPixel(x, y, color, pixelSize);
+    this._draw.fillStyle = color;
+    this._draw.fillRect(x, y, RATIO, RATIO);
 
   }
 
