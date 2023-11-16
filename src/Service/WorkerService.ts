@@ -1,5 +1,4 @@
 import { ScreenRenderer } from "../Components/pages/Simulator View/Editor Tab/Screen";
-import BinaryNumber from "../Hardware/BinaryNumber";
 import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
 import Logger from "./Logger";
@@ -72,12 +71,9 @@ export default class WorkerService {
         // TOOD: comment this
         if (e.data.command == "instruction") {
           let packet = e.data.value as Instruction;
-          Object.setPrototypeOf(packet.machineCode, BinaryNumber.prototype);
-          Object.setPrototypeOf(packet.memAddress, BinaryNumber.prototype);
 
           let lineIndex = packet.index + 1;
           this.shared.currentStepLine = lineIndex;
-          console.log(`Instruction: ${packet.humanCode} pc ${packet.memAddress.toHex()}`)
         }
 
         // receives batch of console logs

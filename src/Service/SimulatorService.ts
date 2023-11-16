@@ -1,11 +1,10 @@
-import BinaryNumber from "../Hardware/BinaryNumber";
 import Logger, { ErrorType } from "./Logger";
 import SharedData, { Instruction } from "./SharedData";
 
 // Label type
 type Label = {
   name: string;
-  address: string;
+  address: number;
 };
 
 export default class SimulatorService {
@@ -14,8 +13,10 @@ export default class SimulatorService {
   private log: Logger = Logger.instance;
   private share: SharedData = SharedData.instance;
 
-  public currentAddr = new BinaryNumber(this.share.pcStart + "");
+  public currentAddr = this.share.pcStart;
   public currentCodeInstruction: string = "";
+
+  public program : Array<Instruction> = new Array<Instruction>();
 
   // an array containing all the instructions names
   private instruction_set = [
@@ -161,14 +162,14 @@ export default class SimulatorService {
     // add all existing labels to the array with an initial addr of -1
     labels.forEach((x) => {
       //separate the value from the label
-      addrlabels.push({ name: x.toString().replace(":", ""), address: "-1" });
+      addrlabels.push({ name: x.toString().replace(":", ""), address: -1 });
     });
 
     code = this.clearComments(code);
     code = this.clearSpecialChars(code);
 
     let lines = code.split("\n");
-    let PC: BinaryNumber = new BinaryNumber("0x00400000"); //TODO: verify this value (PC starts at 0x00400000)?
+    let PC: number = this.share.pcStart;
 
     // for each line, check if it's an instruction or a label
     for (let i = 0; i < lines.length; i++) {
@@ -181,10 +182,9 @@ export default class SimulatorService {
       if (this.instruction_set.includes(tokens[0].toLowerCase())) {
         let tk = tokens[0].toLowerCase();
         if (tk == "push" || tk == "pop") {
-          PC.addNumber(8);
-          console.log("achrei push ou pop")
+          PC += 8;
         }
-        else PC.addNumber(4);
+        else PC += 4;
       }
       // if it's a label, save the PC value
       else {
@@ -193,7 +193,7 @@ export default class SimulatorService {
         );
 
         if (islabel !== undefined) {
-          islabel.address = PC.getBinaryValue(26); //sets the address of the label with a padding of 26 bits
+          islabel.address = PC; //sets the address of the label with a padding of 26 bits
         }
       }
     }
@@ -205,7 +205,7 @@ export default class SimulatorService {
       (x) =>
         (code = code.replaceAll(
           new RegExp("\\b" + x.name + "\\b", "gm"),
-          x.address
+          x.address.toString()
         ))
     );
 
@@ -214,28 +214,28 @@ export default class SimulatorService {
     return code;
   }
 
-  private computeBrenchOffset(token: string, pc: BinaryNumber): string {
-    let instruction = "";
+  /*
+    * Computes the offset for branch instructions
+    * @param {string} token - The token to be computed
+    * @param {number} pc - The current PC value
+  */
+  private computeBrenchOffset(token: string, pc: number): string {
+    // if the token is a label, convert it to its address, 
+    // otherwise, use it as is
     if (!token.toLowerCase().includes("0x")) {
-      let offset = new BinaryNumber("0b" + token); //the label is already in binary
+      let offset : number = Number(token); //the label is already in binary
 
-      offset = BinaryNumber.sub(offset.value, pc.value + 4);
-      //offset.value = offset.value / 4;
+      offset -= pc + 4;
 
-      console.log(
-        `beq offset: ${offset.getBinaryValue(16)} decimal: ${offset.value}`
-      );
-
-      instruction += offset.getBinaryValue(16);
-    } else {
+      console.log(`offset ${offset}`)
+      return this.signedToBinary(offset, 16);
+    } 
+    else 
+    {
       //if it's not a label, parse it as a number
       //the number is treated as already the offset, so the calculation is not necessary
-      let offset = new BinaryNumber(token);
-
-      instruction += offset.getBinaryValue(16);
+      return  Number(token).toString(2).padStart(16,"0");
     }
-
-    return instruction;
   }
 
   private checkInvalidLabel(label: string) {
@@ -244,11 +244,20 @@ export default class SimulatorService {
         `Couldn't find label ${label}`,
         this.currentCodeInstruction,
         0,
-        this.currentAddr.value,
+        this.currentAddr,
         -1,
         ErrorType.InvalidLabel
       );
     }
+  }
+
+  public signedToBinary(n : number, pad : number) : string
+  {
+    let binary = (n >>> 0).toString(2).padStart(pad, "0");
+    if (binary.length > pad) {
+      return binary.substring(binary.length - pad);
+    }
+    return binary;
   }
 
   // assemble the code to machine code
@@ -273,16 +282,24 @@ export default class SimulatorService {
       this.share.program.push({
         humanCode: humanCode == "" ? lines[i] : humanCode,
         index: i,
-        machineCode: new BinaryNumber("0b" + instruction),
-        memAddress: new BinaryNumber(this.currentAddr.value + ""),
+        machineCode: parseInt(instruction,2),
+        memAddress: this.currentAddr,
       });
 
-      this.currentAddr.addNumber(4); //increment PC by 4
-      machineCode += new BinaryNumber("0b" + instruction).toHex(8) + " ";
+      this.program.push({
+        humanCode: humanCode == "" ? lines[i] : humanCode,
+        index: i,
+        machineCode: parseInt(instruction,2),
+        memAddress: this.currentAddr,
+      });
+
+      this.currentAddr += 4; //increment PC by 4
+      machineCode = "0x"+parseInt(instruction,2).toString(16);
+
+      console.log(`binary ${instruction}`)
+
       console.log(
-        `[Assembler] Assembled instruction ${this.currentCodeInstruction} to ${new BinaryNumber(
-          "0b" + instruction
-        ).toHex(8)}!`
+        `[Assembler] Assembled instruction ${this.currentCodeInstruction} to ${machineCode}!`
       );
     }
 
@@ -318,7 +335,7 @@ export default class SimulatorService {
               "Invalid number of arguments for ADD instruction",
               tokens.join(" "),
               0,
-              this.currentAddr.value,
+              this.currentAddr,
               -1,
               ErrorType.InvalidNumberOfArguments
             );
@@ -342,14 +359,15 @@ export default class SimulatorService {
               })`,
               tokens.join(" "),
               0,
-              this.currentAddr.value,
+              this.currentAddr,
               -1,
               ErrorType.InvalidNumberOfArguments
             );
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+          
+          instruction += this.signedToBinary(parseInt(tokens[3]), 16); //immediate value in binary
           
 
           break;
@@ -365,7 +383,7 @@ export default class SimulatorService {
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+          instruction += this.signedToBinary(parseInt(tokens[3]), 16);; //immediate value in binary
 
           break;
 
@@ -449,7 +467,7 @@ export default class SimulatorService {
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+          instruction += this.signedToBinary(parseInt(tokens[3]), 16);; //immediate value in binary
 
           break;
 
@@ -503,7 +521,7 @@ export default class SimulatorService {
 
           this.checkInvalidLabel(tokens[1]);
 
-          instruction += tokens[1]; // the value tokens[1] is the label already in binary
+          instruction += Number(tokens[1]).toString(2).padStart(26,"0"); // the value tokens[1] is the label already in binary
 
           break;
 
@@ -516,7 +534,7 @@ export default class SimulatorService {
           //     ErrorType.ASSEMBLER
           //   );
 
-          instruction += new BinaryNumber("0b" + tokens[1]).getBinaryValue(26); //immediate value in binary
+          instruction += Number(tokens[1]).toString(2).padStart(26,"0"); //immediate value in binary
 
           break;
 
@@ -546,7 +564,7 @@ export default class SimulatorService {
 
           instruction += "00000"; //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += new BinaryNumber(tokens[2]).getBinaryValue(16); //immediate value in binary
+          instruction += parseInt(tokens[2],2).toString().padStart(16, "0"); //immediate value in binary
 
           break;
 
@@ -597,13 +615,14 @@ export default class SimulatorService {
           if(tokens.length == 4){
           instruction += this.assembleRegister(tokens[3]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += new BinaryNumber(tokens[2]).getBinaryValue(16); //offset value
+          instruction += this.signedToBinary(Number(tokens[2]),16); //offset value
+          
 
 
           } else {
             instruction += this.assembleRegister(tokens[2]); //source register rs
             instruction += this.assembleRegister(tokens[1]); //destination register rt
-            instruction += new BinaryNumber(0).getBinaryValue(16); //offset value
+            instruction += "0000000000000000"; //offset value
           }
 
           break;
@@ -622,11 +641,12 @@ export default class SimulatorService {
 
             instruction += this.assembleRegister(tokens[3]); //source register rs
             instruction += this.assembleRegister(tokens[1]); //destination register rt
-            instruction += new BinaryNumber(tokens[2]).getBinaryValue(16); //offset value
+            instruction += this.signedToBinary(Number(tokens[2]),16); //offset value
+
           } else {
             instruction += this.assembleRegister(tokens[2]); //source register rs
             instruction += this.assembleRegister(tokens[1]); //destination register rt
-            instruction += new BinaryNumber(0).getBinaryValue(16); //offset value
+            instruction += "0000000000000000"; //offset value
           }
 
           break;
@@ -635,32 +655,31 @@ export default class SimulatorService {
           instruction = "001000"; //addi
           instruction += this.assembleRegister("$sp"); //source register rs
           instruction += this.assembleRegister("$sp"); //destination register rt
-          instruction += BinaryNumber.parse(-4,true).getBinaryValue(16); //immediate value in binary
+          instruction += this.signedToBinary(-4,16); //immediate value in binary
+
           pushInstruction(instruction, i, "addi");
+
           instruction = "101011"; //sw
           instruction += this.assembleRegister("$sp"); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += BinaryNumber.parse(0,true).getBinaryValue(16); //offset value
+          instruction += "0000000000000000"; //offset value
           pushInstruction(instruction, i, "sw");
+
           continue;
           
-          break;
-
         case "pop": //pseudo instruction
           instruction = "100011"; //lw
           instruction += this.assembleRegister("$sp"); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += BinaryNumber.parse(0,true).getBinaryValue(16); //offset value
+          instruction += "0000000000000000"; //offset value
           pushInstruction(instruction, i, "lw");
+
           instruction = "001000"; //addi
           instruction += this.assembleRegister("$sp"); //source register rs
           instruction += this.assembleRegister("$sp"); //destination register rt
-          instruction += BinaryNumber.parse(4,true).getBinaryValue(16); //immediate value in binary
+          instruction += "0000000000000100"; //immediate value in binary
           pushInstruction(instruction, i, "addi");
           continue;
-          
-          break;
-
 
 
         case "ori":
@@ -674,7 +693,7 @@ export default class SimulatorService {
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+          instruction += this.signedToBinary(parseInt(tokens[3]), 16);; //immediate value in binary
 
           break;
 
@@ -683,7 +702,7 @@ export default class SimulatorService {
             instruction += "00000"; //source register rs
             instruction += this.assembleRegister(tokens[2]); //destination register rt
             instruction += this.assembleRegister(tokens[1]); //destination register rd
-            instruction += new BinaryNumber(tokens[3]).getBinaryValue(5); //shift amount shamt
+            instruction += parseInt(tokens[3]).toString(2).padStart(5,"0"); //shift amount shamt
             instruction += "000000"; //function code funct
 
         break;
@@ -693,7 +712,7 @@ export default class SimulatorService {
             instruction += "00000"; //source register rs
             instruction += this.assembleRegister(tokens[2]); //destination register rt
             instruction += this.assembleRegister(tokens[1]); //destination register rd
-            instruction += new BinaryNumber(tokens[3]).getBinaryValue(5); //shift amount shamt
+            instruction += parseInt(tokens[3]).toString(2).padStart(5, "0"); //shift amount shamt
             instruction += "000010"; //function code funct
           break;
 
@@ -725,7 +744,7 @@ export default class SimulatorService {
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+          instruction += this.signedToBinary(parseInt(tokens[3]), 16);; //immediate value in binary
 
           break;
 
@@ -740,7 +759,7 @@ export default class SimulatorService {
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+          instruction += this.signedToBinary(parseInt(tokens[3]), 16);; //immediate value in binary
 
           break;
 
@@ -823,7 +842,7 @@ export default class SimulatorService {
 
           instruction += this.assembleRegister(tokens[2]); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
-          instruction += new BinaryNumber(tokens[3]).getBinaryValue(16); //immediate value in binary
+          instruction += this.signedToBinary(parseInt(tokens[3]), 16);; //immediate value in binary
 
           break;
 
@@ -836,7 +855,7 @@ export default class SimulatorService {
           //     ErrorType.ASSEMBLER
           //   );
 
-          instruction += new BinaryNumber(tokens[1]).getBinaryValue(26); //immediate value in binary
+          instruction += parseInt(tokens[1]).toString(2).padStart(26, "0"); //immediate value in binary
 
           break;
       }
@@ -844,7 +863,7 @@ export default class SimulatorService {
       pushInstruction(instruction, i);
     }
 
-    this.currentAddr = new BinaryNumber(this.share.pcStart);
+    this.currentAddr = this.share.pcStart;
     return machineCode;
   }
 
@@ -928,12 +947,4 @@ export default class SimulatorService {
     return regNumber.toString(2).padStart(5, "0");
   }
 
-  public instruction_to_binary(str: string): string {
-    let b = "";
-    let strarr = str.split(" ");
-    for (let i = 0; i < strarr.length; i++)
-      b += BinaryNumber.parse(strarr[i]).getBinaryValue();
-
-    return b;
-  }
 }

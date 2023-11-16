@@ -1,6 +1,6 @@
 
 import React from 'react';
-import BinaryNumber from '../../../../Hardware/BinaryNumber';
+// import BinaryNumber from '../../../../Hardware/BinaryNumber';
 import { addr } from '../../../../Hardware/TemplatePorcessor';
 
 /*

@@ -2,7 +2,7 @@ import SharedData, { Instruction, IProcessor } from "./SharedData"
 import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
 import Logger from "./Logger";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
-import BinaryNumber from "../Hardware/BinaryNumber";
+// import BinaryNumber from "../Hardware/BinaryNumber";
 
 /*
     IMPORTANT: this is a worker, so the shared data is not the same as the main thread
@@ -36,10 +36,10 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
         cpu.useDebug = e.data.useDebug;
         
         // When passing objects to the worker, any functions are lost, so we need to re-define them
-        e.data.program.forEach(x => {
-            Object.setPrototypeOf(x.machineCode, BinaryNumber.prototype);
-            Object.setPrototypeOf(x.memAddress, BinaryNumber.prototype);
-        })
+        // e.data.program.forEach(x => {
+        //     Object.setPrototypeOf(x.machineCode, BinaryNumber.prototype);
+        //     Object.setPrototypeOf(x.memAddress, BinaryNumber.prototype);
+        // })
 
         share.program = e.data.program;
 

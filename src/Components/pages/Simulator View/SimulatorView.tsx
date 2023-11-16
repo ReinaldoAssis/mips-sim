@@ -89,8 +89,11 @@ export default function SimulatorView() {
   function runCode() {
 
     // first, we have to link our canvas with our ScreenRenderer
-    let canva = (document.getElementById("screenCanvas") as HTMLCanvasElement).getContext("2d");
-    if (ScreenRenderer.instance.draw == null) ScreenRenderer.instance.draw = canva;
+    try{
+      let canva = (document.getElementById("screenCanvas") as HTMLCanvasElement).getContext("2d");
+      if (ScreenRenderer.instance.draw == null) ScreenRenderer.instance.draw = canva;
+    }
+    catch{}
 
     // if code state is empty, get code from monaco editor and update share.code
     forceGetCode();

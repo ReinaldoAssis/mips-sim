@@ -1,5 +1,5 @@
 import React from "react";
-import BinaryNumber from "../Hardware/BinaryNumber";
+// import BinaryNumber from "../Hardware/BinaryNumber";
 import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
 import Logger from "./Logger";
@@ -7,8 +7,8 @@ import Logger from "./Logger";
 export interface Instruction {
   humanCode: string;
   index: number;
-  machineCode: BinaryNumber;
-  memAddress: BinaryNumber;
+  machineCode: number;
+  memAddress: number;
 }
 
 export interface IProcessor {

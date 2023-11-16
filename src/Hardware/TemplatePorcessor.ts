@@ -1,14 +1,31 @@
 import { warn } from "console";
 import Logger, { ErrorType } from "../Service/Logger";
 import SharedData, { Instruction, IProcessor } from "../Service/SharedData";
-import BinaryNumber from "./BinaryNumber";
 
 const SCREEN_MEM_START = 2000;
 const SCREEN_MEM_END = 162000;
 
+// the masks are counted from left to right
+export const MASK_26_32 = 0b00000000000000000000000000111111;
+export const MASK_21_26 = 0b00000000000000000000011111000000;
+export const MASK_16_21 = 0b00000000000000001111100000000000;
+export const MASK_11_16 = 0b00000000000111110000000000000000;
+export const MASK_6_11 = 0b00000011111000000000000000000000;
+export const MASK_0_6 = 0b11111100000000000000000000000000;
+
+export const MASK_16_32 = 0b00000000000000001111111111111111;
+export const MASK_6_32 = 0b00000011111111111111111111111111;
+
+export const MASK_LOWER32BITS = 0b0000000000000000000000000000000011111111111111111111111111111111;
+export const MASK_UPPER32BITS = 0b1111111111111111111111111111111100000000000000000000000000000000;
+
+export const MASK_RS = 0b00000011111000000000000000000000;
+export const MASK_RT = 0b00000000000111110000000000000000;
+export const MASK_LOWHALFW = 0b00000000000000001111111111111111;
+
 export type addr = {
-  address: BinaryNumber;
-  value: BinaryNumber; //value of the address in binary
+  address: number;
+  value: number; //value of the address in binary
 };
 
 export default class TemplateProcessor implements IProcessor {
@@ -19,13 +36,13 @@ export default class TemplateProcessor implements IProcessor {
 
   public frequency: number = 100; //frequency
   public memory: Array<addr> = new Array<addr>(); //memory
-  public pc: BinaryNumber = new BinaryNumber(); //program counter
+  public pc: number = 0; //program counter
   public cycle: number = 0; //number of cycles executed
-  public regbank: Array<BinaryNumber> = []; //register bank
+  public regbank: Array<number> = []; //register bank
   public program: Instruction[] = []; //program
   public initializedRegs: Array<boolean> = []; //initialized registers
 
-  public currentInstruction: Instruction = { humanCode: "", machineCode: new BinaryNumber(), memAddress: new BinaryNumber(), index: -1 }; //current instruction being executed
+  public currentInstruction: Instruction = { humanCode: "", machineCode: 0, memAddress: 0, index: -1 }; //current instruction being executed
   public useDebug: boolean = true; //if true, the processor will generate a debug log
 
   public workerPostMessage: ((channel: string, message: any) => void) = (channel: string, message: any) => { };
@@ -64,22 +81,22 @@ export default class TemplateProcessor implements IProcessor {
   public initialize(): void {
     for (let i = 0; i < 18; i++) {
       if (i == 0) {
-        this.regbank.push(new BinaryNumber("0"));
+        this.regbank.push(0);
         this.initializedRegs.push(true);
       } else {
         this.regbank.push(
-          new BinaryNumber((Math.random() * 10000000).toString())
+          Math.floor(Math.random()*10000)
         );
         this.initializedRegs.push(false);
       }
     }
 
-    this.regbank[9] = new BinaryNumber(this.PCStart);
-    this.regbank[16] = new BinaryNumber(this.share.stackStart);
+    this.regbank[9] = this.PCStart;
+    this.regbank[16] = this.share.stackStart;
     this.initializedRegs[9] = true;
     this.initializedRegs[16] = true;
 
-    this.pc = new BinaryNumber(this.PCStart.toString());
+    this.pc = this.PCStart;
   }
 
   public constructor() {
@@ -103,76 +120,53 @@ export default class TemplateProcessor implements IProcessor {
   }
 
   public error(msg: string, instruction: string): void {
-    this.workerPostMessage("error", { msg: msg, instruction: instruction, cycle: this.cycle, pc: this.pc.value, line: -1 });
+    this.workerPostMessage("error", { msg: msg, instruction: instruction, cycle: this.cycle, pc: this.pc, line: -1 });
   }
 
   public reset(): void {
     this.memory = [];
     this.halted = true;
-    this.pc = new BinaryNumber(this.PCStart);
+    this.pc = this.PCStart;
     this.cycle = 0;
     this.regbank = [];
     this.initializedRegs = [];
     this.initialize();
   }
 
-  public isRegisterInitialized(reg: string): boolean {
+  public isRegisterInitialized(reg: number): boolean {
     return this.initializedRegs[this.mapRegister(reg)];
   }
+
+  public signedToBinary(n : number, pad : number) : string
+  {
+    let binary = (n >>> 0).toString(2).padStart(pad, "0");
+    if (binary.length > pad) {
+      return binary.substring(binary.length - pad);
+    }
+    return binary;
+  }
+
+  public signedSum(a: number, b: number, pad: number) : number {
+    let astr = a.toString(2).padStart(pad, "0").slice(-pad);
+    let bstr = b.toString(2).padStart(pad,"0").slice(-pad);
+    return Number(`0b${astr}`)+Number(`0b${bstr}`);
+  }
+
+  public signedToDec(n : number, pad: number) {
+    const limit = Math.pow(2, pad - 1); // Limite positivo
+
+    if (n >= limit) {
+        // Número negativo
+        return n - Math.pow(2, pad);
+    } else {
+        // Número positivo
+        return n;
+    }
+}
 
   public warnRegisterNotInitialized(regs: string[]): void {
     //TODO: fix this
 
-  }
-
-  /* 
-    Executes a single step of the processor by fetching and calling executeCycle
-    Returns -1 if the instruction is call 0
-  */
-  public executeStep(): number {
-
-    this.halted = false;
-
-    if (this.frequency < 90) {
-      self.postMessage({ command: "instruction", value: this.currentInstruction })
-    }
-
-    let programInstruction = this.program.find(
-      (x) => x.memAddress.getBinaryValue(32) == this.pc.getBinaryValue(32)
-    );
-
-    if (programInstruction == undefined || programInstruction == null) console.log('programInstruction undefined')
-
-
-    // console.log(programInstruction?.humanCode.split(" ")[0])
-
-    if (programInstruction)
-      if (this.instructionSet.indexOf(programInstruction?.humanCode.split(" ")[0] ?? "") == -1) {
-        this.error("Instruction not found", programInstruction?.humanCode ?? "null");
-        return -1;
-      }
-
-    //if the instruction is not found, call 0 to stop the execution
-    let instruction: BinaryNumber =
-      this.fetch() ?? new BinaryNumber("0xfc000000");
-
-    this.currentInstruction = programInstruction ?? { humanCode: "call 0", machineCode: new BinaryNumber("0xfc000000"), memAddress: new BinaryNumber("0x00000000"), index: this.memory.length };
-
-    //update the current step line
-    // if (this.share.processorFrequency < 90)
-    //   this.share.currentStepLine = programInstruction?.index ?? 0;
-
-    if (instruction.toHex(8) == "0xfc000000") {
-      //call 0
-      this.halted = true;
-      // this.stdout("", true, true);
-      this.workerPostMessage("halted", true)
-      return -1;
-    }
-
-    //execute the instruction
-    this.executeCycle(instruction);
-    return 0;
   }
 
   /* 
@@ -181,14 +175,14 @@ export default class TemplateProcessor implements IProcessor {
     @param address: address to write to
     @param value: value to write
   */
-  public writeMemory(address: BinaryNumber, value: BinaryNumber): void {
+  public writeMemory(address: number, value: number): void {
 
     // if the address is in the screen memory range, send it to the screen
-    if (address.value >= SCREEN_MEM_START && address.value <= SCREEN_MEM_END) {
+    if (address >= SCREEN_MEM_START && address <= SCREEN_MEM_END) {
 
-      this.screenWriteBatch.push({ address: address.value, value: value.value });
+      this.screenWriteBatch.push({ address: address, value: value });
 
-      if (this.screenWriteBatch.length > 10000) {
+      if (this.screenWriteBatch.length > 100) {
         this.workerPostMessage("screen", this.screenWriteBatch);
         this.screenWriteBatch = [];
 
@@ -199,7 +193,7 @@ export default class TemplateProcessor implements IProcessor {
       return;
     }
 
-    let addr = this.memory.find((x) => x.address.value == address.value);
+    let addr = this.memory.find((x) => x.address == address);
     if (addr == undefined) {
       this.memory.push({ address: address, value: value });
       return;
@@ -213,29 +207,29 @@ export default class TemplateProcessor implements IProcessor {
     @param address: address to read from
     @returns: value at the address
   */
-  public readMemory(address: BinaryNumber): BinaryNumber {
-    let addr = this.memory.find((x) => x.address.value == address.value);
+  public readMemory(address: number): number {
+    let addr = this.memory.find((x) => x.address == address);
     if (addr == undefined) {
       this.log.error(
         "Memory location not initialized",
         this.currentInstruction.humanCode,
         this.cycle,
-        this.pc.value,
+        this.pc,
         -1,
         ErrorType.Warning,
         0
       );
-      //this.log.warning("Memory location not initialized", ErrorType.SIMULATOR);
-      return new BinaryNumber((Math.random() * 100000).toString());
+
+      return Math.floor(Math.random() * 100000);
     }
     return addr.value;
   }
 
-  private getHumanInstruction(instruction: BinaryNumber): string {
+  private getHumanInstruction(instruction: number): string {
     return (
       this.share.program.find(
         (x) =>
-          x.machineCode.getBinaryValue(32) == instruction.getBinaryValue(32)
+          x.machineCode == instruction
       )?.humanCode ?? "Undefined"
     );
   }
@@ -257,56 +251,79 @@ export default class TemplateProcessor implements IProcessor {
     Fetches the instruction at the current pc
     @returns: instruction at the current pc
   */
-  public fetch(): BinaryNumber {
+  public fetch(): number {
     let instruction = this.memory.find(
-      (x) => x.address.value == this.pc.value
-    )?.value;
-    this.pc.addNumber(4); //increment pc
-    this.share.currentPc = this.pc.value;
+      (x) => x.address == this.pc
+    );
+    this.pc += 4; //increment pc
+    this.share.currentPc = this.pc;
 
 
 
-    return instruction ?? new BinaryNumber("0xfc000000"); //call 0 if the instruction is not found
+    return instruction?.value ?? 4227858432; //call 0 if the instruction is not found
   }
+
+
+  /* 
+    Executes a single step of the processor by fetching and calling executeCycle
+    Returns -1 if the instruction is call 0
+  */
+    public executeStep(): number {
+
+      this.halted = false;
+  
+      if (this.frequency < 90) {
+        self.postMessage({ command: "instruction", value: this.currentInstruction })
+      }
+  
+      let programInstruction = this.program.find(
+        (x) => x.memAddress == this.pc
+      );
+  
+      if (programInstruction == undefined || programInstruction == null) console.log('programInstruction undefined')
+  
+  
+      // console.log(programInstruction?.humanCode.split(" ")[0])
+  
+      // if (programInstruction)
+      //   if (this.instructionSet.indexOf(programInstruction?.humanCode.split(" ")[0] ?? "") == -1) {
+      //     this.error("Instruction not found", programInstruction?.humanCode ?? "null");
+      //     return -1;
+      //   }
+  
+      //if the instruction is not found, call 0 to stop the execution
+      let instruction: number =
+        this.fetch() ?? 0xfc000000;
+
+  
+      this.currentInstruction = programInstruction ?? { humanCode: "call 0", machineCode: 0xfc000000, memAddress: 0, index: this.memory.length };
+  
+      if (instruction == 0xfc000000) {
+        //call 0
+        this.halted = true;
+        // this.stdout("", true, true);
+        this.workerPostMessage("halted", true)
+        return -1;
+      }
+  
+      //execute the instruction
+      this.executeCycle(instruction);
+      return 0;
+    }
 
   /*
     Tells the processor to execute the program
   */
   public execute() {
     //caped for loop to prevent infinite loops
-    // console.log('program debug')
-    // this.program.map(x => {
-    //   console.log(`${x.humanCode} ${x.memAddress.value} ${x.machineCode.value} ${x.index}`)
-    // })
 
     this.halted = false;
-    this._elapsed = performance.now(); //TODO: remove this
 
-    // const stepper = () => {
-    //   let i = 0;
-    // let interval : NodeJS.Timeout = setInterval(() => {
-    //   if (this.executeStep() == -1) {
-    //     i = 99999999;
-    //     clearInterval(interval);
-    //   }
-    //   i++;
-    //   if (i > 2000) clearInterval(interval);
+    for (let i = 0; i < this.share.cycles_cap; i++)
+      if (this.halted) break;
+      else
+        if (this.executeStep() == -1) break;
 
-    // }, 1000/this.frequency);
-
-    // this.share.interval = interval;
-    // }
-
-    const continuous = () => {
-      for (let i = 0; i < this.share.cycles_cap; i++)
-        if (this.halted) break;
-        else
-          if (this.executeStep() == -1) break;
-    }
-
-    continuous();
-    // if(this.frequency > 90) continuous();
-    // else stepper();
 
   }
 
@@ -318,8 +335,8 @@ export default class TemplateProcessor implements IProcessor {
 
     let r = Math.random() * 100
 
-    // let e = new Date().getTime() + mili;
-    // if (r < 99) while (new Date().getTime() <= e) { }
+    // let e = new Date().getTime() + mili/1000;
+    // if (r <= 99) while (new Date().getTime() <= e) { }
     // else {
     //   this.halted = true;
     //   this.workerPostMessage("halt check", "");
@@ -336,166 +353,166 @@ export default class TemplateProcessor implements IProcessor {
     this.stdout(msg, true, false, true);
   }
 
-
-  public _elapsed : number = 0; //TODO: remove this
-
   /*
     Executes a single cycle of the processor
     @param instruction: instruction to execute   
   */
-  public executeCycle(instruction: BinaryNumber) {
-    // console.log("Executing instruction: " + instruction.getBinaryValue(32));
-    let op = instruction.getBinaryValue(32).slice(0, 6);
-    // console.log("op: " + op);
+  public executeCycle(instruction: number) {
+    let op = (instruction&0b11111100000000000000000000000000) >>> 26;
 
-    let rs, rt, rd, funct, imm, aux: string;
+    let rs, rt, rd, funct, imm, aux: number;
     let shift: number;
-    let a, b, result, base, address: BinaryNumber;
+    let a, b, result, base, address: number;
 
-    this.sleep(0.01 / this.frequency);
+    this.sleep(40);
+
+    // console.log(`======= DEBUG ${this.pc} ========`)
+    // console.log(`instruction ${instruction.toString(2).padStart(32,"0")}`)
+    // console.log(`op ${op.toString(2).padStart(6,"0")}`)
 
     switch (op) {
-      case "000000": //R-type
-        funct = instruction.getBinaryValue(32).slice(26, 32);
-        rd = instruction.getBinaryValue(32).slice(16, 21);
-        rs = instruction.getBinaryValue(32).slice(6, 11);
-        rt = instruction.getBinaryValue(32).slice(11, 16);
+      case 0: //R-type
+        funct = instruction&MASK_26_32;   //26-32
+        rd = (instruction&0b00000000000000001111100000000000) >>> 11 //16-21
+        rs = (instruction&0b00000011111000000000000000000000) >>> 21; //6-11
+        rt = (instruction&0b00000000000111110000000000000000) >>> 16; //11-16
+
+        // console.log(`func ${funct.toString(2)} rs ${rs.toString(2)} rt ${rt.toString(2)} rd ${rd.toString(2)}`)
 
 
         // Write to the debug log a warning if the register has not been initialized
         // and set the register as initialized
-        this.warnRegisterNotInitialized([rs, rt]);
+        // this.warnRegisterNotInitialized([rs, rt]);
 
         switch (funct) {
-          case "000000": //sll
+          case 0: //sll
             a = this.regbank[this.mapRegister(rt)];
-            shift = instruction.slice(21, 26).value;
-            result = BinaryNumber.shiftLeft(a, shift);
+            shift = (instruction&MASK_21_26) >>> 6; //instruction.slice(21, 26).value;
+            result = a << shift;
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a.value} shift: ${shift} result: ${result.value}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a} shift: ${shift} result: ${result}`);
             break;
 
-          case "000010": //srl
+          case 0b000010: //srl
             a = this.regbank[this.mapRegister(rt)];
-            shift = instruction.slice(21, 26).value;
-            result = BinaryNumber.shiftRight(a, shift);
+            shift = (instruction&MASK_21_26) >>> 6; //instruction.slice(21, 26).value;
+            result = a >> shift;
             this.regbank[this.mapRegister(rd)] = result;
 
-            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a.value} shift: ${shift} result: ${result.value}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a} shift: ${shift} result: ${result}`);
             break;
 
-          case "011000": //mult
+          case 0b011000: //mult
             a = this.regbank[this.mapRegister(rs)];
             b = this.regbank[this.mapRegister(rt)];
 
-            aux = BinaryNumber.parse(a.value * b.value, true).getBinaryValue(64);
-            this.regbank[10] = BinaryNumber.parse("0b" + aux.slice(0, 32), true); //hi
-            this.regbank[11] = BinaryNumber.parse("0b" + aux.slice(32, 64), true); //lo
+            aux = a*b;
+            this.regbank[10] = aux&MASK_UPPER32BITS; //hi
+            this.regbank[11] = aux&MASK_LOWER32BITS; //lo
 
-            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${BinaryNumber.parse("0b" + aux).value}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a} b: ${b} result: ${aux}`);
 
             break;
 
-          case "011010": //div
+          case 0b011010: //div
             a = this.regbank[this.mapRegister(rs)];
             b = this.regbank[this.mapRegister(rt)];
 
-            this.regbank[10] = BinaryNumber.parse(Math.floor(a.value / b.value).toString()); //hi
-            this.regbank[11] = BinaryNumber.parse((a.value % b.value).toString()); //lo
+            this.regbank[10] = Math.floor(a / b); //hi
+            this.regbank[11] = a % b; //lo
 
-            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value} result: ${Math.floor(a.value / b.value)}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} a: ${a} b: ${b} result: ${Math.floor(a / b)}`);
 
             break;
 
-          case "010000": //mfhi
+          case 0b010000: //mfhi
             this.regbank[this.mapRegister(rd)] = this.regbank[10]; //hi
 
-            this.writeDebug(`${this.getHumanInstruction(instruction)} result: ${this.regbank[10].value}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} result: ${this.regbank[10]}`);
             break;
 
-          case "010010": //mflo
+          case 0b010010: //mflo
             this.regbank[this.mapRegister(rd)] = this.regbank[11]; //lo
 
-            this.writeDebug(`${this.getHumanInstruction(instruction)} result: ${this.regbank[11].value}`);
+            this.writeDebug(`${this.getHumanInstruction(instruction)} result: ${this.regbank[11]}`);
             break;
 
-          case "100000": //add
+          case 0b100000: //add
             a = this.regbank[this.mapRegister(rs)];
             b = this.regbank[this.mapRegister(rt)];
-            result = BinaryNumber.add(a.value, b.value);
+
+            result = a + b;
             this.regbank[this.mapRegister(rd)] = result;
 
             this.writeDebug(
-              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
-              } result: ${result.value}`
+              `${this.getHumanInstruction(instruction)} a: ${a} b: ${b} result: ${result}`
             );
 
             break;
 
-          case "100010": //sub
+          case 0b100010: //sub
             a = this.regbank[this.mapRegister(rs)];
             b = this.regbank[this.mapRegister(rt)];
-            result = BinaryNumber.sub(a.value, b.value);
+
+            result = a - b;
             this.regbank[this.mapRegister(rd)] = result;
 
             this.writeDebug(
-              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
-              } result: ${result.value}`
+              `${this.getHumanInstruction(instruction)} a: ${a} b: ${b
+              } result: ${result}`
             );
             break;
 
-          case "100100": //and
+          case 0b100100: //and
             a = this.regbank[this.mapRegister(rs)];
             b = this.regbank[this.mapRegister(rt)];
-            result = BinaryNumber.and(a.value, b.value);
+
+            result = a&b;
             this.regbank[this.mapRegister(rd)] = result;
 
             this.writeDebug(
-              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
-              } result: ${result.value}`
+              `${this.getHumanInstruction(instruction)} a: ${a} b: ${b
+              } result: ${result}`
             );
             break;
 
-          case "100101": //or
+          case 0b100101: //or
             a = this.regbank[this.mapRegister(rs)];
             b = this.regbank[this.mapRegister(rt)];
-            result = BinaryNumber.or(a.value, b.value);
+
+            result = a | b;
             this.regbank[this.mapRegister(rd)] = result;
 
             this.writeDebug(
-              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
-              } result: ${result.value}`
+              `${this.getHumanInstruction(instruction)} a: ${a} b: ${b
+              } result: ${result}`
             );
             break;
 
-          case "101010": //slt
+          case 0b101010: //slt
             a = this.regbank[this.mapRegister(rs)];
             b = this.regbank[this.mapRegister(rt)];
-            result =
-              a.value < b.value
-                ? new BinaryNumber("0b1")
-                : new BinaryNumber("0b0");
+
+            result = a < b ? 1 : 0;
             this.regbank[this.mapRegister(rd)] = result;
 
             this.writeDebug(
-              `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
-              } result: ${result.value}`
+              `${this.getHumanInstruction(instruction)} a: ${a} b: ${b
+              } result: ${result}`
             );
             break;
 
-          case "001000": //jr
-            rs = instruction.getBinaryValue(32).slice(6, 11);
-            this.warnRegisterNotInitialized([rs]);
+          case 0b001000: //jr
+            rs = (instruction&MASK_RS) >>> 21;
+            // this.warnRegisterNotInitialized([rs]);
             this.pc = this.regbank[this.mapRegister(rs)];
-            this.share.currentPc = this.pc.value;
+            this.share.currentPc = this.pc;
 
             this.writeDebug(
               `${this.getHumanInstruction(
                 instruction
-              )} address: ${new BinaryNumber(
-                "0b" + rs
-              ).toHex()} result: ${this.pc.toHex()}`
+              )} address: ${rs} result: ${this.pc}`
             );
 
             break;
@@ -503,225 +520,207 @@ export default class TemplateProcessor implements IProcessor {
 
         break;
 
-      case "001010": //slti
-        rs = instruction.getBinaryValue(32).slice(6, 11);
-        rt = instruction.getBinaryValue(32).slice(11, 16);
-        imm = instruction.getBinaryValue(32).slice(16, 32);
+      case 0b001010: //slti
+        rs = (instruction&MASK_RS) >>> 21;
+        rt = (instruction&MASK_RT) >>> 16;
+        imm = instruction&MASK_LOWHALFW;
 
         //this.warnRegisterNotInitialized([rs]);
 
         a = this.regbank[this.mapRegister(rs)];
-        b = BinaryNumber.parse("0b" + imm, true);
-        result =
-          a.value < b.value
-            ? new BinaryNumber(1)
-            : new BinaryNumber(0);
+        b = imm;
+        result = a < b ? 1 : 0;
         this.regbank[this.mapRegister(rt)] = result;
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
-          } result: ${result.value}`
+          `${this.getHumanInstruction(instruction)} a: ${a} b: ${b
+          } result: ${result}`
         );
 
         break;
 
-      case "001000": //addi
-        rs = instruction.getBinaryValue(32).slice(6, 11);
-        rt = instruction.getBinaryValue(32).slice(11, 16);
-        imm = instruction.getBinaryValue(32).slice(16, 32);
+      case 0b001000: //addi
+        rs = (instruction&MASK_RS) >>> 21;
+        rt = (instruction&MASK_RT) >>> 16;
+        imm = instruction&MASK_LOWHALFW;
 
-        this.warnRegisterNotInitialized([rs]);
+        //TODO: fix warnRegisterNotInitialized
+        // this.warnRegisterNotInitialized([rs]);
 
         a = this.regbank[this.mapRegister(rs)];
-        b = BinaryNumber.parse("0b" + imm, true);
-        result = BinaryNumber.add(a.value, b.value);
-        this.regbank[this.mapRegister(rt)] = result;
+        b = this.signedToDec(imm,16);
 
+        
+        result = a + b;
+        this.regbank[this.mapRegister(rt)] = result;
+        
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
-          } result: ${result.value}`
+          `${this.getHumanInstruction(instruction)} a: ${a} b: ${b
+          } result: ${result}`
         );
 
         break;
 
-      case "100011": //lw
-        rs = instruction.getBinaryValue(32).slice(6, 11);
-        rt = instruction.getBinaryValue(32).slice(11, 16);
-        imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+      case 0b100011: //lw
+        rs = (instruction&MASK_RS) >>> 21;
+        rt = (instruction&MASK_RT) >>> 16;
+        imm = this.signedToDec(instruction&MASK_LOWHALFW,16); //offset
 
-        this.warnRegisterNotInitialized([rs, rt]);
+        // this.warnRegisterNotInitialized([rs, rt]);
 
-        // console.log(`instruction ${instruction.getBinaryValue(32)} rs ${rs} rt ${rt} imm ${imm}`)
+        // console.log(`rs ${rs.toString(2)} rt ${rt} imm ${imm}`)
 
         base = this.regbank[this.mapRegister(rs)];
 
-        address = BinaryNumber.add(
-          base.value,
-          BinaryNumber.parse("0b" + imm, true).value
-        );
+        address = (base + imm);
 
         result = this.readMemory(address);
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} base: ${base.value
-          } address: ${address.value} result: ${result.value}`
+          `${this.getHumanInstruction(instruction)} base: ${base
+          } address: ${address} result: ${result}`
         );
 
         this.regbank[this.mapRegister(rt)] = result;
 
         break;
 
-      case "101011": //sw
-        rs = instruction.getBinaryValue(32).slice(6, 11);
-        rt = instruction.getBinaryValue(32).slice(11, 16);
-        imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+      case 0b101011: //sw
+        rs = (instruction&MASK_RS) >>> 21;
+        rt = (instruction&MASK_RT) >>> 16;
+        imm = this.signedToDec(instruction&MASK_LOWHALFW,16); //offset
 
-        this.warnRegisterNotInitialized([rs, rt]);
+        // this.warnRegisterNotInitialized([rs, rt]);
 
 
         base = this.regbank[this.mapRegister(rs)];
-        // console.log(`essa foi o valor de base: ${base.value}`)
-        address = BinaryNumber.add(
-          base.value,
-          BinaryNumber.parse("0b" + imm, true).value
-        );
-        // console.log(`essa foi o valor do addr: ${address.value}`)
-
+        address = (base + imm);
 
         result = this.regbank[this.mapRegister(rt)];
-        // console.log(`essa foi o valor a ser guardado: ${result.value}`)
+        // console.log(`essa foi o valor a ser guardado: ${result}`)
 
         this.writeMemory(address, result);
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} address: ${address.value
-          } result: ${result.value}`
+          `${this.getHumanInstruction(instruction)} address: ${address
+          } result: ${result}`
         );
 
         break;
 
-      case "000100": //beq
-        rs = instruction.getBinaryValue(32).slice(6, 11);
-        rt = instruction.getBinaryValue(32).slice(11, 16);
-        imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+      case 0b000100: //beq
+        rs = (instruction&MASK_RS) >>> 21;
+        rt = (instruction&MASK_RT) >>> 16;
+        imm = instruction&MASK_LOWHALFW; //offset
 
-        this.warnRegisterNotInitialized([rs, rt]);
+        // this.warnRegisterNotInitialized([rs, rt]);
 
         a = this.regbank[this.mapRegister(rs)];
         b = this.regbank[this.mapRegister(rt)];
 
-        if (a.value == b.value)
-          this.pc.add(BinaryNumber.parse("0b" + imm, true));
+        if (a == b)
+          this.pc += this.signedToDec(imm,16);
 
-        this.share.currentPc = this.pc.value;
+        // this.pc &= MASK_LOWER32BITS;
+
+        this.share.currentPc = this.pc;
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
-          } [${b.getBinaryValue()}] offset: ${imm}`
+          `${this.getHumanInstruction(instruction)} a: ${a} b: ${b
+          } [${b}] offset: ${imm}`
         );
 
         break;
 
-      case "000101": //bne
-        rs = instruction.getBinaryValue(32).slice(6, 11);
-        rt = instruction.getBinaryValue(32).slice(11, 16);
-        imm = instruction.getBinaryValue(32).slice(16, 32); //offset
+      case 0b000101: //bne
+        rs = (instruction&MASK_RS) >>> 21;
+        rt = (instruction&MASK_RT) >>> 16;
+        imm = instruction&MASK_LOWHALFW; //offset
 
-        this.warnRegisterNotInitialized([rs, rt]);
+        // this.warnRegisterNotInitialized([rs, rt]);
 
         a = this.regbank[this.mapRegister(rs)];
         b = this.regbank[this.mapRegister(rt)];
 
-        if (a.value != b.value)
-          this.pc.add(BinaryNumber.parse("0b" + imm, true));
+        if (a != b)
+          this.pc += this.signedToDec(imm,16);
 
-        this.share.currentPc = this.pc.value;
+        // this.pc &= MASK_LOWER32BITS;
+
+        this.share.currentPc = this.pc;
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} a: ${a.value} b: ${b.value
+          `${this.getHumanInstruction(instruction)} a: ${a} b: ${b
           } offset: ${imm}`
         );
 
         break;
 
-      case "000011": //jal
+      case 0b000011: //jal
         // get the 26 address bits
-        imm = instruction.getBinaryValue(32).slice(6, 32);
+        imm = instruction&MASK_6_32; //&MASK_6_32;
         // save the return address in register 9 (ra)
         this.regbank[9] = this.pc;
 
-        // console.log("------ JAL Debug ------");
-        // console.log("Instruction", instruction.getBinaryValue(32));
-        // console.log("imm value", imm);
-        // console.log("pc value", this.pc.getBinaryValue(32));
-        // console.log("0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm);
-
-        this.pc = new BinaryNumber(
-          "0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm
-        );
+        this.pc = (this.pc&MASK_0_6) + imm;
+        this.pc &= MASK_LOWER32BITS;
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} address: ${new BinaryNumber(
-            "0b" + imm
-          ).toHex()} result: ${this.pc.toHex()}`
+          `${this.getHumanInstruction(instruction)} address: ${imm} result: ${this.pc}`
         );
 
         break;
 
-      case "000010": //j
+      case 0b000010: //j
         // get the 26 address bits
-        imm = instruction.getBinaryValue(32).slice(6, 32);
-        this.pc = new BinaryNumber(
-          "0b" + this.pc.getBinaryValue(32).slice(0, 6) + imm
-        );
+        imm = instruction&MASK_6_32;
+        this.pc = parseInt((this.pc&MASK_0_6).toString(2) + imm.toString(2).padStart(26,"0"),2);
 
         this.writeDebug(
-          `${this.getHumanInstruction(instruction)} address: ${new BinaryNumber(
-            "0b" + imm
-          ).toHex()} result: ${this.pc.toHex()}`
+          `${this.getHumanInstruction(instruction)} address: ${imm} result: ${this.pc}`
         );
 
         break;
 
-      case "111111": //call
-        let call = instruction.getBinaryValue(32).slice(6, 32);
-        let n = BinaryNumber.parse("0b" + call, true).value;
+      case 0b111111: //call
+        let call = instruction&MASK_6_32;
+        // let n = BinaryNumber.parse("0b" + call, true);
 
 
-        if (n == 1) {
-          a = this.regbank[this.mapRegister("00010")]; //v0
-          // this.workerPostMessage("console", {log: a.value, linebreak: true});
-          this.stdout(a.value.toString(), true, false);
+        if (call == 1) {
+          a = this.regbank[this.mapRegister(0b00010)]; //v0
+          // this.workerPostMessage("console", {log: a, linebreak: true});
+          this.stdout(a.toString(), true, false);
 
-          this.writeDebug(`CALL 1 a: ${a.value}`);
+          this.writeDebug(`CALL 1 a: ${a}`);
         } //print char
-        else if (n == 2) {
-          a = this.regbank[this.mapRegister("00010")]; //v0
-          let char = String.fromCharCode(a.value);
+        else if (call == 2) {
+          a = this.regbank[this.mapRegister(0b00010)]; //v0
+          let char = String.fromCharCode(a);
           // this.log.console(`${char}`, false);
           this.stdout(char, false, false);
 
-          this.writeDebug(`CALL 2 a: ${a.value} char: ${char}`);
+          this.writeDebug(`CALL 2 a: ${a} char: ${char}`);
         }
         //dump integer without newline
-        else if (n == 3) {
-          a = this.regbank[this.mapRegister("00010")]; //v0
-          // this.log.console(`${a.value}`, false);
-          // this.workerPostMessage("console", {log: a.value, linebreak: false});
-          this.stdout(a.value.toString(), false, false);
+        else if (call == 3) {
+          a = this.regbank[this.mapRegister(0b00010)]; //v0
+          // this.log.console(`${a}`, false);
+          // this.workerPostMessage("console", {log: a, linebreak: false});
+          this.stdout(a.toString(), false, false);
 
-          this.writeDebug(`CALL 3 a: ${a.value}`);
+          this.writeDebug(`CALL 3 a: ${a}`);
         }
         //random int from a0 to a1
-        else if (n == 42) {
-          a = this.regbank[this.mapRegister("00100")]; //a0
-          b = this.regbank[this.mapRegister("00101")]; //a1
-          result = BinaryNumber.parse(
-            Math.floor(Math.random() * (b.value - a.value) + a.value)
-          );
-          this.regbank[this.mapRegister("00010")] = result; //v0
+        else if (call == 42) {
+          a = this.regbank[this.mapRegister(0b00100)]; //a0
+          b = this.regbank[this.mapRegister(0b00101)]; //a1
+
+          result =  Math.floor(Math.random() * (b - a) + a);
+
+          this.regbank[this.mapRegister(0b00010)] = result; //v0
           this.writeDebug(
-            `CALL 42 a: ${a.value} b: ${b.value} result: ${result.value}`
+            `CALL 42 a: ${a} b: ${b} result: ${result}`
           );
         }
         break;
@@ -730,52 +729,50 @@ export default class TemplateProcessor implements IProcessor {
         this.error(`Invalid instruction.`, this.currentInstruction.humanCode)
         break;
     }
+
   }
 
-  public mapRegister(reg: string): number {
+  public mapRegister(reg: number): number {
 
-    if (this.availableRegisters[0] != "All" && this.availableRegisters.indexOf(reg) == -1) {
-      this.error(`Invalid register ${reg}.`, this.currentInstruction.humanCode)
-      return 0;
-    }
+    //TODO: FIX THIS
+    // if (this.availableRegisters[0] != "All" && this.availableRegisters.indexOf(reg) == -1) {
+    //   this.error(`Invalid register ${reg}.`, this.currentInstruction.humanCode)
+    //   return 0;
+    // }
 
     switch (reg) {
-      case "00000": //zero
+      case 0: //zero
         return 0;
-      case "00010": //v0
+      case 0b00010: //v0
         return 1;
-      case "00011": //v1
+      case 0b00011: //v1
         return 2;
-      case "00100": //a0
+      case 0b00100: //a0
         return 3;
-      case "00101": //a1
+      case 0b00101: //a1
         return 4;
-      case "00110": //a2
+      case 0b00110: //a2
         return 12;
-      case "00111": //a3
+      case 0b00111: //a3
         return 17;
-      case "01000": //t0
+      case 0b01000: //t0
         return 5;
-      case "01001": //t1
+      case 0b01001: //t1
         return 6;
-      case "01010": //t2
+      case 0b01010: //t2
         return 7;
-      case "01011": //t3
+      case 0b01011: //t3
         return 8;
-      case "01100": //t4
+      case 0b01100: //t4
         return 13;
-      case "01101": //t5
+      case 0b01101: //t5
         return 14;
-      case "01110": //t6
+      case 0b01110: //t6
         return 15;
-      case "11101": //sp
+      case 0b11101: //sp
         return 16;
-      case "11111": //ra
+      case 0b11111: //ra
         return 9;
-      case "hi":
-        return 10;
-      case "lo":
-        return 11;
       default:
         this.error(`Invalid register ${reg}.`, this.currentInstruction.humanCode)
         return 0;
