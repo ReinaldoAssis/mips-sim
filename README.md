@@ -2,6 +2,15 @@
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 ![Netlify](https://img.shields.io/badge/netlify-%23000000.svg?style=for-the-badge&logo=netlify&logoColor=#00C7B7)
 
+**Choose your language**
+
+![Static Badge](https://img.shields.io/badge/English%20-%20%231E90FF?style=flat-square)
+![Static Badge](https://img.shields.io/badge/Brazilian%20-%20%23228B22?style=flat-square)
+![Static Badge](https://img.shields.io/badge/French%20-%20%23DC143C?style=flat-square)
+
+
+
+
 # MIPS SIM
 
 A simulator based on the MIPS 32 architecture enviosioned to help students learn and explore the foundations of assembly language and circuit schematics.
