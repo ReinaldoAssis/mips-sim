@@ -5,7 +5,7 @@
 **Choisissez votre langue**
 
 ![Static Badge](https://img.shields.io/badge/Anglais%20-%20%231E90FF?style=flat-square)
-![Static Badge](https://img.shields.io/badge/Portugais%20Brésilien%20-%20%23228B22?style=flat-square)
+![Static Badge](https://img.shields.io/badge/Brazilian%20-%20%23228B22?style=flat-square)
 ![Static Badge](https://img.shields.io/badge/Français%20-%20%23DC143C?style=flat-square)
 
 # MIPS SIM
