@@ -157,7 +157,9 @@ export default function SimulatorView() {
         <TabPanel>
           <Textarea
             style={{ height: "80vh" }}
-            value={simservice.assembledCode}
+            value={
+              simservice.program.map(i => "0x"+i.machineCode.toString(16)).join(" ")  
+            }
           />
         </TabPanel>
 
