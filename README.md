@@ -5,7 +5,10 @@
 **Choose your language**
 
 ![Static Badge](https://img.shields.io/badge/English%20-%20%231E90FF?style=flat-square&link=https%3A%2F%2Fgithub.com%2FReinaldoAssis%2Fmips-sim%2Ftree%2Fmaster)
+<a target="_blank" href="&link=https%3A%2F%2Fgithub.com%2FReinaldoAssis%2Fmips-sim%2Fblob%2Fmaster%2FREADME-br.md">
 <img src="https://img.shields.io/badge/Brazilian%20Portuguese%20-%20%23228B22?style=flat-square&link=https%3A%2F%2Fgithub.com%2FReinaldoAssis%2Fmips-sim%2Fblob%2Fmaster%2FREADME-br.md"/>
+</a>
+
 ![Static Badge](https://img.shields.io/badge/French%20-%20%23DC143C?style=flat-square&link=https%3A%2F%2Fgithub.com%2FReinaldoAssis%2Fmips-sim%2Fblob%2Fmaster%2FREADME-fr.md)
 
 
