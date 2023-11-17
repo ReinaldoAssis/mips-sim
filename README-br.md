@@ -4,9 +4,9 @@
 
 **Escolha seu idioma**
 
-![Static Badge](https://img.shields.io/badge/Inglês%20-%20%231E90FF?style=flat-square)
-![Static Badge](https://img.shields.io/badge/Brazilian%20-%20%23228B22?style=flat-square)
-![Static Badge](https://img.shields.io/badge/Francês%20-%20%23DC143C?style=flat-square)
+![Static Badge](https://img.shields.io/badge/Inglês%20-%20%231E90FF?style=flat-square&link=https%3A%2F%2Fgithub.com%2FReinaldoAssis%2Fmips-sim%2Ftree%2Fmaster)
+![Static Badge](https://img.shields.io/badge/Português%20Brasileiro%20-%20%23228B22?style=flat-square&link=https%3A%2F%2Fgithub.com%2FReinaldoAssis%2Fmips-sim%2Fblob%2Fmaster%2FREADME-br.md)
+![Static Badge](https://img.shields.io/badge/Francês%20-%20%23DC143C?style=flat-square&link=https%3A%2F%2Fgithub.com%2FReinaldoAssis%2Fmips-sim%2Fblob%2Fmaster%2FREADME-fr.md)
 
 # MIPS SIM
 
