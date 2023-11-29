@@ -140,7 +140,7 @@ export default function SimulatorView() {
       <TabList>
         <Tab>Editor</Tab>
         <Tab>Hex View</Tab>
-        <Tab>Simulation</Tab>
+        {/* <Tab>Simulation</Tab> */}
       </TabList>
 
       <TabPanels>

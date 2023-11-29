@@ -45,9 +45,9 @@ interface LinkItemProps {
 const LinkItems: Array<LinkItemProps> = [
   { name: "Simulator", icon: FiCodepen },
   { name: "Instruction Set", icon: FiBookOpen },
-  { name: "Examples", icon: FiCompass },
+  // { name: "Examples", icon: FiCompass },
   { name: "Credits", icon: FiStar },
-  { name: "Settings", icon: FiSettings },
+  // { name: "Settings", icon: FiSettings },
 ];
 
 export default function SidebarWithHeader({
