@@ -923,6 +923,30 @@ export default class SimulatorService {
       case p + "t7":
         return "01111";
 
+      case p + "s0":
+        return "10000";
+
+      case p + "s1":
+        return "10001";
+
+      case p + "s2":
+        return "10010";
+
+      case p + "s3":
+        return "10011";
+
+      case p + "s4":
+        return "10100";
+
+      case p + "s5":
+        return "10101";
+
+      case p + "s6":
+        return "10110";
+
+      case p + "s7":
+        return "10111";
+
       case p + "ra":
         return "11111";
 

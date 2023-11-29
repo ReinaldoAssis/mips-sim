@@ -79,7 +79,7 @@ export default class TemplateProcessor implements IProcessor {
   public PCStart: number = this.share.pcStart;
 
   public initialize(): void {
-    for (let i = 0; i < 18; i++) {
+    for (let i = 0; i < 25; i++) {
       if (i == 0) {
         this.regbank.push(0);
         this.initializedRegs.push(true);
@@ -769,6 +769,22 @@ export default class TemplateProcessor implements IProcessor {
         return 14;
       case 0b01110: //t6
         return 15;
+      case 0b10000: //s0
+        return 18;
+      case 0b10001: //s1
+        return 19;
+      case 0b10010: //s2
+        return 20;
+      case 0b10011: //s3
+        return 21;
+      case 0b10100: //s4
+        return 22;
+      case 0b10101: //s5
+        return 23;
+      case 0b10110: //s6
+        return 24;
+      case 0b10111: //s6
+        return 25;
       case 0b11101: //sp
         return 16;
       case 0b11111: //ra
