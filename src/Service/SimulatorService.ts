@@ -209,6 +209,11 @@ export default class SimulatorService {
         ))
     );
 
+    //REMOVE
+    addrlabels.forEach(x => {
+        console.log(`label ${x.name} converted to ${x.address}`);
+    })
+
     // this.found_labels = addrlabels;
 
     return code;
