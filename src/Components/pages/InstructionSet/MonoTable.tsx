@@ -45,6 +45,13 @@ export default function MonoTable()
             <Badge colorScheme="red">A1</Badge>
             <Badge colorScheme="red">A2</Badge>
             <Badge colorScheme="red">A3</Badge>
+            <Badge colorScheme="cyan">S0</Badge>
+            <Badge colorScheme="cyan">S1</Badge>
+            <Badge colorScheme="cyan">S2</Badge>
+            <Badge colorScheme="cyan">S3</Badge>
+            <Badge colorScheme="cyan">S4</Badge>
+            <Badge colorScheme="cyan">S5</Badge>
+            <Badge colorScheme="cyan">S6</Badge>
             <Badge colorScheme="red">RA</Badge>
             <Badge colorScheme="red">SP</Badge>
             <Badge colorScheme="purple">V0</Badge>
