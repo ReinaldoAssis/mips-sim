@@ -875,7 +875,7 @@ export default class SimulatorService {
   //assembles a register into a 5-bit binary string
   //@param {register} - the register to assemble
   //@returns {string} - the 5-bit binary string
-  private assembleRegister(register: string): string {
+  public assembleRegister(register: string): string {
     //check if register is a number, if so, return the binary value, otherwise, return the register value
     // if (register.includes("$") === false) {
     let p = this.register_prefix;

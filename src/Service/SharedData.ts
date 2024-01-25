@@ -2,6 +2,7 @@ import React from "react";
 // import BinaryNumber from "../Hardware/BinaryNumber";
 import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
+import { addr } from "../Hardware/TemplatePorcessor";
 import Logger from "./Logger";
 
 export interface Instruction {
@@ -23,6 +24,8 @@ export interface IProcessor {
   instructionSet: Array<string>;
   useDebug: boolean;
   currentInstruction: Instruction;
+  memory : Array<addr>,
+  regbank : Array<number>
 }
 
 export interface ICachedProgram {
@@ -60,6 +63,12 @@ export default class SharedData {
   public debugInstructions: boolean = true;
   // Title of the current program
   public programTitle : string = "Recent";
+
+  //default editor code
+  public defaultCode : string = `addi $t0, $zero, 0 #f1\naddi $t1, $zero, 1 #f2\naddi $a0, $zero, 14 #n - 1\n\nfibonacci:\n\taddi $a0, $a0, -1\n\tadd $t2, $t0, $t1 #soma\n\tadd $t0, $zero, $t1 #f1 = f2\n\tadd $t1, $zero, $t2 #f2 = soma\n\tbeq $a0, $zero, main\n\tbne $a0, $zero, fibonacci\n\nmain:\n\taddi $v0, $t1, 0\n\tcall 1`;
+
+  //current displayed page
+  public changePage : Function = () => {}
 
   // Pure text code
   private _code: string = "";

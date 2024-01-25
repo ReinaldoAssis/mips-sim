@@ -1,6 +1,7 @@
 import { ScreenRenderer } from "../Components/pages/Simulator View/Editor Tab/Screen";
 import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
+import { addr } from "../Hardware/TemplatePorcessor";
 import Logger from "./Logger";
 import { WorkCpuMessage } from "./MIPSWorker";
 import SharedData, { Instruction, IProcessor } from "./SharedData";
@@ -83,6 +84,18 @@ export default class WorkerService {
             this.log.console(v.log, v.linebreak);
           });
         }
+
+        if (e.data.command == "mem terminal data"){
+          let mem = e.data.value[0] as Array<addr>
+          let reg = e.data.value[1] as Array<number>
+          console.log(`Received from worker mem terminal data: ${e.data.value}`);
+          if(this.shared.currentProcessor){
+            this.shared.currentProcessor.memory = mem
+            this.shared.currentProcessor.regbank = reg
+          }
+        }
+
+
       };
       this.defined = true;
     }

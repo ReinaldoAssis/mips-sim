@@ -37,6 +37,7 @@ import {
 
 import { IconType } from "react-icons";
 import { ReactText } from "react";
+import SharedData from "../Service/SharedData";
 
 interface LinkItemProps {
   name: string;
@@ -45,7 +46,7 @@ interface LinkItemProps {
 const LinkItems: Array<LinkItemProps> = [
   { name: "Simulator", icon: FiCodepen },
   { name: "Instruction Set", icon: FiBookOpen },
-  // { name: "Examples", icon: FiCompass },
+  { name: "Examples", icon: FiCompass },
   // { name: "Credits", icon: FiStar },
   // { name: "Settings", icon: FiSettings },
 ];
@@ -58,10 +59,13 @@ export default function SidebarWithHeader({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [page, setPage] = React.useState(0);
 
+  
   const changePage = (index: number) => {
     setPage(index);
     console.log("page", page);
   };
+  
+  SharedData.instance.changePage = changePage
 
   return (
     <Box minH="100vh" bg={useColorModeValue("gray.100", "gray.900")}>
