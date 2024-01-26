@@ -118,14 +118,17 @@ export default class SharedData {
     // this.log.pushInternalMessage(`Current frequency ${this.processorFrequency} and p ${this.currentProcessor?.frequency}`)
 
     try{ 
+
+      const newvalue = value + 2
+
     var selectionRange = new this.monaco.Range(
-      value + 1,
+      newvalue,
       0,
-      value + 1,
-      this.monacoEditor.getModel().getLineMaxColumn(value + 1)
+      newvalue,
+      this.monacoEditor.getModel().getLineMaxColumn(newvalue)
     );
     this.monacoEditor.setSelection(selectionRange);
-    this.monacoEditor.revealLineInCenter(value + 1);
+    this.monacoEditor.revealLineInCenter(newvalue);
     } catch{
       console.log(`Error setting current line to ${value}`)
     }
