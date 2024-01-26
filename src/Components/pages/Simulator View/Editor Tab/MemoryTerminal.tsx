@@ -1,5 +1,5 @@
 import { Icon, Input, Textarea } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import TemplateProcessor from "../../../../Hardware/TemplatePorcessor";
 import Logger from "../../../../Service/Logger";
@@ -13,13 +13,17 @@ export default function MemoryTerminal() {
   const [txtArea, setTxtArea] = useState("")
   const shared = SharedData.instance
 
+  useEffect(()=>{
+    if (txtArea == "") setTxtArea(shared.memoryterminalText)
+  },[])
+
   return (
     <>
-      {/* <Icon
+      <Icon
         as={MdDelete}
         onClick={() => {
-          Logger.instance.clearConsole();
-          props.onClear();
+          setTxtArea("")
+          shared.memoryterminalText = ""
         }}
         style={{
           position: "relative",
@@ -27,18 +31,18 @@ export default function MemoryTerminal() {
           scale: "1.5",
           zIndex: 10,
         }}
-      /> */}
+      />
       <Textarea
         readOnly={true}
         border={"hidden"}
         placeholder={"Empty"}
         height={"150px"}
-        style={{ position: "relative", bottom: 40, userSelect: "text" }}
+        style={{ position: "relative", bottom: 50, userSelect: "text" }}
         id={"consoleTxtArea"}
         scrollBehavior={"smooth"}
         value={txtArea}
       ></Textarea>
-      <Input style={{position: "relative", bottom: 40}} onChange={(e) => {
+      <Input style={{position: "relative", bottom: 60}} onChange={(e) => {
         setCmd(e.target.value)
       }} onKeyDown={(e) => {
         if (e.key == "Enter")
@@ -51,6 +55,7 @@ export default function MemoryTerminal() {
               let index = new TemplateProcessor().mapRegister(parseInt(convertToBin,2))
               let reg = shared.currentProcessor?.regbank[index]
               setTxtArea(txtArea+`${reg}\n`)
+              shared.memoryterminalText = txtArea+`${reg}\n`
 
             }
             else
@@ -58,6 +63,7 @@ export default function MemoryTerminal() {
               let addr = parseInt(cmd)
               let memValue = shared.currentProcessor?.memory.find(x => x.address == addr)?.value ?? -1
               setTxtArea(txtArea+`${memValue}\n`)
+              shared.memoryterminalText = txtArea+`${memValue}\n`
             }
 
             console.log(`mem terminal ${cmd}`)
