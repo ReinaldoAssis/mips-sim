@@ -46,7 +46,7 @@ export default function ExamplePage(){
         </GridItem>
         
         <GridItem w='100%' h='100'>
-        {example("Using jal, pointers and working with memory",`addi $s0 $zero 10 # pointer
+        {example("Using jal, pointers and working with memory",`addi $s0 $zero 12 # pointer
 j main
 
 f1:
@@ -79,10 +79,13 @@ main:
         
         <GridItem w='100%' h='100'>
         {example("Working with arrays",`addi $a2 $zero 5                    # number of elements
-addi $s0 $zero 100                  # array pointer
+addi $s0 $zero 40                  # array pointer
 
 j main
 
+# @s0 : array pointer
+# @a2 : array size
+# @return : elements starting in @s0
 build_array:
     addi $t0 $zero 0                # element counter
     addi $a0 $zero 0                # rnd range min
@@ -103,6 +106,7 @@ build_array:
 
 # @s0 : array pointer
 # @a0 : array size
+# @return : void
 print_array:
     addi $t0 $zero 0                # set t0 to zero, it will be our counter
 
@@ -130,8 +134,6 @@ main:
     addi $a0 $zero 5                # size
     jal print_array
     call 0
-    
-
 
 `,16)}
         
