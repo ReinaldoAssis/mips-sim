@@ -182,13 +182,14 @@ export default class TemplateProcessor implements IProcessor {
 
       this.screenWriteBatch.push({ address: address, value: value });
 
-      if (this.screenWriteBatch.length > 100) {
-        this.workerPostMessage("screen", this.screenWriteBatch);
-        this.screenWriteBatch = [];
+      //URGENT: DO NOT LEAVE THIS COMMENTED IN PRODUCTION!!!!
+      // if (this.screenWriteBatch.length > 100) {
+      //   this.workerPostMessage("screen", this.screenWriteBatch);
+      //   this.screenWriteBatch = [];
 
-        // console.log(`Elapsed ${Math.ceil(performance.now() - this._elapsed)}`)
-        // this._elapsed = performance.now();
-      }
+      //   // console.log(`Elapsed ${Math.ceil(performance.now() - this._elapsed)}`)
+      //   // this._elapsed = performance.now();
+      // }
 
       return;
     }
@@ -725,6 +726,13 @@ export default class TemplateProcessor implements IProcessor {
             `CALL 42 a: ${a} b: ${b} result: ${result}`
           );
         }
+
+        else if (call == 40) {
+            this.workerPostMessage("screen", this.screenWriteBatch);
+            this.screenWriteBatch = [];
+          
+        }
+
         break;
 
       default:

@@ -91,7 +91,7 @@ export default function SimulatorView() {
     // first, we have to link our canvas with our ScreenRenderer
     try{
       let canva = (document.getElementById("screenCanvas") as HTMLCanvasElement).getContext("2d");
-      if (ScreenRenderer.instance.draw == null) ScreenRenderer.instance.draw = canva;
+      ScreenRenderer.instance.draw = canva;
     }
     catch{}
 
