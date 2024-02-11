@@ -152,7 +152,7 @@ export default class SimulatorService {
   /* TODO: DESCRIPTION */
   public treatLabels(code: string): string {
     // regex to find labels such as "label:"
-    let labels = code.match(/^\w+:/gm);
+    let labels = code.match(/^\s*([a-zA-Z_]\w*):$/gm);
 
     if (!labels) return code; // if there are no labels, return the code
 
@@ -162,7 +162,7 @@ export default class SimulatorService {
     // add all existing labels to the array with an initial addr of -1
     labels.forEach((x) => {
       //separate the value from the label
-      addrlabels.push({ name: x.toString().replace(":", ""), address: -1 });
+      addrlabels.push({ name: x.toString().replace(/[\n\t\s]/g, '').replace(":", ""), address: -1 });
     });
 
     code = this.clearComments(code);
@@ -191,6 +191,8 @@ export default class SimulatorService {
         let islabel = addrlabels.find(
           (x) => x.name === tokens[0].replace(":", "")
         );
+
+        console.log(`addr labels: ${addrlabels}  token: ${tokens[0].replace(":", "")}`)
 
         if (islabel !== undefined) {
           islabel.address = PC; //sets the address of the label with a padding of 26 bits
@@ -526,7 +528,8 @@ export default class SimulatorService {
 
           this.checkInvalidLabel(tokens[1]);
 
-          instruction += Number(tokens[1]).toString(2).padStart(26,"0"); // the value tokens[1] is the label already in binary
+          instruction += Number(tokens[1]).toString(2).padStart(26,"0"); // the value tokens[1] is the label in decimal
+          console.log(`Assemble j: ${tokens[1]}`)
 
           break;
 
