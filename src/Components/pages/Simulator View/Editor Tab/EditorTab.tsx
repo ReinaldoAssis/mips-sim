@@ -279,6 +279,9 @@ export default function EditorView(props: {
                 // share.currentProcessor?.reset();
                 // share.currentPc = share.pcStart;
                 WorkerService.instance.resetCpu();
+                share.currentProcessor?.reset()
+                if (share.currentProcessor)
+                  share.currentProcessor.halted = true;
                 clearInterval(share.interval ?? 0);
               }}
             >
