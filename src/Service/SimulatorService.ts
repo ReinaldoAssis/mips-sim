@@ -201,7 +201,7 @@ export default class SimulatorService {
     }
 
     //removes the labels definitions from the code (such as "label:")
-    labels.forEach((x) => (code = code.replaceAll(x.toString(), "")));
+    // labels.forEach((x) => (code = code.replaceAll(x.toString(), "")));
     //replaces the labels with their addresses
     addrlabels.forEach(
       (x) =>
@@ -272,8 +272,12 @@ export default class SimulatorService {
   // @returns {string} The machine code
   public assemble(code: string): string {
     // treats the code to be assembled
-    code = this.clearComments(code);
-    code = this.clearSpecialChars(code);
+    // let originalCode = code;
+
+    // originalCode = originalCode.replace(/\t/g, "").replace(/    /g, "")
+
+    // code = this.clearComments(code);
+    // code = this.clearSpecialChars(code);
     code = this.treatLabelOffsets(code);
     code = this.treatOffsets(code);
 
@@ -323,6 +327,13 @@ export default class SimulatorService {
 
       // split the line into tokens (arguments)
       let tokens = lines[i].split(" ");
+      console.log(`tokens ${tokens}`)
+
+      if (this.instruction_set.indexOf(tokens[0].toLowerCase()) == -1){
+        // console.log(`token ${tokens[0]} was not in the IS`)
+        continue;
+      }
+
       tokens = tokens.filter((x) => x !== "" && x.startsWith("#") == false);
       if (tokens.length == 0) continue;
 

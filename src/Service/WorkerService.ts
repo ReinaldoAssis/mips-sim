@@ -73,6 +73,8 @@ export default class WorkerService {
         if (e.data.command == "instruction") {
           let packet = e.data.value as Instruction;
 
+          if(packet.humanCode == "") return
+
           let lineIndex = packet.index ; //+1
           this.shared.currentStepLine = lineIndex;
         }

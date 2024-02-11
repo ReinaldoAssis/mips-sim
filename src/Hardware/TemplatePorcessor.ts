@@ -307,6 +307,8 @@ export default class TemplateProcessor implements IProcessor {
         return -1;
       }
   
+      //console.log(`Executando instrução ${this.currentInstruction.humanCode} at ${this.currentInstruction.memAddress}`)
+
       //execute the instruction
       this.executeCycle(instruction);
       return 0;
@@ -677,7 +679,7 @@ export default class TemplateProcessor implements IProcessor {
         imm = instruction&MASK_6_32;
         this.pc = parseInt((this.pc&MASK_0_6).toString(2) + imm.toString(2).padStart(26,"0"),2);
 
-        // console.log(`executando jump para ${this.pc}`)
+        console.log(`executando jump para ${this.pc}`)
 
         this.writeDebug(
           `${this.getHumanInstruction(instruction)} address: ${imm} result: ${this.pc}`

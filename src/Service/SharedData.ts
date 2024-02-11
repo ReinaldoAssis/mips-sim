@@ -121,7 +121,7 @@ export default class SharedData {
 
     try{ 
 
-      const newvalue = value + 2
+      const newvalue = value + 1 //test
 
     var selectionRange = new this.monaco.Range(
       newvalue,
