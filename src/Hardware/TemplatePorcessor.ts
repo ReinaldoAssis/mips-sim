@@ -338,12 +338,21 @@ export default class TemplateProcessor implements IProcessor {
 
     let r = Math.random() * 100
 
-    // let e = new Date().getTime() + mili/1000;
-    // if (r <= 99) while (new Date().getTime() <= e) { }
-    // else {
-    //   this.halted = true;
-    //   this.workerPostMessage("halt check", "");
-    // }
+
+    if (this.frequency <= 80){
+      let e = new Date().getTime() + 10000/this.frequency;
+
+      
+
+      while (new Date().getTime() <= e) 
+      {
+
+      }
+
+      this.halted = true;
+      this.workerPostMessage("halt check", "");
+      
+    }
 
     if (r > 99){
       this.halted = true;
