@@ -60,7 +60,7 @@ export default class SharedData {
   // Interval responsible for running steps at frequency
   public interval : NodeJS.Timeout | null = null;
   // If true, the program will generate a debug log
-  public debugInstructions: boolean = true;
+  public debugInstructions: boolean = false;
   // Title of the current program
   public programTitle : string = "Recent";
 
