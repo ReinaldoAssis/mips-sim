@@ -948,6 +948,123 @@ rotateY:
     roty_r:
         jr $ra
 
+text:
+    addi $t0 $a2 0
+    sw $t0 11210($zero)
+    sw $t0 11211($zero)
+    sw $t0 11212($zero)
+    sw $t0 11312($zero)
+    sw $t0 11412($zero)
+    sw $t0 11411($zero)
+    sw $t0 11512($zero)
+    sw $t0 11612($zero)
+    sw $t0 11611($zero)
+    sw $t0 11610($zero)
+
+    sw $t0 11214($zero)
+    sw $t0 11314($zero)
+    sw $t0 11414($zero)
+    sw $t0 11514($zero)
+    sw $t0 11614($zero)
+    sw $t0 11215($zero)
+    sw $t0 11316($zero)
+    sw $t0 11416($zero)
+    sw $t0 11516($zero)
+    sw $t0 11615($zero)
+
+    sw $t0 11220($zero)
+    sw $t0 11221($zero)
+    sw $t0 11222($zero)
+    sw $t0 11223($zero)
+    sw $t0 11320($zero)
+    sw $t0 11420($zero)
+    sw $t0 11520($zero)
+    sw $t0 11620($zero)
+    sw $t0 11621($zero)
+    sw $t0 11622($zero)
+    sw $t0 11623($zero)
+    sw $t0 11523($zero)
+    sw $t0 11423($zero)
+    sw $t0 11422($zero)
+
+    sw $t0 11225($zero)
+    sw $t0 11325($zero)
+    sw $t0 11425($zero)
+    sw $t0 11525($zero)
+    sw $t0 11625($zero)
+    sw $t0 11226($zero)
+    sw $t0 11227($zero)
+    sw $t0 11327($zero)
+    sw $t0 11426($zero)
+    sw $t0 11527($zero)
+    sw $t0 11627($zero)
+
+    sw $t0 11229($zero)
+    sw $t0 11329($zero)
+    sw $t0 11429($zero)
+    sw $t0 11529($zero)
+    sw $t0 11629($zero)
+    sw $t0 11230($zero)
+    sw $t0 11231($zero)
+    sw $t0 11331($zero)
+    sw $t0 11431($zero)
+    sw $t0 11531($zero)
+    sw $t0 11631($zero)
+    sw $t0 11430($zero)
+
+    sw $t0 11233($zero)
+    sw $t0 11333($zero)
+    sw $t0 11433($zero)
+    sw $t0 11533($zero)
+    sw $t0 11633($zero)
+    sw $t0 11234($zero)
+    sw $t0 11235($zero)
+    sw $t0 11335($zero)
+    sw $t0 11435($zero)
+    sw $t0 11434($zero)
+
+    sw $t0 11237($zero)
+    sw $t0 11337($zero)
+    sw $t0 11437($zero)
+    sw $t0 11537($zero)
+    sw $t0 11637($zero)
+    sw $t0 11438($zero)
+    sw $t0 11439($zero)
+    sw $t0 11539($zero)
+    sw $t0 11639($zero)
+    sw $t0 11239($zero)
+    sw $t0 11339($zero)
+
+    sw $t0 11241($zero)
+    sw $t0 11441($zero)
+    sw $t0 11541($zero)
+    sw $t0 11641($zero)
+
+    sw $t0 11243($zero)
+    sw $t0 11343($zero)
+    sw $t0 11443($zero)
+    sw $t0 11543($zero)
+    sw $t0 11643($zero)
+    sw $t0 11244($zero)
+    sw $t0 11245($zero)
+    sw $t0 11644($zero)
+    sw $t0 11645($zero)
+
+    sw $t0 11247($zero)
+    sw $t0 11248($zero)
+    sw $t0 11249($zero)
+    sw $t0 11347($zero)
+    sw $t0 11447($zero)
+    sw $t0 11448($zero)
+    sw $t0 11449($zero)
+    sw $t0 11549($zero)
+    sw $t0 11649($zero)
+    sw $t0 11648($zero)
+    sw $t0 11647($zero)
+
+    call 40
+    jr $ra
+
 clr_screen:
     # addi $t0 $zero 2200
     # addi $t1 $zero 10060
@@ -968,6 +1085,9 @@ clr_screen:
 main:
     jal setup
     jal clr_screen
+
+    addi $a2 $zero 0xf80f
+    jal text
     
     addi $s5 $zero 360
     main_loop:
@@ -992,20 +1112,14 @@ main:
         jal rotateZ
         
         # drawing cube
-        addi $a2 $zero 0x10ff
+        addi $a2 $zero 0xf80f
         jal drawcube
         call 40
-
-        push $a0
-        addi $a0 $zero 25
-        call 39
-        pop $a0
 
         # erasing cube
         addi $a2 $zero 0xffff
         jal drawcube
         # call 40
-        
 
         beq $s5 $zero done
         addi $s5 $s5 -1
@@ -1014,8 +1128,6 @@ main:
 
 done:
     call 0
-
-
 `,16)}
         
         </GridItem>
