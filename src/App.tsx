@@ -15,6 +15,7 @@ export function App()
 
   const [interval, setIntervalID] = React.useState<NodeJS.Timeout | null>(null);
 
+  // @doc : add to doc
   const handleKeyPress = React.useCallback((event: KeyboardEvent) => {
     if(event.key == "F8") checkAppDebugs();
   }, []);

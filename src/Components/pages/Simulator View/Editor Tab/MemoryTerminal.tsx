@@ -61,12 +61,12 @@ export default function MemoryTerminal() {
             else
             {
               let addr = parseInt(cmd)
-              let memValue = shared.currentProcessor?.memory.find(x => x.address == addr)?.value ?? -1
+              let memValue = shared.currentProcessor?.memory.find(x => x.address == addr)?.value ?? "undefined"
               setTxtArea(txtArea+`${memValue}\n`)
               shared.memoryterminalText = txtArea+`${memValue}\n`
             }
 
-            console.log(`mem terminal ${cmd}`)
+            // console.log(`mem terminal ${cmd}`)
 
           }, 100)
         }
