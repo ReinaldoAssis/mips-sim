@@ -336,19 +336,24 @@ export default class TemplateProcessor implements IProcessor {
   // also: no, i couldn't simple make the executecycle async, the cpu wouldn't work properly
   private sleep(mili: number) {
 
-    let r = Math.random() * 100
-
-
-    if (this.frequency <= 80){
-      let e = new Date().getTime() + 10000/this.frequency;
+    let e = new Date().getTime() + mili;
 
       
 
-      while (new Date().getTime() <= e) 
-      {
+    while (new Date().getTime() <= e) 
+    {
+      // do nothing
+    }
 
-      }
+  }
 
+  private check_halt(){
+    let r = Math.random() * 100
+
+
+    if (this.frequency <= 300){
+      
+      this.sleep(10000/this.frequency);
       this.halted = true;
       this.workerPostMessage("halt check", "");
       
@@ -358,7 +363,6 @@ export default class TemplateProcessor implements IProcessor {
       this.halted = true;
       this.workerPostMessage("halt check", "");
     }
-
   }
 
   public writeDebug(msg: string) {
@@ -376,7 +380,8 @@ export default class TemplateProcessor implements IProcessor {
     let shift: number;
     let a, b, result, base, address: number;
 
-    this.sleep(40);
+    // this.sleep(40);
+    this.check_halt();
 
     // console.log(`======= DEBUG ${this.pc} ========`)
     // console.log(`instruction ${instruction.toString(2).padStart(32,"0")}`)
@@ -688,8 +693,6 @@ export default class TemplateProcessor implements IProcessor {
         imm = instruction&MASK_6_32;
         this.pc = parseInt((this.pc&MASK_0_6).toString(2) + imm.toString(2).padStart(26,"0"),2);
 
-        console.log(`executando jump para ${this.pc}`)
-
         this.writeDebug(
           `${this.getHumanInstruction(instruction)} address: ${imm} result: ${this.pc}`
         );
@@ -738,10 +741,16 @@ export default class TemplateProcessor implements IProcessor {
           );
         }
 
+        // todo: docs @docs
         else if (call == 40) {
             this.workerPostMessage("screen", this.screenWriteBatch);
             this.screenWriteBatch = [];
           
+        }
+        // todo: docs @docs
+        else if (call == 39){
+          a = this.regbank[this.mapRegister(0b00100)]; //a0
+          this.sleep(a);
         }
 
         break;
