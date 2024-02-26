@@ -74,9 +74,16 @@ export class ScreenRenderer {
     y *= RATIO;
 
     //convert hex to fillcolor
-    let color = '#' + (value&0xffffff).toString(16);
+    // let color = '#' + (value&0xfff).toString(16);//.padEnd(8,"00").slice(0,1) + "FF";
+    // value = parseInt(value.toString(2).padEnd(16,"0"),2);
+    value = value & 0xffff;
+    let r = (value & 0b1111100000000000) >> 8;
+    let g = (value & 0b0000011111100000) >> 3;
+    let b = (value & 0b0000000000011111) << 3;
 
-    this._draw.fillStyle = color;
+
+    this._draw.fillStyle = `rgb(${r},${g},${b})`;
+    // this._draw.fillStyle = color;
     this._draw.fillRect(x, y, RATIO, RATIO);
 
   }
