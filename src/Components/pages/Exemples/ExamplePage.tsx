@@ -139,6 +139,887 @@ main:
         
         </GridItem>
         
+        <GridItem w='100%' h='100'>
+        {example("3D Graphics",`# ---------------
+# Project by Reinaldo M. Assis
+# Started on: 09-02-24
+# Finished on: 21-02-24
+# ---------------
+
+# ---------------
+# 4 - PI32t
+# 8 - RAD
+# 12 - ONE
+# $s0 coords x
+# $s1 coords y
+# $s2 coords z
+
+j main
+
+setup:
+    addi $t0 $zero 29412        # we only have 16 bits for imm, but it's signed so in reality
+    sll $t0 $t0 3               # we only have 15 bits to work with
+    addi $t0 $t0 -29409         # so we have to use this operations to get to the value we wanted
+    sw $t0 4($zero)             # PI32t
+
+    addi $t0 $zero 1144         # RAD
+    sw $t0 8($zero)
+
+    addi $t0 $zero 1            # 1 << 16
+    sll $t0 $t0 16
+    sw $t0 12($zero) 
+
+    addi $s0 $zero 100          # pointer to array of x
+    addi $s1 $zero 280          # pointer to array of y
+    addi $s2 $zero 460          # pointer to array of z
+
+    jr $ra
+
+# int32_t @a0
+# int32_t @return v0
+taylor:
+    addi $t0 $a0 0 # t0 will be our x but >> 4
+    srl $t0 $t0 4
+
+    mult $t0 $t0
+    mflo $t1        # x2
+    srl $t1 $t1 8
+
+    addi $t2 $t1 $zero
+    srl $t2 $t2 4   # x2 >> 4
+
+    mult $t2 $t0    # x2 * x
+    mflo $t0
+    srl $t0 $t0 8   # t0 = x3
+
+    addi $t1 $t0 0 
+    srl $t1 $t1 4   # t1 = x3>>4
+
+    mult $t1 $t2
+    mflo $t3
+    srl $t3 $t3 8   # t3 = x5
+
+    addi $t6 $zero 6
+    div $t0 $t6
+    mfhi $t0
+    sub $v0 $a0 $t0 # x - x3/6
+
+    addi $t6 $zero 120
+    div $t3 $t6
+    mfhi $t3
+
+    add $v0 $v0 $t3
+    jr $ra
+
+# int32_t fxd x : @a0 (degrees)
+# int32_t fxd @return : $v0
+sin:
+    push $a0
+    # ---- x mod 360 ----
+    # !! here im using the div instruction because this is running
+    # !! on a simulator, but in a real device we would try to optimize
+    # !! this to not use the div instruction.
+    addi $t0 $zero 360
+    lw $t1 12($zero)        # ONE
+    mult $t0 $t1
+    mflo $t0                # 360 in fxd
+
+    div $a0 $t0
+    mflo $a0
+
+    lw $t0 4($zero)         # loads PI32_t
+
+    # --- PI32_t : $t0 
+
+    addi $t1 $t0 0 
+    srl $t1 $t1 6
+
+    # --- PI32_t >> 6 : $t1
+
+    addi $t2 $a0 0
+    srl $t2 $t2 6
+
+    # --- x >> 6 : $t2
+
+    addi $t3 $zero 180      # $t3 = 180
+    mult $t1 $t2            # (PI32_t >> 6) * (x >> 6)
+    mflo $t1
+    div $t1 $t3
+    mfhi $t1
+    srl $a0 $t1 4
+
+    # --- [(PI32_t >> 6) * (x >> 6)/180] >> 4 : $a0 [x]
+
+    addi $t2 $zero 1
+    sll $t2 $t2 25
+    div $t2 $t0
+    mfhi $t2
+    sll $t2 $t2 4
+
+    # -- (2*(1<<24))/PI32_t << 4: $t2 [frac1]
+
+    addi $t1 $a0 0
+    srl $t1 $t1 4
+
+    # -- x >> 4 : $t1
+
+    mult $t1 $t2
+    mflo $t1
+    srl $t1 $t1 24
+
+    # -- ((x >> 4) * (frac1 >> 4)) >> 24 : $t1 [k] // quadrante
+
+    addi $t2 $t0 0
+    srl $t2 $t2 1
+
+    # -- PI32_t / 2 : $t2 [frac2]
+
+    mult $t1 $t2        # k*frac2
+    mflo $t3
+
+    sub $a0 $a0 $t3     # x - k*frac2 
+
+    # -- x - k*frac2 : $a0 [y]
+
+    beq $t1 $zero taylor0       # case k = 0
+
+    addi $t3 $zero 2
+    beq $t1 $t3 taylor1         # case k = 2 
+
+    # --
+
+    sub $a0 $t2 $a0             # frac2 - y
+
+    addi $t3 $zero 1
+    beq $t1 $t3 taylor0         # case k = 1 
+
+    addi $t3 $zero 3
+    beq $t1 $t3 taylor1         # case k = 3
+
+    jr $ra
+
+    taylor0:
+        push $ra
+        jal taylor
+        pop $ra
+        pop $a0
+        jr $ra
+
+    taylor1:
+        push $ra
+        jal taylor
+        pop $ra
+        addi $t0 $zero -1
+        mult $v0 $t0
+        mflo $v0
+        pop $a0
+        jr $ra
+
+
+# pointer int[3] center : $a0
+# int size : $a1
+# return : $s0 (array of x), $s1 (array of y), $s2 (array of z)
+generateCubePoints:
+    addi $t0 $zero 28            # index for array of points
+
+    # -- generating array of unit vertices
+    addi $t1 $zero -1
+    addi $t2 $zero 1
+    sw $t1 0($s0)
+    sw $t1 0($s1)
+    sw $t1 0($s2)
+
+    sw $t2 4($s0)
+    sw $t1 4($s1)
+    sw $t1 4($s2)
+
+    sw $t2 8($s0)
+    sw $t2 8($s1)
+    sw $t1 8($s2)
+
+    sw $t1 12($s0)
+    sw $t2 12($s1)
+    sw $t1 12($s2)
+
+    sw $t1 16($s0)
+    sw $t1 16($s1)
+    sw $t2 16($s2)
+
+    sw $t2 20($s0)
+    sw $t1 20($s1)
+    sw $t2 20($s2)
+
+    sw $t2 24($s0)
+    sw $t2 24($s1)
+    sw $t2 24($s2)
+
+    sw $t1 28($s0)
+    sw $t2 28($s1)
+    sw $t2 28($s2)
+
+
+    itarate_points:
+        add $t1 $t0 $s0                 # x[i]
+        add $t2 $t0 $s1                 # y[i]
+        add $t4 $t0 $s2                 # z[i]
+
+        lw $t3 0($t1)                   # x[i]
+
+        mult $a1 $t3                    # x[i] * size
+        mflo $t3
+
+        # -- x[i] * size : $t3
+
+        lw $t5 0($a0)                   # load center x
+        add $t3 $t3 $t5                 # center_x + x[i]*size
+        sw $t3 0($t1)                   # x[i] = center_x + x[i]*size
+
+        # -------
+
+        lw $t3 0($t2)                   # y[i]
+
+        mult $a1 $t3                    # y[i] * size
+        mflo $t3
+
+        # -- y[i] * size : $t3
+
+        lw $t5 4($a0)                   # load center y
+        add $t3 $t3 $t5                 # center_y + y[i]*size
+        sw $t3 0($t2)                   # y[i] = center_y + y[i]*size
+
+        # -------
+
+        lw $t3 0($t4)                   # z[i]
+
+        mult $a1 $t3                    # z[i] * size
+        mflo $t3
+
+        # -- z[i] * size : $t3
+
+        lw $t5 8($a0)                   # load center z
+        add $t3 $t3 $t5                 # center_z + z[i]*size
+        sw $t3 0($t4)                   # z[i] = center_y + y[i]*size
+
+        beq $t0 $zero generateCubePoints_r
+        addi $t0 $t0 -4
+        j itarate_points
+
+    generateCubePoints_r:
+        jr $ra
+
+
+# int[2] a,b : pointer a0
+# return abs(a-b)
+# t0, t1
+abs:
+    lw $t0 0($a0)
+    lw $t1 4($a0)
+    sub $t0 $t0 $t1
+    slt $t1 $zero $t0
+    beq $t1 $zero abs_neg
+    add $v0 $zero $t0
+    jr $ra
+
+    abs_neg:
+        sub $v0 $zero $t0
+        jr $ra
+
+
+# int[2] x1,y1 : pointer @a0
+# int[2] x2,y2 : pointer @a1
+# hex line color : @a2
+line:
+    push $s0                # dx
+    push $s1                # dy
+    push $s2                # sx
+    push $s3                # sy
+    push $s4                # err
+    push $s5                # e2
+    # push $s6
+
+    lw $t0 0($a0)           # x1
+    lw $t1 0($a1)           # x2
+    push $a0
+    addi $a0 $zero 900
+    sw $t0 0($a0)
+    sw $t1 4($a0)
+
+    push $ra
+    jal abs
+    pop $ra
+    addi $s0 $v0 0
+
+    pop $a0
+
+    # -- abs(x2-x1) : $s0
+
+    lw $t0 4($a0)           # y1
+    lw $t1 4($a1)           # y2
+    push $a0
+    addi $a0 $zero 900
+    sw $t0 0($a0)
+    sw $t1 4($a0)
+
+    push $ra
+    jal abs
+    pop $ra
+    addi $s1 $v0 0
+
+    pop $a0
+
+    # -- abs(y2-y1) : $s1
+    
+    # -- sx = x1 < x2 ? 1 : -1
+    lw $t0 0($a0)
+    lw $t1 0($a1)
+    slt $s2 $t0 $t1
+    beq $s2 $zero sxneg
+    j line_c1
+
+    sxneg:
+        addi $s2 $zero -1
+
+    line_c1:
+    # -- sy = y1 < y2 ? 1 : -1
+    lw $t0 4($a0)
+    lw $t1 4($a1)
+    slt $s3 $t0 $t1
+    beq $s3 $zero syneg
+    j line_c2
+
+    syneg:
+        addi $s3 $zero -1
+    
+    line_c2:
+    sub $s4 $s0 $s1         # err = dx - dy
+
+    line_while:
+
+        # ---- inside the while ----
+
+        lw $t0 4($a0)           # y1
+        addi $t1 $zero 100
+        mult $t1 $t0
+        mflo $t0
+        lw $t1 0($a0)           # x1
+        add $t0 $t0 $t1         # x+100*y
+        addi $t0 $t0 2000
+        sw $a2 0($t0)           # write pixel
+
+        sll $s5 $s4 1           # e2 = err*2
+        sub $t0 $zero $s1       # t0 = -dy
+
+        slt $t0 $t0 $s5         # if -dy < e2
+        bne $t0 $zero line_if1
+        j line_c3
+
+        line_if1:
+            sub $s4 $s4 $s1     # err -= dy
+            lw $t0 0($a0)
+            add $t0 $t0 $s2      # x1 += sx
+            sw $t0 0($a0)
+
+        line_c3:
+        slt $t0 $s5 $s0         # if e2 < dx
+        bne $t0 $zero line_if2
+        j line_c4
+
+        line_if2:
+            add $s4 $s4 $s0     # err += dx
+            lw $t0 4($a0)
+            add $t0 $t0 $s3      # y1 += sy
+            sw $t0 4($a0)
+
+        line_c4:
+
+        lw $t0 0($a0)           # x1
+        lw $t1 0($a1)           # x2
+        sub $t2 $t0 $t1
+        bne $t2 $zero line_while
+
+        lw $t0 4($a0)           # y1
+        lw $t1 4($a1)           # y2
+        sub $t3 $t0 $t1
+        bne $t3 $zero line_while
+
+        j line_done
+
+    line_done:
+        pop $s5
+        pop $s4
+        pop $s3
+        pop $s2
+        pop $s1
+        pop $s0
+        # call 40
+        jr $ra
+
+
+# does not need any arguments
+# uses $s0 to get the points of the cube
+# $s1 and $s2 are not really needed and could be refactored
+drawcube:
+    addi $t0 $zero 3
+
+    drawcube_l:
+        addi $t1 $t0 1              # j = i + 1
+        addi $t2 $zero 3
+        and $t1 $t1 $t2             # j = (i+1) % 4
+
+        addi $t2 $t0 4              # k = i + 4
+        addi $t3 $t1 4              # l = (i+1) % 4 + 4
+
+        sll $t4 $t0 2               # multiplies i * 4 
+        add $t4 $t4 $s0             # points[i]
+
+        lw $t5 0($t4)               # points[i][0]
+        addi $t4 $t4 180            # s0, s1 and s2 are separeted by 180
+        lw $t6 0($t4)               # points[i][1] 
+
+        addi $a0 $zero 500
+        sw $t5 0($a0)               # x1
+        sw $t6 4($a0)               # y1
+
+        sll $t4 $t1 2               # multiplies j * 4 
+        add $t4 $t4 $s0             # points[j]
+        
+        lw $t5 0($t4)
+        addi $t4 $t4 180
+        lw $t6 0($t4)
+
+        addi $a1 $zero 508
+        sw $t5 0($a1)               # x2 
+        sw $t6 4($a1)               # y2
+
+        # -- debug -----
+        # lw $v0 0($a0)
+        # call 1
+        # lw $v0 4($a0)
+        # call 1
+        # lw $v0 0($a1)
+        # call 1
+        # lw $v0 4($a1)
+        # call 1
+        # addi $a2 $zero 0
+        # -----------------
+
+        push $t0
+        push $t1
+        push $t2
+        push $t3
+        push $ra
+        jal line
+        pop $ra
+        pop $t3
+        pop $t2
+        pop $t1
+        pop $t0
+
+        sll $t4 $t2 2               # multiplies k * 4 
+        add $t4 $t4 $s0             # points[k]
+
+        lw $t5 0($t4)               # points[k][0]
+        addi $t4 $t4 180            # s0, s1 and s2 are separeted by 180
+        lw $t6 0($t4)               # points[k][1] 
+
+        addi $a0 $zero 500
+        sw $t5 0($a0)               # x1
+        sw $t6 4($a0)               # y1
+
+        sll $t4 $t3 2               # multiplies l * 4 
+        add $t4 $t4 $s0             # points[l]
+        
+        lw $t5 0($t4)
+        addi $t4 $t4 180
+        lw $t6 0($t4)
+
+        addi $a1 $zero 508
+        sw $t5 0($a1)               # x2 
+        sw $t6 4($a1)               # y2
+
+        push $t0
+        push $t1
+        push $t2
+        push $t3
+        push $ra
+        jal line
+        pop $ra
+        pop $t3
+        pop $t2
+        pop $t1
+        pop $t0
+
+        sll $t4 $t0 2               # multiplies i * 4 
+        add $t4 $t4 $s0             # points[i]
+
+        lw $t5 0($t4)               # points[i][0]
+        addi $t4 $t4 180            # s0, s1 and s2 are separeted by 180
+        lw $t6 0($t4)               # points[i][1] 
+
+        addi $a0 $zero 500
+        sw $t5 0($a0)               # x1
+        sw $t6 4($a0)               # y1
+
+        sll $t4 $t2 2               # multiplies k * 4 
+        add $t4 $t4 $s0             # points[k]
+        
+        lw $t5 0($t4)
+        addi $t4 $t4 180
+        lw $t6 0($t4)
+
+        addi $a1 $zero 508
+        sw $t5 0($a1)               # x2 
+        sw $t6 4($a1)               # y2
+
+        push $t0
+        push $ra
+        jal line
+        pop $ra
+        pop $t0
+
+        beq $t0 $zero drawcube_r
+        addi $t0 $t0 -1
+        j drawcube_l
+
+    drawcube_r:
+        jr $ra
+
+
+# @a0 : pointer int[3] position
+# @a1 : angle of rotation (in degrees)
+rotateZ:
+    push $a0
+
+    lw $t0 12($zero)            # ONE
+    mult $t0 $a1
+    mflo $a0                    # int32_t fixed angle
+
+    
+    push $ra
+    jal sin
+    pop $ra
+    addi $v1 $v0 0              # sin(x) -> $v1
+
+    lw $t0 12($zero)            # ONE
+
+    addi $t2 $zero 90
+    mult $t2 $t0
+    mflo $t2                    # 90 in fxd
+
+    add $a0 $a0 $t2             # angle + 90
+
+    push $ra
+    jal sin
+    pop $ra
+    pop $a0
+
+
+    # -- $v0 with cos(x) and $v1 with sin(x)
+    lw $t0 12($zero)            # ONE
+    addi $t1 $zero 7
+    rotz_l:
+        
+        sll $t2 $t1 2           # i * 4
+        add $t2 $t2 $s0         # pointer *points[i][0] 
+        addi $t3 $t2 180        # pointer *points[i][1] 
+
+        lw $t2 0($t2)           # value points[i][0]
+        lw $t3 0($t3)           # value points[i][1]
+
+        lw $t4 0($a0)           # pos[0]
+        lw $t5 4($a0)           # pos[1]
+
+        sub $t2 $t2 $t4         # points[i][0] - pos[0], x
+        sub $t3 $t3 $t5         # points[i][1] - pos[1], y
+
+        mult $t2 $v0            # x * cosA
+        mflo $t4
+        mult $t3 $v1            # y * sinA
+        mflo $t5
+
+        sub $t4 $t4 $t5         # xcos - ysin
+        srl $t4 $t4 16          # >> 16, nx
+
+        mult $t2 $v1            # x * sinA
+        mflo $t5
+        mult $t3 $v0            # y * cosA
+        mflo $t6
+
+        add $t5 $t5 $t6         # ysin + xcos
+        srl $t5 $t5 16          # >> 16, ny
+
+        lw $t2 0($a0)
+        lw $t3 4($a0)
+
+        add $t4 $t4 $t2         # nx + pos[0]
+        add $t5 $t5 $t3         # ny + pos[1]
+
+        # -- debug -----
+        # call 1
+        # push $v0
+        # addi $v0 $v1 0
+        # call 1
+        # addi $v0 $t1 0
+        # call 1
+        # addi $v0 $t4 0
+        # call 1
+        # addi $v0 $t5 0
+        # call 1 
+        # pop $v0
+        # ------------
+
+        sll $t2 $t1 2           # i * 4
+        add $t2 $t2 $s0         # pointer *points[i][0] 
+        addi $t3 $t2 180        # pointer *points[i][1] 
+
+        sw $t4 0($t2)
+        sw $t5 0($t3)
+
+        beq $t1 $zero rotz_r
+        addi $t1 $t1 -1
+        j rotz_l
+
+    rotz_r:
+        jr $ra
+
+# @a0 : pointer int[3] position
+# @a1 : angle of rotation (in degrees)
+rotateX:
+    push $a0
+
+    lw $t0 12($zero)            # ONE
+    mult $t0 $a1
+    mflo $a0                    # int32_t fixed angle
+
+    
+    push $ra
+    jal sin
+    pop $ra
+    addi $v1 $v0 0              # sin(x) -> $v1
+
+    lw $t0 12($zero)            # ONE
+
+    addi $t2 $zero 90
+    mult $t2 $t0
+    mflo $t2                    # 90 in fxd
+
+    add $a0 $a0 $t2             # angle + 90
+
+    push $ra
+    jal sin
+    pop $ra
+    pop $a0
+
+
+    # -- $v0 with cos(x) and $v1 with sin(x)
+    lw $t0 12($zero)            # ONE
+    addi $t1 $zero 7
+    rotx_l:
+        
+        sll $t2 $t1 2           # i * 4
+        add $t2 $t2 $s1         # pointer *points[i][1] 
+        addi $t3 $t2 180        # pointer *points[i][2] 
+
+        lw $t2 0($t2)           # value points[i][1]
+        lw $t3 0($t3)           # value points[i][2]
+
+        lw $t4 4($a0)           # pos[1]
+        lw $t5 8($a0)           # pos[2]
+
+        sub $t2 $t2 $t4         # points[i][1] - pos[1], y
+        sub $t3 $t3 $t5         # points[i][2] - pos[2], z
+
+        mult $t2 $v0            # y * cosA
+        mflo $t4
+        mult $t3 $v1            # z * sinA
+        mflo $t5
+
+        sub $t4 $t4 $t5         # ycos - zsin
+        srl $t4 $t4 16          # >> 16, ny
+
+        mult $t2 $v1            # y * sinA
+        mflo $t5
+        mult $t3 $v0            # z * cosA
+        mflo $t6
+
+        add $t5 $t5 $t6         # ysin + zcos
+        srl $t5 $t5 16          # >> 16, nz
+
+        lw $t2 4($a0)
+        lw $t3 8($a0)
+
+        add $t4 $t4 $t2         # ny + pos[1]
+        add $t5 $t5 $t3         # nz + pos[2]
+
+        sll $t2 $t1 2           # i * 4
+        add $t2 $t2 $s1         # pointer *points[i][1] 
+        addi $t3 $t2 180        # pointer *points[i][2] 
+
+        sw $t4 0($t2)
+        sw $t5 0($t3)
+
+        beq $t1 $zero rotx_r
+        addi $t1 $t1 -1
+        j rotx_l
+
+    rotx_r:
+        jr $ra
+
+# @a0 : pointer int[3] position
+# @a1 : angle of rotation (in degrees)
+rotateY:
+    push $a0
+
+    lw $t0 12($zero)            # ONE
+    mult $t0 $a1
+    mflo $a0                    # int32_t fixed angle
+
+    
+    push $ra
+    jal sin
+    pop $ra
+    addi $v1 $v0 0              # sin(x) -> $v1
+
+    lw $t0 12($zero)            # ONE
+
+    addi $t2 $zero 90
+    mult $t2 $t0
+    mflo $t2                    # 90 in fxd
+
+    add $a0 $a0 $t2             # angle + 90
+
+    push $ra
+    jal sin
+    pop $ra
+    pop $a0
+
+
+    # -- $v0 with cos(x) and $v1 with sin(x)
+    lw $t0 12($zero)            # ONE
+    addi $t1 $zero 7
+    roty_l:
+        
+        sll $t2 $t1 2           # i * 4
+        add $t2 $t2 $s0         # pointer *points[i][0] 
+        addi $t3 $t2 360        # pointer *points[i][2] 
+
+        lw $t2 0($t2)           # value points[i][0]
+        lw $t3 0($t3)           # value points[i][2]
+
+        lw $t4 0($a0)           # pos[0]
+        lw $t5 8($a0)           # pos[2]
+
+        sub $t2 $t2 $t4         # points[i][0] - pos[0], x
+        sub $t3 $t3 $t5         # points[i][2] - pos[2], z
+
+        mult $t2 $v0            # x * cosA
+        mflo $t4
+        mult $t3 $v1            # z * sinA
+        mflo $t5
+
+        sub $t4 $t4 $t5         # xcos - zsin
+        srl $t4 $t4 16          # >> 16, nx
+
+        mult $t2 $v1            # x * sinA
+        mflo $t5
+        mult $t3 $v0            # y * cosA
+        mflo $t6
+
+        add $t5 $t5 $t6         # xsin + zcos
+        srl $t5 $t5 16          # >> 16, ny
+
+        lw $t2 0($a0)
+        lw $t3 8($a0)
+
+        add $t4 $t4 $t2         # nx + pos[0]
+        add $t5 $t5 $t3         # nz + pos[2]
+
+        sll $t2 $t1 2           # i * 4
+        add $t2 $t2 $s0         # pointer *points[i][0] 
+        addi $t3 $t2 360        # pointer *points[i][2] 
+
+        sw $t4 0($t2)
+        sw $t5 0($t3)
+
+        beq $t1 $zero roty_r
+        addi $t1 $t1 -1
+        j roty_l
+
+    roty_r:
+        jr $ra
+
+clr_screen:
+    # addi $t0 $zero 2200
+    # addi $t1 $zero 10060
+    addi $t0 $zero 2000
+    addi $t1 $zero 12000
+    addi $t3 $zero 0xffff
+
+    clr_l:
+        sw $t3 0($t0)
+        beq $t0 $t1 clr_d
+        addi $t0 $t0 1
+        j clr_l
+
+    clr_d:
+        call 40
+        jr $ra
+
+main:
+    jal setup
+    jal clr_screen
+    
+    addi $s5 $zero 360
+    main_loop:
+    
+        addi $a0 $zero 500      # pointer
+        addi $t0 $zero 47       # x
+        addi $t1 $zero 50       # y
+        sw $t0 0($a0)
+        sw $t1 4($a0)
+        sw $zero 8($a0)         # z
+
+        addi $a1 $zero 20       # size
+        push $a0
+        jal generateCubePoints
+        pop $a0
+
+        add $a1 $zero $s5
+        jal rotateX
+        sll $a1 $a1 2
+        jal rotateY
+        srl $a1 $a1 3
+        jal rotateZ
+        
+        # drawing cube
+        addi $a2 $zero 0x10ff
+        jal drawcube
+        call 40
+
+        push $a0
+        addi $a0 $zero 25
+        call 39
+        pop $a0
+
+        # erasing cube
+        addi $a2 $zero 0xffff
+        jal drawcube
+        # call 40
+        
+
+        beq $s5 $zero done
+        addi $s5 $s5 -1
+        j main_loop
+
+
+done:
+    call 0
+
+
+`,16)}
+        
+        </GridItem>
+
     </Grid>
     </>
 }
