@@ -8,7 +8,7 @@ import { addr } from '../../../../Hardware/TemplatePorcessor';
 */
 
 
-const SCREEN_DIV_SIZE = 400
+const SCREEN_DIV_SIZE = 500
 
 const SCREEN_SIZE = 100
 
@@ -31,8 +31,8 @@ export class ScreenRenderer {
   public set draw(value: CanvasRenderingContext2D | null) {
     this._draw = value;
     if (this._draw == null) return;
-    this._draw.canvas.height = 400;
-    this._draw.canvas.width = 400;
+    this._draw.canvas.height = SCREEN_DIV_SIZE;
+    this._draw.canvas.width = SCREEN_DIV_SIZE;
   }
 
   public get draw() {
@@ -60,9 +60,6 @@ export class ScreenRenderer {
     x *= RATIO;
     y *= RATIO;
 
-    //convert hex to fillcolor
-    // let color = '#' + (value&0xfff).toString(16);//.padEnd(8,"00").slice(0,1) + "FF";
-    // value = parseInt(value.toString(2).padEnd(16,"0"),2);
     value = value & 0xffff;
     let r = (value & 0b1111100000000000) >> 8;
     let g = (value & 0b0000011111100000) >> 3;
@@ -70,7 +67,6 @@ export class ScreenRenderer {
 
 
     this._draw.fillStyle = `rgb(${r},${g},${b})`;
-    // this._draw.fillStyle = color;
     this._draw.fillRect(x, y, RATIO, RATIO);
 
   }
@@ -80,7 +76,7 @@ export class ScreenRenderer {
 export default function Screen() {
 
   // boxshadow: 0 0 10px 10px rgba(0, 0, 0, 0.5);
-  return <div style={{ backgroundColor: "grey", width: SCREEN_DIV_SIZE, height: SCREEN_DIV_SIZE, left: window.screen.width / 2 - 200, top: window.screen.height / 2 - 300, zIndex: 10, position: "absolute", boxShadow: "0 2 10px 20px rgba(0, 0, 0, 0.5)" }}>
-    <canvas style={{ imageRendering: 'pixelated' }} id="screenCanvas"></canvas>
+  return <div style={{ backgroundColor: "grey", width: SCREEN_DIV_SIZE, height: SCREEN_DIV_SIZE, left: window.screen.width / 2 - 200, top: window.screen.height / 2 - 300, zIndex: 10, position: "absolute", boxShadow: "0 2 10px 20px rgba(0, 0, 0, 0.5)", display:"inline-flex" }}>
+    <canvas style={{ imageRendering: 'pixelated', display:"inline-flex" }} id="screenCanvas"></canvas>
   </div>
 }
