@@ -278,6 +278,7 @@ export default class SimulatorService {
 
     // code = this.clearComments(code);
     // code = this.clearSpecialChars(code);
+    this.program = new Array<Instruction>();
     code = this.treatLabelOffsets(code);
     code = this.treatOffsets(code);
 
@@ -676,13 +677,13 @@ export default class SimulatorService {
           instruction += this.assembleRegister("$sp"); //destination register rt
           instruction += this.signedToBinary(-4,16); //immediate value in binary
 
-          pushInstruction(instruction, i, "addi");
+          pushInstruction(instruction, i, "addi $sp $sp -4");
 
           instruction = "101011"; //sw
           instruction += this.assembleRegister("$sp"); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
           instruction += "0000000000000000"; //offset value
-          pushInstruction(instruction, i, "sw");
+          pushInstruction(instruction, i, `sw ${tokens[1]} 0($sp)`);
 
           continue;
           
@@ -691,13 +692,13 @@ export default class SimulatorService {
           instruction += this.assembleRegister("$sp"); //source register rs
           instruction += this.assembleRegister(tokens[1]); //destination register rt
           instruction += "0000000000000000"; //offset value
-          pushInstruction(instruction, i, "lw");
+          pushInstruction(instruction, i, `lw ${tokens[1]} 0($sp)`);
 
           instruction = "001000"; //addi
           instruction += this.assembleRegister("$sp"); //source register rs
           instruction += this.assembleRegister("$sp"); //destination register rt
           instruction += "0000000000000100"; //immediate value in binary
-          pushInstruction(instruction, i, "addi");
+          pushInstruction(instruction, i, "addi $sp $sp 4");
           continue;
 
 
