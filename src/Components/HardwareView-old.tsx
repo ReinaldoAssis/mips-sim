@@ -4,7 +4,7 @@ import HardwareRenderer, {
   PinType,
 } from "./utils/HardwareRenderer";
 
-export default function HardwareView() {
+export default function HardwareView_old() {
   let height = 0;
   let width = 0;
 
