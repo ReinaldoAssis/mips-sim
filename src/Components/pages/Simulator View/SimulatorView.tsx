@@ -26,20 +26,22 @@ import {
   Input,
 } from "@chakra-ui/react";
 import SimulatorService from "../../../Service/SimulatorService";
-import HardwareView from "../../HardwareView";
+import HardwareView from "./HardwareView";
 import SISMIPS from "../../../Hardware/SIS Mips/SIS";
 import Logger from "../../../Service/Logger";
-import SharedData from "../../../Service/SharedData";
+import SharedData, { Instruction } from "../../../Service/SharedData";
 import EditorView from "./Editor Tab/EditorTab";
 import MonoMIPS from "../../../Hardware/Mono Mips/MonoMIPS";
 import WorkerService from "../../../Service/WorkerService";
 import { ScreenRenderer } from "./Editor Tab/Screen";
+import HexView from "./HexView";
 
 // const cpuWorker = new Worker(new URL('./MonoMIPSWorker.ts', import.meta.url));
 
 export default function SimulatorView() {
   // Handles the assembly code present in the editor
   const [code, setCode] = React.useState<string>("");
+  const [program, setProgram] = React.useState<Array<Instruction>>();
 
   // Handles the title of the program
   //const [programTitle, setProgramTitle] = React.useState<string>("Recent");
@@ -62,7 +64,7 @@ export default function SimulatorView() {
 
   React.useEffect(() => {
     if (txtProgramtitle.current) txtProgramtitle.current.value = share.programTitle;
-  }, [share.programTitle])
+  }, [share.programTitle, program])
 
   // Updates the assembly code when the code changes
   function onEditorChange(value: string | undefined, event: any) {
@@ -86,14 +88,18 @@ export default function SimulatorView() {
     }
   }
 
-  function runCode() {
-
-    // first, we have to link our canvas with our ScreenRenderer
+  function setScreenRendererCanva(){
     try{
       let canva = (document.getElementById("screenCanvas") as HTMLCanvasElement).getContext("2d");
       ScreenRenderer.instance.draw = canva;
     }
     catch{}
+  }
+
+  function runCode() {
+
+    // first, we have to link our canvas with our ScreenRenderer
+    setScreenRendererCanva()
 
     // if code state is empty, get code from monaco editor and update share.code
     forceGetCode();
@@ -104,6 +110,8 @@ export default function SimulatorView() {
     // Assembles the code
     simservice.assembledCode = simservice.assemble(share.code);
     // share._debugMemory();
+
+    setProgram(simservice.program);
 
     if (share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 
@@ -136,11 +144,11 @@ export default function SimulatorView() {
   // View page that houses the assembly code editor, assembly hex, and hardware view
 
   return (
-    <Tabs variant="soft-rounded">
-      <TabList>
-        <Tab>Editor</Tab>
-        <Tab>Hex View</Tab>
-        {/* <Tab>Simulation</Tab> */}
+    <Tabs variant="soft-rounded" style={{zIndex:50}}>
+      <TabList style={{zIndex:50}}>
+        <Tab style={{zIndex:50}}>Editor</Tab>
+        <Tab style={{zIndex:50}}>Hex View</Tab>
+        <Tab style={{zIndex:50}}>DataPath</Tab>
       </TabList>
 
       <TabPanels>
@@ -155,12 +163,13 @@ export default function SimulatorView() {
         </TabPanel>
 
         <TabPanel>
-          <Textarea
+          {/* <Textarea
             style={{ height: "80vh" }}
             value={
               simservice.program.map(i => "0x"+i.machineCode.toString(16)).join(" ")  
             }
-          />
+          /> */}
+          <HexView program={program ?? []}/>
         </TabPanel>
 
         <TabPanel>
