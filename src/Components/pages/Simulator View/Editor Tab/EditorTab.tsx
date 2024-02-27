@@ -36,7 +36,7 @@ import MonoMIPS from "../../../../Hardware/Mono Mips/MonoMIPS";
 import { FaFolderOpen } from "react-icons/fa";
 import LoadProgramModal from "./LoadProgramModal";
 import WorkerService from "../../../../Service/WorkerService";
-import Screen from "./Screen";
+import Screen, { ScreenRenderer } from "./Screen";
 import MemoryTerminal from "./MemoryTerminal";
 
 export default function EditorView(props: {
@@ -81,6 +81,16 @@ export default function EditorView(props: {
 
   const toast = useToast();
 
+  function setScreenRendererCanva(){
+    try{
+      let canva = (document.getElementById("screenCanvas") as HTMLCanvasElement).getContext("2d");
+      ScreenRenderer.instance.draw = canva;
+    }
+    catch (e){
+      console.log("error defining canva", e);
+    }
+  }
+
   function callExecuteStep()
   {
 
@@ -117,6 +127,10 @@ export default function EditorView(props: {
     });
   }, [consoleOpen, debugTxt]);
 
+  React.useEffect(()=> {
+    setScreenRendererCanva();
+  }, [screenModalOpen])
+
   return (
     <Stack direction={"row"}>
       {screenModalOpen ? <Screen /> : <></>}
@@ -142,7 +156,7 @@ export default function EditorView(props: {
             height: "250px",
           }}
         >
-          <Stack direction="row" spacing={4}>
+          <Stack direction="row" spacing={4} zIndex={10}>
             <Button
               style={{
                 position: "relative",
@@ -152,6 +166,7 @@ export default function EditorView(props: {
                 borderRadius: "0px",
                 top: -40,
                 right: 20,
+                zIndex:10
               }}
               onClick={() => setCurrentTerminal(0)}
             >
@@ -166,6 +181,7 @@ export default function EditorView(props: {
                 borderRadius: "0px",
                 top: -40,
                 right: 20,
+                zIndex:10
               }}
               onClick={() => setCurrentTerminal(1)}
             >
@@ -181,6 +197,7 @@ export default function EditorView(props: {
                 borderRadius: "0px",
                 top: -40,
                 right: 20,
+                zIndex:10
               }}
               onClick={() => setCurrentTerminal(2)}
             >
@@ -234,6 +251,7 @@ export default function EditorView(props: {
               aria-label="Run program"
               borderRadius={50}
               size="sm"
+              zIndex={10}
             >
               Run
             </IconButton>
@@ -247,6 +265,7 @@ export default function EditorView(props: {
               borderRadius={50}
               size="sm"
               onClick={() => callExecuteStep()}
+              zIndex={10}
             >
               Step
             </IconButton>
@@ -260,6 +279,7 @@ export default function EditorView(props: {
               aria-label="Open console"
               borderRadius={50}
               size="sm"
+              zIndex={10}
               onClick={() => {
                 setConsoleOpen(!consoleOpen);
               }}
@@ -275,6 +295,7 @@ export default function EditorView(props: {
               color="white"
               borderRadius={50}
               size="sm"
+              zIndex={10}
               onClick={() => {
                 // share.currentProcessor?.reset();
                 // share.currentPc = share.pcStart;
@@ -293,7 +314,10 @@ export default function EditorView(props: {
               color="white"
               borderRadius={50}
               size="sm"
-              onClick={() => setScreenModalOpen(!screenModalOpen)} />
+              zIndex={10}
+              onClick={() => {
+                setScreenModalOpen(!screenModalOpen);
+              }} />
           </Tooltip>
           <Tooltip label="Configuration">
             <IconButton
@@ -303,6 +327,7 @@ export default function EditorView(props: {
                   style={{ transform: "scale(1.2)" }}
                 />
               }
+              zIndex={10}
               aria-label="Configuration"
               backgroundColor={SharedData.theme.editorBackground}
               color="white"
@@ -321,6 +346,7 @@ export default function EditorView(props: {
                   style={{ transform: "scale(1.2)" }}
                 />
               }
+              zIndex={10}
               aria-label="Save"
               backgroundColor={SharedData.theme.editorBackground}
               color="white"
@@ -348,6 +374,7 @@ export default function EditorView(props: {
                   style={{ transform: "scale(1.2)" }}
                 />
               }
+              zIndex={10}
               aria-label="Load"
               backgroundColor={SharedData.theme.editorBackground}
               color="white"
