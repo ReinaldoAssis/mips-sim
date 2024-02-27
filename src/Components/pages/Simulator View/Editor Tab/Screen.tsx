@@ -33,19 +33,6 @@ export class ScreenRenderer {
     if (this._draw == null) return;
     this._draw.canvas.height = 400;
     this._draw.canvas.width = 400;
-
-    // remove this later
-    // let mem = new Array<addr>();
-    // for (let i = 0; i < 10000; i++) {
-    //   let color = Math.floor(Math.random()*100) % 2 == 0 ? 0 : 65535;
-    //   mem.push({address: new BinaryNumber(i + 2000), value: new BinaryNumber(color)});
-    // }
-
-    // mem.forEach((addr) => {
-    //   this.drawPixel(addr);
-    //   // console.log(`addr ${addr.address.value} value ${addr.value.value}`)
-    // })
-
   }
 
   public get draw() {
