@@ -284,14 +284,6 @@ export default class TemplateProcessor implements IProcessor {
       if (programInstruction == undefined || programInstruction == null) console.log('programInstruction undefined')
   
   
-      // console.log(programInstruction?.humanCode.split(" ")[0])
-  
-      // if (programInstruction)
-      //   if (this.instructionSet.indexOf(programInstruction?.humanCode.split(" ")[0] ?? "") == -1) {
-      //     this.error("Instruction not found", programInstruction?.humanCode ?? "null");
-      //     return -1;
-      //   }
-  
       //if the instruction is not found, call 0 to stop the execution
       let instruction: number =
         this.fetch() ?? 0xfc000000;
@@ -302,13 +294,10 @@ export default class TemplateProcessor implements IProcessor {
       if (instruction == 0xfc000000) {
         //call 0
         this.halted = true;
-        // this.stdout("", true, true);
         this.workerPostMessage("halted", true)
         return -1;
       }
   
-      //console.log(`Executando instrução ${this.currentInstruction.humanCode} at ${this.currentInstruction.memAddress}`)
-
       //execute the instruction
       this.executeCycle(instruction);
       return 0;
@@ -324,8 +313,10 @@ export default class TemplateProcessor implements IProcessor {
 
     for (let i = 0; i < this.share.cycles_cap; i++)
       if (this.halted) break;
-      else
+      else{
         if (this.executeStep() == -1) break;
+        else  this.check_halt(); 
+      }
 
 
   }
@@ -381,8 +372,6 @@ export default class TemplateProcessor implements IProcessor {
     let a, b, result, base, address: number;
 
     // this.sleep(40);
-    this.check_halt();
-
     // console.log(`======= DEBUG ${this.pc} ========`)
     // console.log(`instruction ${instruction.toString(2).padStart(32,"0")}`)
     // console.log(`op ${op.toString(2).padStart(6,"0")}`)
