@@ -275,6 +275,7 @@ export default class TemplateProcessor implements IProcessor {
   
       if (this.frequency < 90) {
         self.postMessage({ command: "instruction", value: this.currentInstruction })
+        // console.log("from processor ", this.currentInstruction.humanCode)
       }
   
       let programInstruction = this.program.find(

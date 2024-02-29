@@ -76,7 +76,7 @@ export class ScreenRenderer {
 export default function Screen() {
 
   // boxshadow: 0 0 10px 10px rgba(0, 0, 0, 0.5);
-  return <div style={{ backgroundColor: "grey", width: SCREEN_DIV_SIZE, height: SCREEN_DIV_SIZE, left: window.screen.width / 2 - 200, top: window.screen.height / 2 - 300, zIndex: 10, position: "absolute", boxShadow: "0 2 10px 20px rgba(0, 0, 0, 0.5)", display:"inline-flex" }}>
-    <canvas style={{ imageRendering: 'pixelated', display:"inline-flex" }} id="screenCanvas"></canvas>
+  return <div style={{ backgroundColor: "grey", width: SCREEN_DIV_SIZE, height: SCREEN_DIV_SIZE, left: window.screen.width / 2 - 200, top: window.screen.height / 2 - 300, zIndex: 10, position: "absolute", boxShadow: "0 2 10px 20px rgba(0, 0, 0, 0.5)"}}>
+    <canvas style={{ imageRendering: 'pixelated', position: "absolute"}} id="screenCanvas"></canvas>
   </div>
 }

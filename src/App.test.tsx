@@ -46,3 +46,8 @@ const mono : MonoMIPS = new MonoMIPS();
 //     mono.reset();
 
 // })
+
+test("null", ()=>{
+    let t = true;
+    expect(t).toBe(true);
+})

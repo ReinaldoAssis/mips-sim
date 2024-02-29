@@ -42,6 +42,7 @@ import MemoryTerminal from "./MemoryTerminal";
 export default function EditorView(props: {
   runBtn: Function;
   onEditorChange: (value: string | undefined, event: any) => void;
+  callExecuteStep: Function;
 }) {
   //Icons
   const HiPlayIcon = () => (
@@ -91,25 +92,7 @@ export default function EditorView(props: {
     }
   }
 
-  function callExecuteStep()
-  {
-
-    share.updateCode();
-    if(share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
-
-    if(share.currentProcessor.halted){
-      share.currentProcessor.halted = false;
-      console.log("processor was halted before")
-      simservice.assembledCode = simservice.assemble(share.code)
-      WorkerService.instance.stepCode();
-    }
-    else
-    {
-      console.log("processor was not halted before")
-      WorkerService.instance.stepCode();
-    }
-
-  }
+  
 
   // Updates the console and debug terminal when the log changes
   React.useEffect(() => {
@@ -133,8 +116,9 @@ export default function EditorView(props: {
 
   return (
     <Stack direction={"row"}>
-      {screenModalOpen ? <Screen /> : <></>}
+      
       <AssemblyEditor onEditorChange={props.onEditorChange} />
+      {screenModalOpen ? <Screen /> : <></>}
       <Slide
         direction="bottom"
         in={consoleOpen}
@@ -264,7 +248,7 @@ export default function EditorView(props: {
               variant="solid"
               borderRadius={50}
               size="sm"
-              onClick={() => callExecuteStep()}
+              onClick={() => props.callExecuteStep()}
               zIndex={10}
             >
               Step

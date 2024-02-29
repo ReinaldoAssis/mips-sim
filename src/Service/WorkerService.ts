@@ -75,8 +75,10 @@ export default class WorkerService {
 
           if(packet.humanCode == "") return
 
-          let lineIndex = packet.index ; //+1
+          let lineIndex = packet.index+1 ; //+1
           this.shared.currentStepLine = lineIndex;
+          if(this.shared.currentProcessor) this.shared.currentProcessor.currentInstruction = packet;
+          this.shared.refreshHardwareView(packet);
         }
 
         // receives batch of console logs

@@ -89,9 +89,6 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
 
     // Receives the command to tell the current state of memory and regs
     if (e.data.command == "mem terminal"){
-        console.log("recebeu MEM TERMINAL")
-        // share.currentProcessor.memory = cpu.memory
-        // share.currentProcessor.regbank = cpu.regbank
 
         self.postMessage({command:"mem terminal data", value: [cpu.memory, cpu.regbank]})
 

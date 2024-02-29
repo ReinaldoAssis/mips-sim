@@ -42,6 +42,7 @@ export default function SimulatorView() {
   // Handles the assembly code present in the editor
   const [code, setCode] = React.useState<string>("");
   const [program, setProgram] = React.useState<Array<Instruction>>();
+  const [currentInstruction, setCurrentInstruction] = React.useState<Instruction>();
 
   // Handles the title of the program
   //const [programTitle, setProgramTitle] = React.useState<string>("Recent");
@@ -62,9 +63,11 @@ export default function SimulatorView() {
 
   const txtProgramtitle = React.useRef<HTMLInputElement>(null);
 
+  const hardwareRef = React.useRef();
+
   React.useEffect(() => {
     if (txtProgramtitle.current) txtProgramtitle.current.value = share.programTitle;
-  }, [share.programTitle, program])
+  }, [share.programTitle, program, currentInstruction])
 
   // Updates the assembly code when the code changes
   function onEditorChange(value: string | undefined, event: any) {
@@ -140,6 +143,30 @@ export default function SimulatorView() {
     }
   }
 
+  function callExecuteStep()
+  {
+
+    share.updateCode();
+    if(share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
+
+    if(share.currentProcessor.halted){
+      share.currentProcessor.halted = false;
+      // console.log("processor was halted before")
+      simservice.assembledCode = simservice.assemble(share.code)
+      WorkerService.instance.stepCode();
+    }
+    else
+    {
+      // console.log("processor was not halted before")
+      WorkerService.instance.stepCode();
+    }
+
+    setProgram(simservice.program);
+
+    setCurrentInstruction(share.currentProcessor.currentInstruction);
+
+  }
+
   /* DESCRIPTION */
   // View page that houses the assembly code editor, assembly hex, and hardware view
 
@@ -158,7 +185,7 @@ export default function SimulatorView() {
               // setProgramTitle(e.target.value);
               share.programTitle = e.target.value;
             }} />
-            <EditorView onEditorChange={onEditorChange} runBtn={runCode} />
+            <EditorView onEditorChange={onEditorChange} runBtn={runCode} callExecuteStep={callExecuteStep} />
           </Stack>
         </TabPanel>
 
@@ -174,6 +201,7 @@ export default function SimulatorView() {
 
         <TabPanel>
           <HardwareView />
+          {/* stepFunc={callExecuteStep} currentI={share.currentProcessor?.currentInstruction ?? null} */}
         </TabPanel>
       </TabPanels>
     </Tabs>

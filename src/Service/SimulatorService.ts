@@ -192,7 +192,7 @@ export default class SimulatorService {
           (x) => x.name === tokens[0].replace(":", "")
         );
 
-        console.log(`addr labels: ${addrlabels}  token: ${tokens[0].replace(":", "")}`)
+        // console.log(`addr labels: ${addrlabels}  token: ${tokens[0].replace(":", "")}`)
 
         if (islabel !== undefined) {
           islabel.address = PC; //sets the address of the label with a padding of 26 bits
@@ -212,9 +212,9 @@ export default class SimulatorService {
     );
 
     //REMOVE
-    addrlabels.forEach(x => {
-        console.log(`label ${x.name} converted to ${x.address}`);
-    })
+    // addrlabels.forEach(x => {
+    //     console.log(`label ${x.name} converted to ${x.address}`);
+    // })
 
     // this.found_labels = addrlabels;
 
@@ -234,7 +234,6 @@ export default class SimulatorService {
 
       offset -= pc + 4;
 
-      console.log(`offset ${offset}`)
       return this.signedToBinary(offset, 16);
     } 
     else 
@@ -308,11 +307,11 @@ export default class SimulatorService {
       this.currentAddr += 4; //increment PC by 4
       machineCode = "0x"+parseInt(instruction,2).toString(16);
 
-      console.log(`binary ${instruction}`)
+      // console.log(`binary ${instruction}`)
 
-      console.log(
-        `[Assembler] Assembled instruction ${this.currentCodeInstruction} to ${machineCode}!`
-      );
+      // console.log(
+      //   `[Assembler] Assembled instruction ${this.currentCodeInstruction} to ${machineCode}!`
+      // );
     }
 
     // split the code into lines
@@ -328,7 +327,6 @@ export default class SimulatorService {
 
       // split the line into tokens (arguments)
       let tokens = lines[i].split(" ");
-      console.log(`tokens ${tokens}`)
 
       if (this.instruction_set.indexOf(tokens[0].toLowerCase()) == -1){
         // console.log(`token ${tokens[0]} was not in the IS`)
@@ -541,7 +539,6 @@ export default class SimulatorService {
           this.checkInvalidLabel(tokens[1]);
 
           instruction += Number(tokens[1]).toString(2).padStart(26,"0"); // the value tokens[1] is the label in decimal
-          console.log(`Assemble j: ${tokens[1]}`)
 
           break;
 

@@ -33,7 +33,7 @@ export default function ExamplePage(){
     </Card>)
     }
 
-    return <>
+    return <div style={{height:"110vh"}}>
 
     <h1 style={{fontSize:30, marginLeft:5, paddingBottom:10}}>Examples</h1>
     <Grid templateColumns='repeat(2, 1fr)' gap={6} rowGap={60}>
@@ -1133,5 +1133,5 @@ done:
         </GridItem>
 
     </Grid>
-    </>
+    </div>
 }

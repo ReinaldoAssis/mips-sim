@@ -84,6 +84,8 @@ export default class SharedData {
 
   public onProcessorChange: Function = (processor: IProcessor) => {};
 
+  public refreshHardwareView : Function = (i : Instruction) => {};
+
   public get currentProcessor(): IProcessor | null {
     //this.onProcessorChange(this._currentProcessor);
     if(this._currentProcessor) this._currentProcessor.frequency = this.processorFrequency;
@@ -121,7 +123,7 @@ export default class SharedData {
 
     try{ 
 
-      const newvalue = value + 1 //test
+      const newvalue = value  //test
 
     var selectionRange = new this.monaco.Range(
       newvalue,
