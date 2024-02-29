@@ -52,6 +52,8 @@ export default class InstructionSetPage extends React.Component<{}> {
     {name: "CALL 42", operation: "$v0 = Random($a0,$a1)", description: "Random value between $a0 and $a1 in $v0", level: 1},
     {name: "MUL", operation: "LO = 0:31(Rs * Rt) | HI = 32:64(Rs * Rt)", description: "Multiplication", level: 1},
     {name: "DIV", operation: "HI = Rs / Rt | LO = Rs % Rt", description: "Integer Division", level: 1},
+    {name: "MFHI", operation: "Rd = HI", description: "Move from high register", level: 1},
+    {name: "MFLO", operation: "Rd = LO", description: "Move from low register", level: 1},
     {name: "SLL", operation: "Rd = Rs << Shamt", description: "Shift Left Logical", level: 1},
     // {name: "SRL", operation: "Rd = Rs >> Shamt", description: "Shift Right Logical", level: 1},
     // {name: "SLI", operation: "Rd = Rs << Imm", description: "Shift Left Immediate", level: 1},

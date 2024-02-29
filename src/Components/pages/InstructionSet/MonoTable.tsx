@@ -67,7 +67,7 @@ export default function MonoTable()
                 boxShadow: "0px 0px 10px 0px rgba(0,0,0,0.1)",
               }}
             >
-              <TableCaption>Instructions for the SIS Model</TableCaption>
+              <TableCaption>Instructions for the Monocycle Model</TableCaption>
               <Thead>
                 <Tr>
                   <Th>Instruction</Th>
