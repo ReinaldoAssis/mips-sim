@@ -99,31 +99,24 @@ export default function SimulatorView() {
     catch{}
   }
 
-  function runCode() {
+  function assembleCode()
+  {
+     // first, we have to link our canvas with our ScreenRenderer
+     setScreenRendererCanva()
 
-    // first, we have to link our canvas with our ScreenRenderer
-    setScreenRendererCanva()
+     // if code state is empty, get code from monaco editor and update share.code
+     forceGetCode();
+ 
+     //resets the program
+     share.program = [];
+ 
+     // Assembles the code
+     simservice.assembledCode = simservice.assemble(share.code);
+     // share._debugMemory();
+ 
+     setProgram(simservice.program);
 
-    // if code state is empty, get code from monaco editor and update share.code
-    forceGetCode();
-
-    //resets the program
-    share.program = [];
-
-    // Assembles the code
-    simservice.assembledCode = simservice.assemble(share.code);
-    // share._debugMemory();
-
-    setProgram(simservice.program);
-
-    if (share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
-
-    share.currentProcessor.halted = false;
-    WorkerService.instance.runCode(share.program);
-
-
-
-    if (log.getErrors().length == 0 && log.appErrors.length == 0) {
+     if (log.getErrors().length == 0 && log.appErrors.length == 0) {
       toast({
         title: "Code assembled",
         description: "Your code has been assembled",
@@ -141,6 +134,21 @@ export default function SimulatorView() {
         isClosable: true,
       });
     }
+  }
+
+  function runCode() {
+
+    // first, we have to link our canvas with our ScreenRenderer
+    setScreenRendererCanva()
+
+    if (share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
+
+    share.currentProcessor.halted = false;
+    WorkerService.instance.runCode(share.program);
+
+
+
+    
   }
 
   function callExecuteStep()
@@ -185,7 +193,7 @@ export default function SimulatorView() {
               // setProgramTitle(e.target.value);
               share.programTitle = e.target.value;
             }} />
-            <EditorView onEditorChange={onEditorChange} runBtn={runCode} callExecuteStep={callExecuteStep} />
+            <EditorView onEditorChange={onEditorChange} assembleBtn={assembleCode} runBtn={runCode} callExecuteStep={callExecuteStep} />
           </Stack>
         </TabPanel>
 

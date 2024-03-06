@@ -23,6 +23,7 @@ import {IoMdSave} from "react-icons/io";
 import { HiPlay } from "react-icons/hi";
 import {CgScreen} from "react-icons/cg";
 import { MdDelete } from "react-icons/md";
+import { BsFileEarmarkCode } from "react-icons/bs";
 import { RiRewindFill, RiSettings2Fill } from "react-icons/ri";
 import SISMIPS from "../../../../Hardware/SIS Mips/SIS";
 import Logger from "../../../../Service/Logger";
@@ -41,6 +42,7 @@ import MemoryTerminal from "./MemoryTerminal";
 
 export default function EditorView(props: {
   runBtn: Function;
+  assembleBtn: Function;
   onEditorChange: (value: string | undefined, event: any) => void;
   callExecuteStep: Function;
 }) {
@@ -226,7 +228,23 @@ export default function EditorView(props: {
       </Slide>
       <Stack spacing={4}>
         <Stack direction="column" spacing={4}>
-          <Tooltip label="Assemble & Run">
+        <Tooltip label="Assemble">
+            <IconButton
+              icon={<BsFileEarmarkCode style={{ transform: "scale(1.4)" }} />}
+              colorScheme="linkedin"
+              variant="solid"
+              onClick={() => {
+                props.assembleBtn()
+              }}
+              aria-label="Assemble program"
+              borderRadius={50}
+              size="sm"
+              zIndex={10}
+            >
+              Run
+            </IconButton>
+          </Tooltip>
+          <Tooltip label="Run">
             <IconButton
               icon={<HiPlayIcon />}
               colorScheme="teal"
