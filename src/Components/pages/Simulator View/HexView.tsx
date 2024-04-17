@@ -31,6 +31,7 @@ function HexView({program} : {program : Array<Instruction>}){
        {program.map((i,n) => {
          return <HexDisplay n={n} i={i} />
        })}
+       {/* {program.length == 0 ? <h3 style={{width:"100%"}}>First you must assemble the code.</h3> : <></>} */}
     </Grid>
 }
 

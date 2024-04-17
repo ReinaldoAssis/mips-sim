@@ -3,6 +3,9 @@ import React, { useEffect, useImperativeHandle, useState } from "react";
 import SharedData, { Instruction } from "../../../Service/SharedData";
 import { ReactComponent as MipsSVG } from "./mips32.svg";
 
+const typeR = ["add", "and", "or", "sll", "slt", "srl", "sub"]
+const typeI = ["addi","slti"]
+
 export class HardwareViewService {
     private static _instance : HardwareViewService;
     
@@ -26,18 +29,270 @@ export default function HardwareView() {
     let share = SharedData.instance;
 
     const [inst, setInst] = useState({humanCode:"",machineCode:0,index:0,memAddress:0})
+    const [state,setState] = useState("typeR")
+
+    function resetPaint(){
+        paintTypeR("#000000")
+        paintJR("#000000")
+        paintMfhiMflo("#000000","mfhi")
+        paintMfhiMflo("#000000","mflo")
+        paintJal("#000000")
+    }
+
+    function paintJal(color:string){
+        const svgPath = Array<HTMLElement|null>()
+        svgPath.push(document.getElementById("pc-out-im"));
+        svgPath.push(document.getElementById("arr-pc-out-im"));
+        
+        svgPath.push(document.getElementById("pc-in"));
+        svgPath.push(document.getElementById("arr-pc-in"));
+        svgPath.push(document.getElementById("im-out-ctrl-1"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-1"));
+        svgPath.push(document.getElementById("im-out-ctrl-2"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-2"));
+        svgPath.push(document.getElementById("writereg"));
+        svgPath.push(document.getElementById("arr-writereg"));
+        svgPath.push(document.getElementById("arr-ra"));
+        svgPath.push(document.getElementById("ra"));
+        svgPath.push(document.getElementById("writedata"));
+        svgPath.push(document.getElementById("arr-writedata"));
+        svgPath.push(document.getElementById(""));
+        svgPath.push(document.getElementById(""));
+        svgPath.push(document.getElementById(""));
+        svgPath.push(document.getElementById(""));
+        svgPath.push(document.getElementById(""));
+        svgPath.push(document.getElementById(""));
+
+        svgPath.forEach(x => {
+            if(x){
+                x.style.stroke = color;
+                if(x.id.startsWith("arr")) x.style.fill = color;
+                x.style.color = color;
+            }
+        })
+    }
+
+    function paintTypeR(color:string){
+        const svgPath = Array<HTMLElement|null>()
+        svgPath.push(document.getElementById("pc-out-im"));
+        svgPath.push(document.getElementById("arr-pc-out-im"));
+        svgPath.push(document.getElementById("im-out-reg1"));
+        svgPath.push(document.getElementById("arr-im-out-reg1"));
+        svgPath.push(document.getElementById("im-our-reg2"));
+        svgPath.push(document.getElementById("arr-im-our-reg2"));
+        svgPath.push(document.getElementById("im-out-mux3"));
+        svgPath.push(document.getElementById("arr-im-out-mux3"));
+        svgPath.push(document.getElementById("writereg"));
+        svgPath.push(document.getElementById("arr-writereg"));
+        svgPath.push(document.getElementById("data1"));
+        svgPath.push(document.getElementById("arr-data1"));
+        svgPath.push(document.getElementById("arr-data2"));
+        svgPath.push(document.getElementById("data2"));
+        svgPath.push(document.getElementById("b"));
+        svgPath.push(document.getElementById("arr-b"));
+        svgPath.push(document.getElementById("alu-out"));
+        svgPath.push(document.getElementById("arr-alu-out"));
+        svgPath.push(document.getElementById("alu-out-mux"));
+        svgPath.push(document.getElementById("arr-alu-out-mux"));
+        svgPath.push(document.getElementById("writedata-mux1"));
+        svgPath.push(document.getElementById("arr-writedata-mux1"));
+        svgPath.push(document.getElementById("pc-out-add"));
+        svgPath.push(document.getElementById("arr-pc-out-add"));
+        svgPath.push(document.getElementById("Mask"));
+        svgPath.push(document.getElementById("arr-4"));
+        svgPath.push(document.getElementById("pc4"));
+        svgPath.push(document.getElementById("arr-pc4"));
+        svgPath.push(document.getElementById("mux-pc4-beq-out"));
+        svgPath.push(document.getElementById("arr-mux-pc4-beq"));
+        svgPath.push(document.getElementById("pc-in"));
+        svgPath.push(document.getElementById("arr-pc-in"));
+        svgPath.push(document.getElementById("im-out-ctrl-1"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-1"));
+        svgPath.push(document.getElementById("im-out-ctrl-2"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-2"));
+        svgPath.push(document.getElementById("arr-im-out-reg2"));
+        svgPath.push(document.getElementById("mux-pc4-beq"));
+        svgPath.push(document.getElementById("arr-writedata"));
+        svgPath.push(document.getElementById("writedata"));
+        svgPath.push(document.getElementById("arr-mux-pc4-beq"));
+        
+        svgPath.forEach(x => {
+            if(x){
+                x.style.stroke = color;
+                if(x.id.startsWith("arr")) x.style.fill = color;
+            }
+        })
+    
+    }
+
+    function paintJR(color:string){
+        const svgPath = Array<HTMLElement|null>()
+        svgPath.push(document.getElementById("pc-out-im"));
+        svgPath.push(document.getElementById("arr-pc-out-im"));
+        svgPath.push(document.getElementById("im-out-reg1"));
+        svgPath.push(document.getElementById("arr-im-out-reg1"));
+        svgPath.push(document.getElementById("pc-in"));
+        svgPath.push(document.getElementById("arr-pc-in"));
+        svgPath.push(document.getElementById("im-out-ctrl-1"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-1"));
+        svgPath.push(document.getElementById("im-out-ctrl-2"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-2"));
+        svgPath.push(document.getElementById("data1"));
+        svgPath.push(document.getElementById("arr-data1"));
+        svgPath.push(document.getElementById("data1-mux"));
+        svgPath.push(document.getElementById("arr-data1-mux"));
+        svgPath.push(document.getElementById("Register 1"));
+
+        svgPath.forEach(x => {
+            if(x){
+                x.style.stroke = color;
+                if(x.id.startsWith("arr")) x.style.fill = color;
+                x.style.color = color;
+            }
+        })
+    }
+
+    function paintI(color:string){
+        const svgPath = Array<HTMLElement|null>()
+        svgPath.push(document.getElementById("pc-out-im"));
+        svgPath.push(document.getElementById("arr-pc-out-im"));
+        svgPath.push(document.getElementById("im-out-reg1"));
+        svgPath.push(document.getElementById("arr-im-out-reg1"));
+        svgPath.push(document.getElementById("pc-in"));
+        svgPath.push(document.getElementById("arr-pc-in"));
+        svgPath.push(document.getElementById("im-out-ctrl-1"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-1"));
+        svgPath.push(document.getElementById("im-out-ctrl-2"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-2"));
+        svgPath.push(document.getElementById("data1"));
+        svgPath.push(document.getElementById("arr-data1"));
+        svgPath.push(document.getElementById("writereg"));
+        svgPath.push(document.getElementById("arr-writereg"));
+        svgPath.push(document.getElementById("im-out-mux3"));
+        svgPath.push(document.getElementById("arr-im-out-mux3"));
+        svgPath.push(document.getElementById("im-out-extend"));
+        svgPath.push(document.getElementById("arr-im-out-extend"));
+        svgPath.push(document.getElementById("extend-out-alu"));
+        svgPath.push(document.getElementById("arr-extend-out-alu"));
+        svgPath.push(document.getElementById("arr-b"));
+        svgPath.push(document.getElementById("b"));
+        svgPath.push(document.getElementById("alu-out-mux"));
+        svgPath.push(document.getElementById("arr-alu-out-mux"));
+        svgPath.push(document.getElementById("writedata-mux1"));
+        svgPath.push(document.getElementById("arr-writedata-mux1"));
+        svgPath.push(document.getElementById("arr-writedata"));
+        svgPath.push(document.getElementById("writedata"));
+        svgPath.push(document.getElementById("pc-out-add"));
+        svgPath.push(document.getElementById("arr-pc-out-add"));
+        svgPath.push(document.getElementById("Mask"));
+        svgPath.push(document.getElementById("arr-4"));
+        svgPath.push(document.getElementById("pc4"));
+        svgPath.push(document.getElementById("arr-pc4"));
+        svgPath.push(document.getElementById("mux-pc4-beq-out"));
+        // svgPath.push(document.getElementById("arr-mux-pc4-beq"));
+
+        svgPath.forEach(x => {
+            if(x){
+                x.style.stroke = color;
+                if(x.id.startsWith("arr")) x.style.fill = color;
+                x.style.color = color;
+            }
+        })
+    }
+
+    function paintMfhiMflo(color:string, token : string){
+        const svgPath = Array<HTMLElement|null>()
+        svgPath.push(document.getElementById("pc-out-im"));
+        svgPath.push(document.getElementById("arr-pc-out-im"));
+        svgPath.push(document.getElementById("pc-in"));
+        svgPath.push(document.getElementById("arr-pc-in"));
+        svgPath.push(document.getElementById("im-out-ctrl-1"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-1"));
+        svgPath.push(document.getElementById("im-out-ctrl-2"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-2"));
+        svgPath.push(document.getElementById("writereg"));
+        svgPath.push(document.getElementById("arr-writereg"));
+        svgPath.push(document.getElementById("im-out-mux3"));
+        svgPath.push(document.getElementById("arr-im-out-mux3"));
+        svgPath.push(document.getElementById("arr-writedata"));
+        svgPath.push(document.getElementById("writedata"));
+        svgPath.push(document.getElementById("pc-out-add"));
+        svgPath.push(document.getElementById("arr-pc-out-add"));
+        svgPath.push(document.getElementById("Mask"));
+        svgPath.push(document.getElementById("arr-4"));
+        svgPath.push(document.getElementById("pc4"));
+        svgPath.push(document.getElementById("arr-pc4"));
+        svgPath.push(document.getElementById("mux-pc4-beq-out"));
+        
+        if(token == "mfhi")
+        {
+            svgPath.push(document.getElementById("hi-out"));
+            svgPath.push(document.getElementById("arr-hi-out"));
+        }
+        else {
+            svgPath.push(document.getElementById("lo-out"));
+            svgPath.push(document.getElementById("arr-lo-out"));
+        }
+
+        
+        // svgPath.push(document.getElementById("arr-mux-pc4-beq"));
+
+        svgPath.forEach(x => {
+            if(x){
+                x.style.stroke = color;
+                if(x.id.startsWith("arr")) x.style.fill = color;
+                x.style.color = color;
+            }
+        })
+    }
     
 
     useEffect(() => {
-        // Manipulate the SVG elements here
-        const svgPath = document.getElementById("pc-out-imem");
-        if (svgPath) {
-            svgPath.style.stroke = "blue";
-        }
-
         share.refreshHardwareView = (i : Instruction) => {setInst(i); console.log("receiving", i)};
 
-    }, []);
+        let token = inst.humanCode.split(" ")[0]
+        let color = "#5c21ff"
+
+        console.log(`Current token ${token}`)
+
+
+        if (typeR.includes(token))
+        {
+            resetPaint()
+            setState("typeR")
+            paintTypeR(color)
+
+        }
+
+        else if (typeI.includes(token)){
+            resetPaint()
+            setState("typeI")
+            paintI(color)
+        }
+
+        else if (token == "jr"){
+            resetPaint()
+            setState("typeR")
+            paintJR(color)
+        }
+
+        else if (token == "mfhi" || token == "mflo"){
+            resetPaint()
+            setState("typeR")
+            paintMfhiMflo(color, token)
+        }
+
+        else if (token == "jal"){
+            resetPaint()
+            setState("typeJ")
+            paintJal(color)
+        }
+
+        else{
+            resetPaint()
+        }
+
+    }, [inst]);
 
     return (
         <>
