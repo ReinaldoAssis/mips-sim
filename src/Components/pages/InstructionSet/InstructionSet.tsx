@@ -67,7 +67,7 @@ export default class InstructionSetPage extends React.Component<{}> {
   render() {
     return (
       <>
-        <SISTable/>
+        {/* <SISTable/> */}
       <div style={{ marginTop: 20 }}/>
       <MonoTable/>
       </>
