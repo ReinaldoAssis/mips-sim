@@ -1,8 +1,9 @@
-import { Badge, Button, Flex, GridItem, Text} from "@chakra-ui/react";
+import { Badge, Box, Button, Flex, GridItem, IconButton, Text} from "@chakra-ui/react";
 import React, { useEffect, useImperativeHandle, useState } from "react";
 import SharedData, { Instruction } from "../../../Service/SharedData";
 import WorkerService from "../../../Service/WorkerService";
 import { ReactComponent as MipsSVG } from "./mips32.svg";
+import { ArrowForwardIcon } from "@chakra-ui/icons";
 
 const typeR = ["add", "and", "or", "sll", "slt", "srl", "sub"]
 const typeI = ["addi","slti"]
@@ -13,7 +14,18 @@ export class HardwareViewService {
 }
 
 function InstructionDisplay({n,i}:{n:number,i:Instruction}){
-    return (<div style={{position:"absolute", bottom:10}}>
+    return (
+    
+        <Box
+      key={n}
+      bg="#f0f0f0"
+      border="1px solid #ccc"
+      borderRadius="4px"
+      padding="0.5rem 1rem"
+      margin="0 0.5rem"
+      _hover={{ bg: "#e0e0e0", cursor: "pointer" }}
+      fontFamily="monospace"
+    >
         <Text color={"blue.500"} as="b">{n}</Text>
         <Text color={"pink.400"} as="b" marginLeft={10}>0x{i.memAddress.toString(16).padStart(8,"0")}</Text>
         <Text color={"gray.600"} as="b" marginLeft={10}>0x{((i.machineCode & 0xff000000) >> 24 & 0xff).toString(16).padStart(2,"0")}</Text>
@@ -21,11 +33,11 @@ function InstructionDisplay({n,i}:{n:number,i:Instruction}){
         <Text color={"gray.600"} as="b" marginLeft={10}>0x{((i.machineCode & 0x0000ff00) >> 8 & 0xff).toString(16).padStart(2,"0")}</Text>
         <Text color={"gray.600"} as="b" marginLeft={10}>0x{((i.machineCode & 0x000000ff) & 0xff).toString(16).padStart(2,"0")}</Text>
         <Text color={"purple.500"} as="b" marginLeft={10}>{i.humanCode}</Text>
-    </div>)
+        </Box>)
 }
 
 //{stepFunc, currentI}:{stepFunc:Function, currentI:Instruction|null}
-export default function HardwareView() {
+export default function HardwareView(props:{callExecutableStep:Function}) {
 
     let share = SharedData.instance;
 
@@ -473,9 +485,26 @@ export default function HardwareView() {
 
     return (
         <>
-            <InstructionDisplay n={0} i={inst} />
+            <Flex style={{position: "absolute", bottom: 10, display: "flex", alignItems: "center"}}>
+                <InstructionDisplay n={0} i={inst}/>
+                <Button
+    bg="#dadee3"
+    border="1px solid #ccc"
+    borderRadius="4px"
+    padding="0.5rem 1rem"
+    marginLeft="1rem"
+    _hover={{ bg: "#c0c0c0" }}
+    _active={{ bg: "#a9a9a9", transform: "scale(0.95)" }}
+    transition="background-color 0.2s, transform 0.2s"
+    zIndex={20}
+    onClick={() => props.callExecutableStep()}
+  >
+    Next
+  </Button>
+            </Flex>
+
             <MipsSVG style={{ width:"70%", zIndex:0, position:"absolute", left:300, top: -360 }} />
-            <Flex style={{marginBottom:10}}>
+            <Flex style={{marginBottom:10}} fontFamily="monospace">
             <Badge colorScheme="green">T0 <br/> {share.currentProcessor?.regbank[5].toString(16)}</Badge>
             <Badge colorScheme="green">T1 <br/>{share.currentProcessor?.regbank[6].toString(16)}</Badge>
             <Badge colorScheme="green">T2 <br/>{share.currentProcessor?.regbank[7].toString(16)}</Badge>
@@ -500,31 +529,7 @@ export default function HardwareView() {
             <Badge colorScheme="purple">V1 <br/>{share.currentProcessor?.regbank[2].toString(16)}</Badge>
             </Flex>
 
-            {/* <Flex>
-            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[5]}</Badge>
-            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[6]}</Badge>
-            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[7]}</Badge>
-            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[8]}</Badge>
-            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[13]}</Badge>
-            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[14]}</Badge>
-            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[15]}</Badge>
-            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[3]}</Badge>
-            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[4]}</Badge>
-            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[12]}</Badge>
-            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[17]}</Badge>
-            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[18]}</Badge>
-            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[19]}</Badge>
-            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[20]}</Badge>
-            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[21]}</Badge>
-            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[22]}</Badge>
-            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[23]}</Badge>
-            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[24]}</Badge>
-            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[9]}</Badge>
-            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[16]}</Badge>
-            <Badge colorScheme="purple">00 {share.currentProcessor?.regbank[1]}</Badge>
-            <Badge colorScheme="purple">00 {share.currentProcessor?.regbank[2]}</Badge>
-            </Flex> */}
-            {/* <Button onClick={() => settest(!test)}>Refreh</Button> */}
+            {/* <Button onClick={() => {}}>Refreh</Button> */}
         </>
     );
 }

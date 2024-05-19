@@ -208,7 +208,7 @@ export default function SimulatorView() {
         </TabPanel>
 
         <TabPanel>
-          <HardwareView />
+          <HardwareView callExecutableStep={callExecuteStep} />
           {/* stepFunc={callExecuteStep} currentI={share.currentProcessor?.currentInstruction ?? null} */}
         </TabPanel>
       </TabPanels>
