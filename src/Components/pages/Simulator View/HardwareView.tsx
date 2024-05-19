@@ -1,6 +1,7 @@
-import { Button, GridItem, Text} from "@chakra-ui/react";
+import { Badge, Button, Flex, GridItem, Text} from "@chakra-ui/react";
 import React, { useEffect, useImperativeHandle, useState } from "react";
 import SharedData, { Instruction } from "../../../Service/SharedData";
+import WorkerService from "../../../Service/WorkerService";
 import { ReactComponent as MipsSVG } from "./mips32.svg";
 
 const typeR = ["add", "and", "or", "sll", "slt", "srl", "sub"]
@@ -466,12 +467,63 @@ export default function HardwareView() {
             resetPaint()
         }
 
+        WorkerService.instance.cpuWorker?.postMessage({command:"mem terminal"})
+
     }, [inst]);
 
     return (
         <>
             <InstructionDisplay n={0} i={inst} />
-            <MipsSVG style={{ width:"70%", zIndex:0, position:"absolute", left:300, top: -400 }} />
+            <MipsSVG style={{ width:"70%", zIndex:0, position:"absolute", left:300, top: -360 }} />
+            <Flex style={{marginBottom:10}}>
+            <Badge colorScheme="green">T0 <br/> {share.currentProcessor?.regbank[5].toString(16)}</Badge>
+            <Badge colorScheme="green">T1 <br/>{share.currentProcessor?.regbank[6].toString(16)}</Badge>
+            <Badge colorScheme="green">T2 <br/>{share.currentProcessor?.regbank[7].toString(16)}</Badge>
+            <Badge colorScheme="green">T3 <br/>{share.currentProcessor?.regbank[8].toString(16)}</Badge>
+            <Badge colorScheme="green">T4 <br/>{share.currentProcessor?.regbank[13].toString(16)}</Badge>
+            <Badge colorScheme="green">T5 <br/>{share.currentProcessor?.regbank[14].toString(16)}</Badge>
+            <Badge colorScheme="green">T6 <br/>{share.currentProcessor?.regbank[15].toString(16)}</Badge>
+            <Badge colorScheme="red">A0 <br/>{share.currentProcessor?.regbank[3].toString(16)}</Badge>
+            <Badge colorScheme="red">A1 <br/>{share.currentProcessor?.regbank[4].toString(16)}</Badge>
+            <Badge colorScheme="red">A2 <br/>{share.currentProcessor?.regbank[12].toString(16)}</Badge>
+            <Badge colorScheme="red">A3 <br/>{share.currentProcessor?.regbank[17].toString(16)}</Badge>
+            <Badge colorScheme="cyan">S0 <br/>{share.currentProcessor?.regbank[18].toString(16)}</Badge>
+            <Badge colorScheme="cyan">S1 <br/>{share.currentProcessor?.regbank[19].toString(16)}</Badge>
+            <Badge colorScheme="cyan">S2 <br/>{share.currentProcessor?.regbank[20].toString(16)}</Badge>
+            <Badge colorScheme="cyan">S3 <br/>{share.currentProcessor?.regbank[21].toString(16)}</Badge>
+            <Badge colorScheme="cyan">S4 <br/>{share.currentProcessor?.regbank[22].toString(16)}</Badge>
+            <Badge colorScheme="cyan">S5 <br/>{share.currentProcessor?.regbank[23].toString(16)}</Badge>
+            <Badge colorScheme="cyan">S6 <br/>{share.currentProcessor?.regbank[24].toString(16)}</Badge>
+            <Badge colorScheme="red">RA <br/>{share.currentProcessor?.regbank[9].toString(16)}</Badge>
+            <Badge colorScheme="red">SP <br/>{share.currentProcessor?.regbank[16].toString(16)}</Badge>
+            <Badge colorScheme="purple">V0 <br/>{share.currentProcessor?.regbank[1].toString(16)}</Badge>
+            <Badge colorScheme="purple">V1 <br/>{share.currentProcessor?.regbank[2].toString(16)}</Badge>
+            </Flex>
+
+            {/* <Flex>
+            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[5]}</Badge>
+            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[6]}</Badge>
+            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[7]}</Badge>
+            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[8]}</Badge>
+            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[13]}</Badge>
+            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[14]}</Badge>
+            <Badge colorScheme="green">00 {share.currentProcessor?.regbank[15]}</Badge>
+            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[3]}</Badge>
+            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[4]}</Badge>
+            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[12]}</Badge>
+            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[17]}</Badge>
+            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[18]}</Badge>
+            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[19]}</Badge>
+            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[20]}</Badge>
+            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[21]}</Badge>
+            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[22]}</Badge>
+            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[23]}</Badge>
+            <Badge colorScheme="cyan">00 {share.currentProcessor?.regbank[24]}</Badge>
+            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[9]}</Badge>
+            <Badge colorScheme="red">00 {share.currentProcessor?.regbank[16]}</Badge>
+            <Badge colorScheme="purple">00 {share.currentProcessor?.regbank[1]}</Badge>
+            <Badge colorScheme="purple">00 {share.currentProcessor?.regbank[2]}</Badge>
+            </Flex> */}
             {/* <Button onClick={() => settest(!test)}>Refreh</Button> */}
         </>
     );
