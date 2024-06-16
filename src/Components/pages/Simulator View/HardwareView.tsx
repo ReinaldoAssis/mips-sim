@@ -1,4 +1,4 @@
-import { Badge, Box, Button, Flex, GridItem, IconButton, Text} from "@chakra-ui/react";
+import { Badge, Box, Button, Flex, GridItem, IconButton, position, Text} from "@chakra-ui/react";
 import React, { useEffect, useImperativeHandle, useState } from "react";
 import SharedData, { Instruction } from "../../../Service/SharedData";
 import WorkerService from "../../../Service/WorkerService";
@@ -21,10 +21,12 @@ function InstructionDisplay({n,i}:{n:number,i:Instruction}){
       bg="#f0f0f0"
       border="1px solid #ccc"
       borderRadius="4px"
+      marginBottom="40px"
       padding="0.5rem 1rem"
-      margin="0 0.5rem"
+      marginRight="0.5rem"
       _hover={{ bg: "#e0e0e0", cursor: "pointer" }}
       fontFamily="monospace"
+      position="fixed"
     >
         <Text color={"blue.500"} as="b">{n}</Text>
         <Text color={"pink.400"} as="b" marginLeft={10}>0x{i.memAddress.toString(16).padStart(8,"0")}</Text>
@@ -492,12 +494,14 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
     border="1px solid #ccc"
     borderRadius="4px"
     padding="0.5rem 1rem"
-    marginLeft="1rem"
+    marginLeft="32rem"
+    marginBottom="40px"
     _hover={{ bg: "#c0c0c0" }}
     _active={{ bg: "#a9a9a9", transform: "scale(0.95)" }}
     transition="background-color 0.2s, transform 0.2s"
     zIndex={20}
     onClick={() => props.callExecutableStep()}
+    position="fixed"
   >
     Next
   </Button>
