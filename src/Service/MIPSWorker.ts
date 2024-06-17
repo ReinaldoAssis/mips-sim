@@ -89,10 +89,13 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
 
     // Receives the command to tell the current state of memory and regs
     if (e.data.command == "mem terminal"){
-
         self.postMessage({command:"mem terminal data", value: [cpu.memory, cpu.regbank]})
-
     }
+
+    // if (e.data.command == "mem terminal set data")
+    // {
+    //  ...
+    // }
 
 }
 

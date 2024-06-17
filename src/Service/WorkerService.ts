@@ -99,6 +99,11 @@ export default class WorkerService {
           }
         }
 
+        // if (e.data.command == "mem terminal set data")
+        // {
+
+        // }
+
 
       };
       this.defined = true;

@@ -51,6 +51,7 @@ export default function MemoryTerminal() {
           setTimeout(() => {
 
             if (cmd.includes("$")){
+
               let convertToBin = SimulatorService.getInstance().assembleRegister(cmd)
               let index = new TemplateProcessor().mapRegister(parseInt(convertToBin,2))
               let reg = shared.currentProcessor?.regbank[index]
@@ -60,10 +61,38 @@ export default function MemoryTerminal() {
             }
             else
             {
-              let addr = parseInt(cmd)
-              let memValue = shared.currentProcessor?.memory.find(x => x.address == addr)?.value ?? "undefined"
-              setTxtArea(txtArea+`${memValue}\n`)
-              shared.memoryterminalText = txtArea+`${memValue}\n`
+              let range : Array<number> = []
+              if (cmd.includes("-"))
+              {
+                const spl = cmd.split("-")
+                const addr1 = parseInt(spl[0])
+                const addr2 = parseInt(spl[1])
+                console.log("addr1 e 2 ", addr1, addr2)
+                for (let i = addr1; i <= addr2; i+=4)
+                  range.push(i)
+              }
+              else{
+                range.push(parseInt(cmd))
+              }
+
+              console.log("range",range)
+              let newtext = ""
+
+              range.forEach(addr => {
+                console.log("addr",addr)
+                let memValue = shared.currentProcessor?.memory.find(x => x.address === addr)?.value ?? "undefined"
+                if (memValue === undefined) memValue = "undefined"
+                console.log("mem",memValue)
+                newtext += `${memValue}\t`
+              })
+              setTxtArea(txtArea+newtext+`\n`)
+              shared.memoryterminalText = txtArea+newtext+`\n`
+
+
+              // let addr = parseInt(cmd)
+              // let memValue = shared.currentProcessor?.memory.find(x => x.address == addr)?.value ?? "undefined"
+              // setTxtArea(txtArea+`${memValue}\n`)
+              // shared.memoryterminalText = txtArea+`${memValue}\n`
             }
 
             // console.log(`mem terminal ${cmd}`)
