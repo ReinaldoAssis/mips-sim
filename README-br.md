@@ -18,7 +18,7 @@
 </a>
 
 
-# MIPS SIM
+# WIMS (Web-based Interactive MIPS Simulator)
 
 Um simulador baseado na arquitetura MIPS 32, idealizado para ajudar estudantes a aprender e explorar os fundamentos da linguagem de montagem e esquemas de circuitos.
 
