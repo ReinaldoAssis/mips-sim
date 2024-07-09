@@ -50,6 +50,7 @@ export default class InstructionSetPage extends React.Component<{}> {
     {name: "CALL 2", operation: "Print character Rs", description: "Print the value in Rs as a ASCII character", level: 0},
     {name: "CALL 3", operation: "Print integer Rs w/o newline", description: "Print the value in Rs as an integer without a newline", level: 1},
     {name: "CALL 42", operation: "$v0 = Random($a0,$a1)", description: "Random value between $a0 and $a1 in $v0", level: 1},
+    {name: "CALL 40", operation: "Screen update", description: "Updates the simulator's screen", level: 1},
     {name: "MUL", operation: "LO = 0:31(Rs * Rt) | HI = 32:64(Rs * Rt)", description: "Multiplication", level: 1},
     {name: "DIV", operation: "HI = Rs / Rt | LO = Rs % Rt", description: "Integer Division", level: 1},
     {name: "MFHI", operation: "Rd = HI", description: "Move from high register", level: 1},
