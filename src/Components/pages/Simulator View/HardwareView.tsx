@@ -1,4 +1,4 @@
-import { Badge, Box, Button, Flex, GridItem, IconButton, position, Text} from "@chakra-ui/react";
+import { Badge, Box, Button, Flex, GridItem, IconButton, position, Stack, Text} from "@chakra-ui/react";
 import React, { useEffect, useImperativeHandle, useState } from "react";
 import SharedData, { Instruction } from "../../../Service/SharedData";
 import WorkerService from "../../../Service/WorkerService";
@@ -23,10 +23,9 @@ function InstructionDisplay({n,i}:{n:number,i:Instruction}){
       borderRadius="4px"
       marginBottom="40px"
       padding="0.5rem 1rem"
-      marginRight="0.5rem"
+      marginLeft="0.5rem"
       _hover={{ bg: "#e0e0e0", cursor: "pointer" }}
       fontFamily="monospace"
-      position="fixed"
     >
         <Text color={"blue.500"} as="b">{n}</Text>
         <Text color={"pink.400"} as="b" marginLeft={10}>0x{i.memAddress.toString(16).padStart(8,"0")}</Text>
@@ -487,25 +486,24 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
 
     return (
         <>
-            <Flex style={{position: "absolute", bottom: 10, display: "flex", alignItems: "center"}}>
-                <InstructionDisplay n={0} i={inst}/>
+            <Stack direction='row' spacing={4} align='center' position="fixed" bottom={4} zIndex={20}>
                 <Button
-    bg="#dadee3"
-    border="1px solid #ccc"
-    borderRadius="4px"
-    padding="0.5rem 1rem"
-    marginLeft="32rem"
-    marginBottom="40px"
-    _hover={{ bg: "#c0c0c0" }}
-    _active={{ bg: "#a9a9a9", transform: "scale(0.95)" }}
-    transition="background-color 0.2s, transform 0.2s"
-    zIndex={20}
-    onClick={() => props.callExecutableStep()}
-    position="fixed"
-  >
-    Next
-  </Button>
-            </Flex>
+                    // bg="#dadee3"
+                    // border="1px solid #ccc"
+                    borderRadius="4px"
+                    padding="0.5rem 1rem"
+                    // _hover={{ bg: "#c0c0c0" }}
+                    // _active={{ bg: "#a9a9a9", transform: "scale(0.95)" }}
+                    // transition="background-color 0.2s, transform 0.2s"
+                    colorScheme={"teal"}
+                    variant="solid"
+                    zIndex={20}
+                    onClick={() => props.callExecutableStep()}
+                >
+                    Next
+                </Button>
+                <InstructionDisplay n={0} i={inst}/>
+            </Stack>
 
             <MipsSVG style={{ width:"70%", zIndex:0, position:"absolute", left:300, top: -360 }} />
             <Flex style={{marginBottom:10}} fontFamily="monospace">

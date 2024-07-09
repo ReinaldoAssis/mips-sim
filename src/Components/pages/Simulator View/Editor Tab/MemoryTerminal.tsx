@@ -50,6 +50,8 @@ export default function MemoryTerminal() {
           WorkerService.instance.cpuWorker?.postMessage({command:"mem terminal"})
           setTimeout(() => {
 
+            let newtext = ""
+
             if (cmd.includes("$")){
 
               let convertToBin = SimulatorService.getInstance().assembleRegister(cmd)
@@ -62,12 +64,13 @@ export default function MemoryTerminal() {
             else
             {
               let range : Array<number> = []
+              newtext = cmd+": "
               if (cmd.includes("-"))
               {
                 const spl = cmd.split("-")
                 const addr1 = parseInt(spl[0])
                 const addr2 = parseInt(spl[1])
-                console.log("addr1 e 2 ", addr1, addr2)
+                // console.log("addr1 e 2 ", addr1, addr2)
                 for (let i = addr1; i <= addr2; i+=4)
                   range.push(i)
               }
@@ -76,14 +79,13 @@ export default function MemoryTerminal() {
               }
 
               console.log("range",range)
-              let newtext = ""
 
               range.forEach(addr => {
                 console.log("addr",addr)
                 let memValue = shared.currentProcessor?.memory.find(x => x.address === addr)?.value ?? "undefined"
                 if (memValue === undefined) memValue = "undefined"
-                console.log("mem",memValue)
-                newtext += `${memValue}\t`
+                // console.log("mem",memValue)
+                newtext += `${memValue} `
               })
               setTxtArea(txtArea+newtext+`\n`)
               shared.memoryterminalText = txtArea+newtext+`\n`

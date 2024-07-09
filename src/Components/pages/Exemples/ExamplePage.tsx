@@ -138,6 +138,189 @@ main:
 `,16)}
         
         </GridItem>
+
+        <GridItem w="100%" h='100'>
+            {
+                example("Approximation of PI", `j main
+
+
+#@return
+fdiv_r:
+    jr $ra
+
+#@loop
+fdiv_l:
+    div $a0 $a1
+    mfhi $v0
+    #addi $v0 $v0 48				# converte para ascii
+    call 3						# print
+    mflo $t0					# t0 = resto
+    beq $t0 $zero fdiv_r		# se não houver mais resto
+    addi $t1 $zero 10			# vamos usar para multiplicar por 10
+    mult $t0 $t1				# mult. resto por 10
+    mflo $a0					# a0 recebe resto x 10
+    addi $a2 $a2 -1
+    beq $a2 $zero fdiv_r
+    j fdiv_l
+
+
+fdiv:
+    div $a0 $a1
+    mfhi $v0				
+    mflo $a0				
+    call 3					
+    addi $v0 $zero 46 		
+    call 2 					
+    addi $t1 $zero 10		
+    mult $a0 $t1
+    mflo $a0
+    j fdiv_l
+
+
+pi_invalid:
+    jr $ra
+
+
+pi_sub:
+    beq $t5 $zero pi_invalid #recusa se for par
+    addi $t6 $zero 4
+    sll $t6 $t6 14
+    div $t6 $t0 #4<<shamt / d
+    mfhi $t6
+    sub $v0 $v0 $t6 #sum -= 4<<shamt / d
+    jr $ra
+
+pi_sum:
+    bne $t5 $zero pi_invalid #recusa se for impar
+    addi $t6 $zero 4
+    sll $t6 $t6 14
+    div $t6 $t0 #4<<shamt / d
+    mfhi $t6
+    add $v0 $v0 $t6 #sum += 4<<shamt / d
+    jr $ra
+
+pi_l:
+    addi $t5 $zero 1
+    and $t5 $t3 $t5 #contador mod 2
+    jal pi_sum
+    jal pi_sub
+    addi $t0 $t0 2 #d+=2
+    beq $a0 $t3 pi_r
+    addi $t3 $t3 1 #incrementa contador
+    j pi_l
+
+pi_r:
+    #call 1
+    lw $ra 0($zero)
+    jr $ra
+
+#a0 numero de iterações
+#a1 shamt
+pi:
+    sw $ra 0($zero) #salva ra
+    addi $v0 $zero 0 #sum
+    addi $t0 $zero 1 #d
+    addi $t3 $zero 0 #inicia contador
+    j pi_l
+
+print_label:
+    push $v0
+    addi $v0 $zero 65
+    call 2
+    addi $v0 $zero 112
+    call 2
+    addi $v0 $zero 112
+    call 2
+    addi $v0 $zero 114
+    call 2
+    addi $v0 $zero 111
+    call 2
+    addi $v0 $zero 120
+    call 2
+    addi $v0 $zero 105
+    call 2
+    addi $v0 $zero 109
+    call 2
+    addi $v0 $zero 97
+    call 2
+    addi $v0 $zero 116
+    call 2
+    addi $v0 $zero 105
+    call 2
+    addi $v0 $zero 111
+    call 2
+    addi $v0 $zero 110
+    call 2
+    addi $v0 $zero 32
+    call 2
+    addi $v0 $zero 111
+    call 2
+    addi $v0 $zero 102
+    call 2
+    addi $v0 $zero 32
+    call 2
+    addi $v0 $zero 80
+    call 2
+    addi $v0 $zero 73
+    call 2
+    addi $v0 $zero 32
+    call 2
+    addi $v0 $zero 117
+    call 2
+    addi $v0 $zero 115
+    call 2
+    addi $v0 $zero 105
+    call 2
+    addi $v0 $zero 110
+    call 2
+    addi $v0 $zero 103
+    call 2
+    addi $v0 $zero 32
+    call 2
+    addi $v0 $zero 105
+    call 2
+    addi $v0 $zero 110
+    call 2
+    addi $v0 $zero 116
+    call 2
+    addi $v0 $zero 101
+    call 2
+    addi $v0 $zero 103
+    call 2
+    addi $v0 $zero 101
+    call 2
+    addi $v0 $zero 114
+    call 2
+    addi $v0 $zero 32
+    call 2
+    addi $v0 $zero 109
+    call 2
+    addi $v0 $zero 97
+    call 2
+    addi $v0 $zero 116
+    call 2
+    addi $v0 $zero 104
+    call 2
+    addi $v0 $zero 58
+    call 2
+    addi $v0 $zero 32
+    call 2
+    pop $v0
+    jr $ra
+    
+main:
+    addi $a0 $zero 200
+    addi $a1 $zero 14
+    jal pi
+    addi $a0 $v0 0
+    addi $a1 $zero 16384
+    addi $a2 $zero 10
+    jal print_label
+    jal fdiv
+    call 1
+    call 0`, 16)
+            }
+        </GridItem>
         
         <GridItem w='100%' h='100'>
         {example("3D Graphics",`# ---------------
