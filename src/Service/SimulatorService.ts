@@ -257,6 +257,53 @@ export default class SimulatorService {
     }
   }
 
+  private handleDirectives(code: string): string {
+    // Regular expression to match lines starting with a period followed by a word
+    const directiveRegex = /^\.(\w+)\s+(.+)$/gm;
+    const directives = [];
+
+    // Split the code into lines to handle replacements
+    const lines = code.split('\n');
+    
+    let match;
+    while ((match = directiveRegex.exec(code)) !== null) {
+        const directive = match[1];
+        const argumentsString = match[2];
+        const args = argumentsString.split(',').map(arg => arg.trim());
+
+        directives.push({
+            directive,
+            args
+        });
+
+        if (directive === "include") {
+            // TODO: Validate arguments
+            if (args.length !== 1 || !args[0].startsWith("\"") || !args[0].endsWith("\"")) {
+                throw new Error(`Invalid arguments for .include directive: ${argumentsString}`);
+            }
+
+            // Load the imported code
+            const fileName = args[0].replaceAll("\"",""); // Remove the surrounding quotes
+            const importedCode = this.share.loadProgram(fileName);
+
+            // Replace the directive line with the imported code
+            const directiveLine = match[0];
+            const lineIndex = lines.findIndex(line => line.includes(directiveLine));
+            const line_text = lines[lineIndex]
+
+            console.log(`replacing line, ${fileName} -> `+ line_text)
+            console.log("imported code", importedCode)
+
+            code = code.replace(line_text, importedCode)
+
+        }
+    }
+
+    console.log("code directives", directives);
+
+    return code;
+}
+
   public signedToBinary(n : number, pad : number) : string
   {
     let binary = (n >>> 0).toString(2).padStart(pad, "0");
@@ -278,9 +325,10 @@ export default class SimulatorService {
     // code = this.clearComments(code);
     // code = this.clearSpecialChars(code);
     this.program = new Array<Instruction>();
+    code = this.handleDirectives(code);
     code = this.treatLabelOffsets(code);
     code = this.treatOffsets(code);
-
+  
     code = this.treatLabels(code);
 
     console.log(code);
