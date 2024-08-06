@@ -29,7 +29,7 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
     // console.log(`RECEBEU O COMANDO ${e.data.command}`)
     
     const setup = () => {
-        console.log(`Worker processor: ${share.currentProcessor?.refname}`)
+        // console.log(`Worker processor: ${share.currentProcessor?.refname}`)
         cpu = e.data.processorref == "mono" ? new MonoMIPS() : new SISMIPS();
         cpu.frequency = e.data.processorFrequency;
         share.processorFrequency = e.data.processorFrequency;
@@ -74,7 +74,7 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
     }
 
     if (e.data.command == "reset"){
-        console.log("RECEBEU O COMANDO DE RESET")
+        // console.log("RECEBEU O COMANDO DE RESET")
         if (share.currentProcessor) cpu = share.currentProcessor;
         cpu.reset();
         share.currentProcessor = cpu;

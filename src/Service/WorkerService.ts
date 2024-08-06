@@ -48,7 +48,7 @@ export default class WorkerService {
           let packet = e.data.value as { msg: string, instruction: string, cycle: number, pc: number };
 
           this.log.pushAppError(`Error: ${packet.msg} at ${packet.instruction} at cycle ${packet.cycle} pc ${packet.pc}`)
-          console.log(`Error: ${packet.msg} at cycle ${packet.cycle} pc ${packet.pc}`)
+          // console.log(`Error: ${packet.msg} at cycle ${packet.cycle} pc ${packet.pc}`)
         }
 
         // handles screen writes
@@ -83,7 +83,7 @@ export default class WorkerService {
 
         // receives batch of console logs
         if (e.data.command == "batch console") {
-          console.log(`Received from worker: ${e.data.value}`);
+          // console.log(`Received from worker: ${e.data.value}`);
           (e.data.value as Array<{ log: string, linebreak: boolean }>).forEach(v => {
             this.log.console(v.log, v.linebreak);
           });
@@ -92,7 +92,7 @@ export default class WorkerService {
         if (e.data.command == "mem terminal data"){
           let mem = e.data.value[0] as Array<addr>
           let reg = e.data.value[1] as Array<number>
-          console.log(`Received from worker mem terminal data: ${e.data.value}`);
+          // console.log(`Received from worker mem terminal data: ${e.data.value}`);
           if(this.shared.currentProcessor){
             this.shared.currentProcessor.memory = mem
             this.shared.currentProcessor.regbank = reg
