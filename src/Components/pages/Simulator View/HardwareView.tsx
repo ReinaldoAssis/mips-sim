@@ -425,7 +425,7 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
     
 
     useEffect(() => {
-        // share.refreshHardwareView = (i : Instruction) => {setInst(i); console.log("receiving", i)};
+        share.refreshHardwareView = (i : Instruction) => {setInst(i); console.log("receiving", i)};
 
         let token = inst.humanCode.split(" ")[0]
         let color = "#5c21ff"
