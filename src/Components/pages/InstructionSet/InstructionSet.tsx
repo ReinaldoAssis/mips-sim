@@ -56,6 +56,7 @@ export default class InstructionSetPage extends React.Component<{}> {
     {name: "MFHI", operation: "Rd = HI", description: "Move from high register", level: 1},
     {name: "MFLO", operation: "Rd = LO", description: "Move from low register", level: 1},
     {name: "SLL", operation: "Rd = Rs << Shamt", description: "Shift Left Logical", level: 1},
+    {name: "SRL", operation: "Rd = Rs >> Shamt", description: "Shift Right Logical", level: 1},
     // {name: "SRL", operation: "Rd = Rs >> Shamt", description: "Shift Right Logical", level: 1},
     // {name: "SLI", operation: "Rd = Rs << Imm", description: "Shift Left Immediate", level: 1},
     {name: "PUSH", operation: "Memory[SP] = Rs; SP = SP - 4", description: "Push onto the stack", level: 1},
