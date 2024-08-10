@@ -65,9 +65,32 @@ export default function SimulatorView() {
 
   const hardwareRef = React.useRef();
 
+  function handleKeyPress(e : KeyboardEvent) 
+  {
+    let ascii, key = e.key;
+    if(key.length == 1) {
+        ascii = key.charCodeAt(0);
+        if(ascii < 128 && e.ctrlKey) {
+             ascii = ascii & 0x1f;
+        }
+    }
+    if( typeof ascii == "number" && ascii < 128) {
+        console.log(`ASCII code ${ascii} entered from keyboard`);
+    }
+    
+  }
+
+  React.useEffect(() => {
+    // TODO : check if it is necessary to remove the event
+    // document.removeEventListener("keydown", handleKeyPress, true)
+    document.addEventListener("keypress", handleKeyPress, true)
+  }, [])
+
   React.useEffect(() => {
     if (txtProgramtitle.current) txtProgramtitle.current.value = share.programTitle;
   }, [share.programTitle, program, currentInstruction])
+
+
 
   // Updates the assembly code when the code changes
   function onEditorChange(value: string | undefined, event: any) {
