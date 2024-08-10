@@ -78,10 +78,8 @@ export default function MemoryTerminal() {
                 range.push(parseInt(cmd))
               }
 
-              console.log("range",range)
-
               range.forEach(addr => {
-                console.log("addr",addr)
+                // console.log("addr",addr)
                 let memValue = shared.currentProcessor?.memory.find(x => x.address === addr)?.value ?? "undefined"
                 if (memValue === undefined) memValue = "undefined"
                 // console.log("mem",memValue)
