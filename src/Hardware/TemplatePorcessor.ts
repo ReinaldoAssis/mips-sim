@@ -2,8 +2,9 @@ import { warn } from "console";
 import Logger, { ErrorType } from "../Service/Logger";
 import SharedData, { Instruction, IProcessor } from "../Service/SharedData";
 
-const SCREEN_MEM_START = 2000;
-const SCREEN_MEM_END = 162000;
+export const SCREEN_MEM_START = 2000;
+export const SCREEN_MEM_END = 162000;
+export const INPUT_BUFFER_ADDR = 162001;
 
 // the masks are counted from left to right
 export const MASK_26_32 = 0b00000000000000000000000000111111;
@@ -182,16 +183,12 @@ export default class TemplateProcessor implements IProcessor {
 
       this.screenWriteBatch.push({ address: address, value: value });
 
-      //URGENT: DO NOT LEAVE THIS COMMENTED IN PRODUCTION!!!!
-      // if (this.screenWriteBatch.length > 100) {
-      //   this.workerPostMessage("screen", this.screenWriteBatch);
-      //   this.screenWriteBatch = [];
-
-      //   // console.log(`Elapsed ${Math.ceil(performance.now() - this._elapsed)}`)
-      //   // this._elapsed = performance.now();
-      // }
-
       return;
+    }
+
+    // tells the worker that we wrote back into the ibuffer addr
+    if (address == INPUT_BUFFER_ADDR){
+      this.workerPostMessage("ibuffer", value);
     }
 
     let addr = this.memory.find((x) => x.address == address);
@@ -223,6 +220,16 @@ export default class TemplateProcessor implements IProcessor {
 
       return Math.floor(Math.random() * 100000);
     }
+
+    // when reading ibuffer, sets the buffer to zero
+    // TODO: change this to a shift register
+    if (addr.address == INPUT_BUFFER_ADDR)
+    {
+      const _ibuffer = addr.value as number;
+      if (_ibuffer != 0b0) this.workerPostMessage("ibuffer", 0b0);
+      return _ibuffer;
+    }
+
     return addr.value;
   }
 

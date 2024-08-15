@@ -2,6 +2,7 @@ import SharedData, { Instruction, IProcessor } from "./SharedData"
 import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
 import Logger from "./Logger";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
+import { INPUT_BUFFER_ADDR } from "../Hardware/TemplatePorcessor";
 // import BinaryNumber from "../Hardware/BinaryNumber";
 
 /*
@@ -14,6 +15,7 @@ const share = SharedData.instance;
 export type WorkCpuMessage = {
     command: string,
     value: string,
+    ibuffer? : number,
     instructions: Array<Instruction>,
     processorref: string,
     processorFrequency: number,
@@ -82,7 +84,18 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
     }
 
     if (e.data.command == "halt check answer" && e.data.value == "continue"){
-        // console.log("RECEBEU O COMANDO DE CONTINUAR")
+        
+        if (e.data.ibuffer)
+        {
+            const i = cpu.memory.findIndex(x => x.address = INPUT_BUFFER_ADDR);
+
+            if (i == -1) cpu.memory.push({address: INPUT_BUFFER_ADDR, value: e.data.ibuffer ?? 0b0});
+            else cpu.memory[i] = {address: INPUT_BUFFER_ADDR, value: e.data.ibuffer ?? 0b0};
+
+            
+            // console.log(`wrote ibuffer (index ${i}) ${cpu.memory[i].value}`);
+        }
+
         cpu.halted = false;
         cpu.execute();
     }

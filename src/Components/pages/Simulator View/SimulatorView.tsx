@@ -67,6 +67,7 @@ export default function SimulatorView() {
 
   function handleKeyPress(e : KeyboardEvent) 
   {
+    if(e.repeat) return;
     let ascii, key = e.key;
     if(key.length == 1) {
         ascii = key.charCodeAt(0);
@@ -75,6 +76,7 @@ export default function SimulatorView() {
         }
     }
     if( typeof ascii == "number" && ascii < 128) {
+        share.ibuffer = ascii; //todo: change to shift register
         console.log(`ASCII code ${ascii} entered from keyboard`);
     }
     
