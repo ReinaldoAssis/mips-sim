@@ -29,7 +29,7 @@ function HexView({program} : {program : Array<Instruction>}){
         const element = document.createElement("a");
         const file = new Blob([hexString], {type: 'text/plain'});
         element.href = URL.createObjectURL(file);
-        element.download = "hex.txt";
+        element.download = "program.txt";
         document.body.appendChild(element); // Required for this to work in FireFox
         element.click();
     }

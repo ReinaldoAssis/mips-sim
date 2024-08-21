@@ -1,3 +1,4 @@
+import { addr, INPUT_BUFFER_ADDR, SCREEN_MEM_START } from "../Hardware/TemplatePorcessor";
 import Logger, { ErrorType } from "./Logger";
 import SharedData, { Instruction } from "./SharedData";
 
@@ -297,12 +298,34 @@ export default class SimulatorService {
             code = code.replace(line_text, importedCode)
 
         }
+
+        // if (directive == "def")
+        // {
+        //   // TODO: Validate arguments
+        //   if (args.length !== 1) {
+        //     throw new Error(`Invalid arguments for .def directive: ${argumentsString}`);
+        //   }
+          
+        //   const def_value = args[0]
+
+        // }
     }
 
     console.log("code directives", directives);
 
     return code;
 }
+
+  private handleConstants(code: string): string {
+    const ck: Record<string, number> = { "PC_START": this.share.pcStart, "SCREEN_MEM_START": SCREEN_MEM_START, "INPUT_BUFFER_ADDR": INPUT_BUFFER_ADDR };
+    const keys = Object.keys(ck);
+
+    keys.forEach(k => {
+      code = code.replaceAll(k, ck[k].toString());
+    });
+
+    return code;
+  }
 
   public signedToBinary(n : number, pad : number) : string
   {
@@ -325,7 +348,10 @@ export default class SimulatorService {
     // code = this.clearComments(code);
     // code = this.clearSpecialChars(code);
     this.program = new Array<Instruction>();
+    this.share.startMemory = this.share._startMemoryDefault;
+
     code = this.handleDirectives(code);
+    code = this.handleConstants(code);
     code = this.treatLabelOffsets(code);
     code = this.treatOffsets(code);
   
@@ -376,8 +402,48 @@ export default class SimulatorService {
       // split the line into tokens (arguments)
       let tokens = lines[i].split(" ");
 
+      // if it is not an instruction, it may be a directive
       if (this.instruction_set.indexOf(tokens[0].toLowerCase()) == -1){
         // console.log(`token ${tokens[0]} was not in the IS`)
+
+        const _tk = tokens[0].toLowerCase()
+        if (_tk.startsWith(".") == false) continue; // it is not a directive
+
+        
+        if (_tk == ".org" && tokens.length == 2)
+        {
+          const newPC = Number.parseInt(tokens[1])
+          console.log(`.org directive, PC at ${newPC}`)
+          this.currentAddr = newPC;
+        }
+
+        else if (_tk == ".dw") 
+        {
+          
+          let arg = tokens.join(" ").replace(".dw","").trim();
+          console.log(`.DW DIRECTIVE ${arg}`)
+
+          // check if its a string
+          // adds a terminator byte (all zeros)
+          if (arg.startsWith("\"") && arg.endsWith("\""))
+          {
+            arg = arg.replaceAll("\"","")
+            const bytes = arg.length + 1
+
+            // let arr : Array<addr> = []
+
+            for (let j = 0; j<bytes - 1; j++)
+              this.share.startMemory.push({address:this.currentAddr+(j*4), value:arg[j].charCodeAt(0)})
+
+            this.share.startMemory.push({address:this.currentAddr+((bytes-1)*4), value:0})
+
+            console.log(`.DW DIRECTIVE ${bytes}`)
+            console.log(this.share.startMemory)
+
+            this.currentAddr += bytes;
+          }
+        }
+
         continue;
       }
 

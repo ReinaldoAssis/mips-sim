@@ -4,7 +4,7 @@ import SharedData, { Instruction, IProcessor } from "../Service/SharedData";
 
 export const SCREEN_MEM_START = 2000;
 export const SCREEN_MEM_END = 162000;
-export const INPUT_BUFFER_ADDR = 162001;
+export const INPUT_BUFFER_ADDR = 255;
 
 // the masks are counted from left to right
 export const MASK_26_32 = 0b00000000000000000000000000111111;
@@ -187,9 +187,9 @@ export default class TemplateProcessor implements IProcessor {
     }
 
     // tells the worker that we wrote back into the ibuffer addr
-    if (address == INPUT_BUFFER_ADDR){
-      this.workerPostMessage("ibuffer", value);
-    }
+    // if (address == INPUT_BUFFER_ADDR){
+    //   this.workerPostMessage("ibuffer", value);
+    // }
 
     let addr = this.memory.find((x) => x.address == address);
     if (addr == undefined) {
@@ -207,6 +207,7 @@ export default class TemplateProcessor implements IProcessor {
   */
   public readMemory(address: number): number {
     let addr = this.memory.find((x) => x.address == address);
+
     if (addr == undefined) {
       this.log.error(
         "Memory location not initialized",
@@ -223,12 +224,12 @@ export default class TemplateProcessor implements IProcessor {
 
     // when reading ibuffer, sets the buffer to zero
     // TODO: change this to a shift register
-    if (addr.address == INPUT_BUFFER_ADDR)
-    {
-      const _ibuffer = addr.value as number;
-      if (_ibuffer != 0b0) this.workerPostMessage("ibuffer", 0b0);
-      return _ibuffer;
-    }
+    // if (addr.address == INPUT_BUFFER_ADDR)
+    // {
+    //   const _ibuffer = addr.value as number;
+    //   if (_ibuffer != 0b0) this.workerPostMessage("ibuffer", 0b0);
+    //   return _ibuffer;
+    // }
 
     return addr.value;
   }

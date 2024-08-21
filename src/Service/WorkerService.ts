@@ -62,24 +62,26 @@ export default class WorkerService {
 
         }
 
-        if (e.data.command == "ibuffer")
-        {
-          let packet = e.data.value as number;
-          // console.log(`wrote back ibuffer ${packet}`);
-          this.shared.ibuffer = packet;
+        // if (e.data.command == "ibuffer")
+        // {
+        //   let packet = e.data.value as number;
+        //   // console.log(`wrote back ibuffer ${packet}`);
+        //   this.shared.ibuffer = packet;
 
-        }
+        // }
 
         // As I've explained in the processor class, we need this check to avoid infinite loops since
         // the worker can't receive messages while executing
         // the halt also serves as a "natural polling", when the processor halts, we can get the input
         // buffer from the front end and pass it to the processor
-        // @arg ibuffer: input buffer, a number of 32 btis, each byte is a key code
+        // @arg ibuffer: input buffer
         if (e.data.command == "halt check") {
-          if (this.shared.currentProcessor?.halted == false)
-            this.cpuWorker?.postMessage({ command: "halt check answer", value: "continue", ibuffer: this.shared.ibuffer })
-            // this.shared.ibuffer = 0b0;
-          // console.log(`writting ibuffer from halt check ${this.shared.ibuffer}`);
+          
+            let ib = this.shared.ibuffer.pop();
+            ib = ib == undefined ? 0 : ib;
+            
+            // I had to use "as number" because for SOME REASON the web worker wouldn't send ib if it was zero...
+            this.cpuWorker?.postMessage({ command: "halt check answer", value: "continue", ibuffer: ib as number })
         }
 
         // TOOD: comment this
@@ -134,7 +136,8 @@ export default class WorkerService {
       processorref: processor.refname,
       processorFrequency: processor.frequency,
       useDebug: this.shared.debugInstructions,
-      program: this.shared.program
+      program: this.shared.program,
+      startMem: this.shared.startMemory
     });
 
     this.handleCom();

@@ -2,7 +2,7 @@ import SharedData, { Instruction, IProcessor } from "./SharedData"
 import MonoMIPS from "../Hardware/Mono Mips/MonoMIPS";
 import Logger from "./Logger";
 import SISMIPS from "../Hardware/SIS Mips/SIS";
-import { INPUT_BUFFER_ADDR } from "../Hardware/TemplatePorcessor";
+import { addr, INPUT_BUFFER_ADDR } from "../Hardware/TemplatePorcessor";
 // import BinaryNumber from "../Hardware/BinaryNumber";
 
 /*
@@ -20,7 +20,8 @@ export type WorkCpuMessage = {
     processorref: string,
     processorFrequency: number,
     useDebug: boolean,
-    program: Array<Instruction>
+    program: Array<Instruction>,
+    startMem : Array<addr>
 }
 
 
@@ -35,6 +36,7 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
         cpu = e.data.processorref == "mono" ? new MonoMIPS() : new SISMIPS();
         cpu.frequency = e.data.processorFrequency;
         share.processorFrequency = e.data.processorFrequency;
+        share.startMemory = e.data.startMem;
         cpu.useDebug = e.data.useDebug;
         
         // When passing objects to the worker, any functions are lost, so we need to re-define them
@@ -42,6 +44,9 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
         //     Object.setPrototypeOf(x.machineCode, BinaryNumber.prototype);
         //     Object.setPrototypeOf(x.memAddress, BinaryNumber.prototype);
         // })
+
+        console.log(`SETUP !`)
+        console.log(e.data.startMem)
 
         share.program = e.data.program;
 
@@ -55,6 +60,7 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
     if (e.data.command == "run"){
         setup();
         cpu.reset();
+        e.data.startMem.forEach(x => cpu.memory.push(x))
         cpu.loadProgram(e.data.instructions);
         share.debugInstructions = e.data.useDebug;
         cpu.execute();
@@ -64,6 +70,7 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
         if (cpu.halted == true){
             setup();
             cpu.reset();
+            e.data.startMem.forEach(x => cpu.memory.push(x))
             cpu.loadProgram(e.data.instructions);
             share.debugInstructions = e.data.useDebug;
             cpu.executeStep();
@@ -87,13 +94,13 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
         
         if (e.data.ibuffer)
         {
-            const i = cpu.memory.findIndex(x => x.address = INPUT_BUFFER_ADDR);
+            const i = cpu.memory.findIndex(x => x.address == INPUT_BUFFER_ADDR);
 
-            if (i == -1) cpu.memory.push({address: INPUT_BUFFER_ADDR, value: e.data.ibuffer ?? 0b0});
-            else cpu.memory[i] = {address: INPUT_BUFFER_ADDR, value: e.data.ibuffer ?? 0b0};
+            if (i == -1) cpu.memory.push({address: INPUT_BUFFER_ADDR, value: e.data.ibuffer});
+            else cpu.memory[i] = {address: INPUT_BUFFER_ADDR, value: e.data.ibuffer};
 
             
-            // console.log(`wrote ibuffer (index ${i}) ${cpu.memory[i].value}`);
+            // console.log(`wrote ibuffer (index ${i}) ${cpu.memory[i].value} and recieved ${e.data.ibuffer}`);
         }
 
         cpu.halted = false;

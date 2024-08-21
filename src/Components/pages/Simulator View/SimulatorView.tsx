@@ -76,7 +76,7 @@ export default function SimulatorView() {
         }
     }
     if( typeof ascii == "number" && ascii < 128) {
-        share.ibuffer = ascii; //todo: change to shift register
+        share.ibuffer.push(ascii); //todo: change to shift register
         console.log(`ASCII code ${ascii} entered from keyboard`);
     }
     
@@ -165,6 +165,7 @@ export default function SimulatorView() {
 
     // first, we have to link our canvas with our ScreenRenderer
     setScreenRendererCanva()
+    share.ibuffer = [0];
 
     if (share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 
