@@ -166,6 +166,7 @@ export default function SimulatorView() {
     // first, we have to link our canvas with our ScreenRenderer
     setScreenRendererCanva()
     share.ibuffer = [0];
+    // share.resetStartMemory();
 
     if (share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 

@@ -57,7 +57,6 @@ export default class WorkerService {
 
           for (let i = 0; i < packet.length; i++) {
             ScreenRenderer.instance.drawPixel(packet[i].address, packet[i].value);
-            // console.log(`pixel addr ${addr.value} value ${v.value}`);
           }
 
         }
@@ -81,7 +80,8 @@ export default class WorkerService {
             ib = ib == undefined ? 0 : ib;
             
             // I had to use "as number" because for SOME REASON the web worker wouldn't send ib if it was zero...
-            this.cpuWorker?.postMessage({ command: "halt check answer", value: "continue", ibuffer: ib as number })
+            if(this.shared.currentProcessor?.halted == false)
+              this.cpuWorker?.postMessage({ command: "halt check answer", value: "continue", ibuffer: ib as number })
         }
 
         // TOOD: comment this
@@ -113,11 +113,6 @@ export default class WorkerService {
             this.shared.currentProcessor.regbank = reg
           }
         }
-
-        // if (e.data.command == "mem terminal set data")
-        // {
-
-        // }
 
 
       };

@@ -1,4 +1,4 @@
-import { addr, INPUT_BUFFER_ADDR, SCREEN_MEM_START } from "../Hardware/TemplatePorcessor";
+import { addr, INPUT_BUFFER_ADDR, SCREEN_MEM_END, SCREEN_MEM_START } from "../Hardware/TemplatePorcessor";
 import Logger, { ErrorType } from "./Logger";
 import SharedData, { Instruction } from "./SharedData";
 
@@ -317,7 +317,8 @@ export default class SimulatorService {
 }
 
   private handleConstants(code: string): string {
-    const ck: Record<string, number> = { "PC_START": this.share.pcStart, "SCREEN_MEM_START": SCREEN_MEM_START, "INPUT_BUFFER_ADDR": INPUT_BUFFER_ADDR };
+    const ck: Record<string, number> = { "PC_START": this.share.pcStart, "SCREEN_MEM_START": SCREEN_MEM_START,
+    "SCREEN_MEM_END": SCREEN_MEM_END, "INPUT_BUFFER_ADDR": INPUT_BUFFER_ADDR };
     const keys = Object.keys(ck);
 
     keys.forEach(k => {
@@ -348,7 +349,7 @@ export default class SimulatorService {
     // code = this.clearComments(code);
     // code = this.clearSpecialChars(code);
     this.program = new Array<Instruction>();
-    this.share.startMemory = this.share._startMemoryDefault;
+    this.share.resetStartMemory();
 
     code = this.handleDirectives(code);
     code = this.handleConstants(code);
@@ -442,6 +443,27 @@ export default class SimulatorService {
 
             this.currentAddr += bytes;
           }
+          else
+          {
+            let n = 0;
+            if(arg.startsWith("0x"))
+            {
+              n = Number.parseInt(arg.replace("0x",""),16) & 0xffffffff
+              
+            }
+            else if (arg.startsWith("0b"))
+            {
+              n = Number.parseInt(arg.replace("0b",""),2) & 0xffffffff
+            } 
+            else 
+            {
+              n = Number.parseInt(arg) & 0xffffffff
+            }
+
+            this.share.startMemory.push({address:this.currentAddr, value: n})
+            this.currentAddr += 4
+          }
+
         }
 
         continue;

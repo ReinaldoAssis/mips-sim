@@ -3,7 +3,7 @@ import Logger, { ErrorType } from "../Service/Logger";
 import SharedData, { Instruction, IProcessor } from "../Service/SharedData";
 
 export const SCREEN_MEM_START = 2000;
-export const SCREEN_MEM_END = 162000;
+export const SCREEN_MEM_END = 12000;
 export const INPUT_BUFFER_ADDR = 255;
 
 // the masks are counted from left to right

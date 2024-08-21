@@ -64,10 +64,10 @@ export default class SharedData {
   // Title of the current program
   public programTitle : string = "Recent";
 
-  public _startMemoryDefault : Array<addr> = [{address: INPUT_BUFFER_ADDR, value: 0}];
+  // public _startMemoryDefault : Array<addr> = [{address: INPUT_BUFFER_ADDR, value: 0}];
 
   // the memory that the processor is initialized with
-  public startMemory : Array<addr> = this._startMemoryDefault as Array<addr>;
+  public startMemory : Array<addr> = this.resetStartMemory();
 
   public memoryterminalText : string = "";
 
@@ -109,6 +109,12 @@ export default class SharedData {
     if (this.monaco && this._currentProcessor) {
       //TODO
     }
+  }
+
+  public resetStartMemory()
+  {
+    this.startMemory = [{address: INPUT_BUFFER_ADDR, value: 0}];
+    return [{address: INPUT_BUFFER_ADDR, value: 0}];
   }
 
   public get currentStepLine(): number {
