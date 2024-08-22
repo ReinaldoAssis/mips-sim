@@ -67,7 +67,7 @@ export default function SimulatorView() {
 
   function handleKeyPress(e : KeyboardEvent) 
   {
-    if(e.repeat) return;
+    //if(e.repeat) return;
     let ascii, key = e.key;
     if(key.length == 1) {
         ascii = key.charCodeAt(0);
