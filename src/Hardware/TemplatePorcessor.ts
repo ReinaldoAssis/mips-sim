@@ -105,7 +105,7 @@ export default class TemplateProcessor implements IProcessor {
   }
 
   public stdout(value: string, linebreak = true, forceBatch = false, debug = false) {
-    if (forceBatch || this.stdoutBatch.length > 0) {
+    if (forceBatch || this.stdoutBatch.length > 0 || (this.debugBatch.length > 0 && this.useDebug)) {
       this.workerPostMessage("console", { log: this.stdoutBatch.join(""), linebreak: false });
       this.workerPostMessage("debug", { log: this.debugBatch.join(""), linebreak: false });
       this.stdoutBatch = [];
