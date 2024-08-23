@@ -77,7 +77,7 @@ main:
         
         </GridItem>
         
-        <GridItem hidden={true} w='100%' h='100'>
+        <GridItem w='100%' h='100'>
         {example("Working with arrays",`addi $a2 $zero 5                    # number of elements
 addi $s0 $zero 40                  # array pointer
 
