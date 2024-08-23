@@ -60,7 +60,8 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
     if (e.data.command == "run"){
         setup();
         cpu.reset();
-        e.data.startMem.forEach(x => cpu.memory.push(x))
+        if(e.data.startMem)
+            e.data.startMem.forEach(x => cpu.memory.push(x))
         cpu.loadProgram(e.data.instructions);
         share.debugInstructions = e.data.useDebug;
         cpu.execute();
@@ -70,7 +71,8 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
         if (cpu.halted == true){
             setup();
             cpu.reset();
-            e.data.startMem.forEach(x => cpu.memory.push(x))
+            if(e.data.startMem)
+                e.data.startMem.forEach(x => cpu.memory.push(x))
             cpu.loadProgram(e.data.instructions);
             share.debugInstructions = e.data.useDebug;
             cpu.executeStep();
