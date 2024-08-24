@@ -318,7 +318,7 @@ export default class SimulatorService {
 
   private handleConstants(code: string): string {
     const ck: Record<string, number> = { "PC_START": this.share.pcStart, "SCREEN_MEM_START": SCREEN_MEM_START,
-    "SCREEN_MEM_END": SCREEN_MEM_END, "INPUT_BUFFER_ADDR": INPUT_BUFFER_ADDR };
+    "SCREEN_MEM_END": SCREEN_MEM_END, "INPUT_BUFFER_ADDR": INPUT_BUFFER_ADDR, "STACK_START": this.share.stackStart };
     const keys = Object.keys(ck);
 
     keys.forEach(k => {
