@@ -44,6 +44,8 @@ function AssemblyEditor(props: {
     "jal",
   ];
 
+  keywords.push(...keywords.map(x => x.toUpperCase()))
+
   // React.useEffect(() => {
   //   if (share.monacoEditor && share.monacoEditor.languages) {
   //     share.monacoEditor.languages.setMonarchTokensProvider("mips", {
@@ -122,17 +124,18 @@ function AssemblyEditor(props: {
       };
     });
 
+      // TODO: check the impact of un-commenting this
     monaco.languages.registerCompletionItemProvider("mips", {
       provideCompletionItems: (model: any, position: any) => {
-        // const suggestions = [
-        //   ...keywords.map((k) => {
-        //     return {
-        //       label: k,
-        //       kind: monaco.languages.CompletionItemKind.Keyword,
-        //       insertText: k,
-        //     };
-        //   }),
-        // ];
+        const suggestions = [
+          ...keywords.map((k) => {
+            return {
+              label: k,
+              kind: monaco.languages.CompletionItemKind.Keyword,
+              insertText: k,
+            };
+          }),
+        ];
         return { suggestions: suggestions };
       },
     });
