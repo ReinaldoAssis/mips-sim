@@ -39,9 +39,11 @@ export default function LoadProgramModal(props: {
     React.useEffect(() => {
       if(cachedPrograms.length == 0){
         setCachedPrograms(share.getListOfCachedPrograms() as string[]);
+        console.log(share.getListOfCachedPrograms())
+        console.log(cachedPrograms)
 
       }
-    }, [])
+    }, [props.isOpen, props.close])
 
     const [deletePromptOpen, setDeletePromptOpen] = React.useState<boolean>(false);
     const [selectedProgram, setSelectedProgram] = React.useState<string>("");
@@ -60,7 +62,7 @@ export default function LoadProgramModal(props: {
                 {
                     cachedPrograms.map((program, index) => {
                         return (
-                            <Flex style={{verticalAlign:"center"}}>
+                            <Flex key={index} style={{verticalAlign:"center"}}>
                               <Button key={index} width="80%" onClick={() => {
                                 share.code = share.loadProgram(program);
                                 share.updateMonacoCode();
