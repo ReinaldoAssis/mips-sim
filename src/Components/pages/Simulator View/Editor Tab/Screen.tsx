@@ -1,5 +1,6 @@
 
 import React from 'react';
+import Draggable from 'react-draggable';
 // import BinaryNumber from '../../../../Hardware/BinaryNumber';
 import { addr } from '../../../../Hardware/TemplatePorcessor';
 
@@ -76,7 +77,11 @@ export class ScreenRenderer {
 export default function Screen() {
 
   // boxshadow: 0 0 10px 10px rgba(0, 0, 0, 0.5);
-  return <div style={{ backgroundColor: "grey", width: SCREEN_DIV_SIZE, height: SCREEN_DIV_SIZE, left: window.screen.width / 2 - 200, top: window.screen.height / 2 - 300, zIndex: 10, position: "absolute", boxShadow: "0 2 10px 20px rgba(0, 0, 0, 0.5)"}}>
-    <canvas style={{ imageRendering: 'pixelated', position: "absolute"}} id="screenCanvas"></canvas>
-  </div>
+  return <>
+    <Draggable>
+      <div style={{cursor: "grab" ,backgroundColor: "grey", width: SCREEN_DIV_SIZE, height: SCREEN_DIV_SIZE, left: window.screen.width / 2 - 200, top: window.screen.height / 2 - 300, zIndex: 10, position: "absolute", boxShadow: "0 2 10px 20px rgba(0, 0, 0, 0.5)"}}>
+        <canvas style={{ imageRendering: 'pixelated', position: "absolute"}} id="screenCanvas"></canvas>
+      </div>
+    </Draggable>
+  </>
 }
