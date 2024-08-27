@@ -72,45 +72,8 @@ export default function ConfigModal(props: {
           <Stack direction="column" spacing={2}>
             <Flex >
             <Text>Clock speed</Text>
-            <Input onChange={clockSpeedChange} value={clockSpeed} style={{width:"40px", marginLeft:10, alignSelf:"center"}} placeholder="10" size="xs"/>
+            <Input onChange={clockSpeedChange} value={clockSpeed} style={{width:"80px", marginLeft:10, alignSelf:"center"}} placeholder="10" size="xs"/>
             </Flex>
-            <Slider
-              aria-label="Clock speed"
-              defaultValue={30}
-              min={0}
-              max={10000}
-              isDisabled={true}
-            >
-              <SliderMark value={2500} mt="1" ml="-2.5" fontSize="sm">
-                2.5K
-              </SliderMark>
-              <SliderMark value={5000} mt="1" ml="-2.5" fontSize="sm">
-                5K
-              </SliderMark>
-              <SliderMark value={7500} mt="1" ml="-2.5" fontSize="sm">
-                7.5K
-              </SliderMark>
-              <SliderTrack>
-                <SliderFilledTrack />
-              </SliderTrack>
-
-              <SliderTrack>
-                <SliderFilledTrack />
-              </SliderTrack>
-              <SliderThumb />
-            </Slider>
-
-            <Text style={{ marginTop: 30 }}>Processor model</Text>
-            <Select
-              size="md"
-              onChange={handleSelectChange}
-              id="sim-model-select"
-              ref={simModelSelector}
-              value={share.currentProcessor?.refname ?? "mono"}
-            >
-              <option value="sis">Simplified Instruction Set</option>
-              <option value="mono">Monocycle</option>
-            </Select>
 
             <Text style={{ marginTop: 30 }}>Debug instructions</Text>
             <Switch isChecked={share.debugInstructions} onChange={(e) => {
