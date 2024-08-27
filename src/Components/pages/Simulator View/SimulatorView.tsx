@@ -210,7 +210,7 @@ export default function SimulatorView() {
       <TabList style={{zIndex:50}}>
         <Tab style={{zIndex:50}}>Editor</Tab>
         <Tab style={{zIndex:50}}>Hex View</Tab>
-        <Tab style={{zIndex:50}}>DataPath</Tab>
+        <Tab style={{zIndex:50}}>Datapath</Tab>
       </TabList>
 
       <TabPanels>
