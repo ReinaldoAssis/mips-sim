@@ -37,12 +37,12 @@ export default function LoadProgramModal(props: {
     const [cachedPrograms, setCachedPrograms] = React.useState<string[]>([]);
 
     React.useEffect(() => {
-      if(cachedPrograms.length == 0){
+      // if(cachedPrograms.length == 0){
         setCachedPrograms(share.getListOfCachedPrograms() as string[]);
         console.log(share.getListOfCachedPrograms())
         console.log(cachedPrograms)
 
-      }
+      // }
     }, [props.isOpen, props.close])
 
     const [deletePromptOpen, setDeletePromptOpen] = React.useState<boolean>(false);
