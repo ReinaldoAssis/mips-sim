@@ -120,7 +120,7 @@ export default class WorkerService {
     }
   }
 
-  public runCode(instructions: Array<Instruction>) {
+  public runCode(instructions: Array<Instruction>, frequency?:number) {
     if (this.cpuWorker == null) return;
 
     let processor = this.shared.currentProcessor ?? new MonoMIPS();
@@ -129,7 +129,7 @@ export default class WorkerService {
       command: "run",
       instructions: instructions,
       processorref: processor.refname,
-      processorFrequency: processor.frequency,
+      processorFrequency: frequency ?? 1000,
       useDebug: this.shared.debugInstructions,
       program: this.shared.program,
       startMem: this.shared.startMemory

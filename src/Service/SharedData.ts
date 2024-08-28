@@ -129,7 +129,7 @@ export default class SharedData {
     // Displaying the current line is only useful if the processor is running 
     // at a low frequency
     if (this.processorFrequency > 100){
-      this.log.pushInternalMessage(`Processor frequency (${this.processorFrequency}) is too high to display current line`)
+      //this.log.pushInternalMessage(`Processor frequency (${this.processorFrequency}) is too high to display current line`)
       return;
     }
 

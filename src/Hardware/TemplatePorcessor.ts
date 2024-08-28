@@ -281,7 +281,7 @@ export default class TemplateProcessor implements IProcessor {
 
       this.halted = false;
   
-      if (this.frequency < 90) {
+      if (this.frequency <= 300) {
         self.postMessage({ command: "instruction", value: this.currentInstruction })
         // console.log("from processor ", this.currentInstruction.humanCode)
       }

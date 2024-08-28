@@ -89,6 +89,7 @@ self.onmessage = function (e: MessageEvent<WorkCpuMessage>) {
         if (share.currentProcessor) cpu = share.currentProcessor;
         cpu.reset();
         share.currentProcessor = cpu;
+        cpu.frequency = 1000;
     
     }
 

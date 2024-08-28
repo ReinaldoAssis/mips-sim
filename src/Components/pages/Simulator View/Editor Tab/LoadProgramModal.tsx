@@ -39,8 +39,6 @@ export default function LoadProgramModal(props: {
     React.useEffect(() => {
       // if(cachedPrograms.length == 0){
         setCachedPrograms(share.getListOfCachedPrograms() as string[]);
-        console.log(share.getListOfCachedPrograms())
-        console.log(cachedPrograms)
 
       // }
     }, [props.isOpen, props.close])

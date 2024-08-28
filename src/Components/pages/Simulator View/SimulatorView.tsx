@@ -171,9 +171,9 @@ export default function SimulatorView() {
     if (share.currentProcessor == null) share.currentProcessor = new MonoMIPS();
 
     share.currentProcessor.halted = false;
-    WorkerService.instance.runCode(share.program);
+    WorkerService.instance.runCode(share.program, share.processorFrequency);
 
-
+    console.log(`Running at frequency ${share.processorFrequency}`)
 
     
   }
