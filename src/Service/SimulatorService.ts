@@ -270,7 +270,7 @@ export default class SimulatorService {
     while ((match = directiveRegex.exec(code)) !== null) {
         const directive = match[1];
         const argumentsString = match[2];
-        const args = argumentsString.split(',').map(arg => arg.trim());
+        const args = argumentsString.split(' ').map(arg => arg.trim());
 
         directives.push({
             directive,
@@ -292,23 +292,57 @@ export default class SimulatorService {
             const lineIndex = lines.findIndex(line => line.includes(directiveLine));
             const line_text = lines[lineIndex]
 
-            console.log(`replacing line, ${fileName} -> `+ line_text)
-            console.log("imported code", importedCode)
+            // console.log(`replacing line, ${fileName} -> `+ line_text)
+            // console.log("imported code", importedCode)
 
             code = code.replace(line_text, importedCode)
 
         }
 
-        // if (directive == "def")
-        // {
-        //   // TODO: Validate arguments
-        //   if (args.length !== 1) {
-        //     throw new Error(`Invalid arguments for .def directive: ${argumentsString}`);
-        //   }
+        if (directive == "def")
+        {
+          // TODO: Validate arguments
+          if (args.length !== 2) {
+            throw new Error(`Invalid arguments for .def directive: ${argumentsString}`);
+          }
           
-        //   const def_value = args[0]
+          // there are more efficent ways of doing this, but I don't find the extra complexity 
+          // worth it. In this implementation, we search line by line because we want to support
+          // multiple .def for the same symbol.
+          code.split("\n").forEach(line => {
+            if (line.startsWith(".def"))
+            {
+              // ex: .def name  $s0
+              //          arg0 arg1
+              const args2 = line.replace(".def ","").split(" ")
 
-        // }
+              // if they are defining the same symbol, stop (another .def directive with the same symbol)
+              if (args2[0] == args[0])
+              {
+                return;
+              }
+              
+            } else
+            {
+              // const newline = line.replaceAll(args[0], args[1]);
+
+              // TODO: check if this works
+              let newline : Array<string> = [];
+              line.split(" ").forEach(l_token => {
+                if (l_token == args[0]) newline.push(args[1])
+                else newline.push(l_token)
+              })
+
+              // const newline = line.replaceAll(args[0], args[1]);
+              code = code.replaceAll(line,newline.join(" "));
+              // console.log(`found .def match with ${args[0]} ${args[1]}`)
+            }
+
+
+
+          })
+
+        }
     }
 
     console.log("code directives", directives);
@@ -403,6 +437,7 @@ export default class SimulatorService {
       // split the line into tokens (arguments)
       let tokens = lines[i].split(" ");
 
+      // DYNAMIC DIRECTIVES HANDLER ===========================================
       // if it is not an instruction, it may be a directive
       if (this.instruction_set.indexOf(tokens[0].toLowerCase()) == -1){
         // console.log(`token ${tokens[0]} was not in the IS`)
@@ -414,7 +449,6 @@ export default class SimulatorService {
         if (_tk == ".org" && tokens.length == 2)
         {
           const newPC = Number.parseInt(tokens[1])
-          console.log(`.org directive, PC at ${newPC}`)
           this.currentAddr = newPC;
         }
 
@@ -422,7 +456,6 @@ export default class SimulatorService {
         {
           
           let arg = tokens.join(" ").replace(".dw","").trim();
-          console.log(`.DW DIRECTIVE ${arg}`)
 
           // check if its a string
           // adds a terminator byte (all zeros)
@@ -438,8 +471,6 @@ export default class SimulatorService {
 
             this.share.startMemory.push({address:this.currentAddr+((bytes-1)*4), value:0})
 
-            console.log(`.DW DIRECTIVE ${bytes}`)
-            console.log(this.share.startMemory)
 
             this.currentAddr += bytes;
           }
@@ -468,6 +499,7 @@ export default class SimulatorService {
 
         continue;
       }
+      // ===========================================================================
 
       tokens = tokens.filter((x) => x !== "" && x.startsWith("#") == false);
       if (tokens.length == 0) continue;

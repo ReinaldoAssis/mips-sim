@@ -42,7 +42,15 @@ function AssemblyEditor(props: {
     "sw",
     "j",
     "jal",
+    
   ];
+
+  const directives = [
+    "def",
+    "dw",
+    "org",
+    "include"
+  ]
 
   keywords.push(...keywords.map(x => x.toUpperCase()))
 
@@ -78,7 +86,7 @@ function AssemblyEditor(props: {
     monaco.languages.register({ id: "mips" });
     // register a tokens provider for the language
     monaco.languages.setMonarchTokensProvider("mips", {
-      keywords: keywords,
+      keywords: keywords.concat(directives),
       tokenizer: {
         root: [
           [

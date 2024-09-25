@@ -34,7 +34,7 @@ import ConfigModal from "./ConfigModal";
 import ConsoleTerminal from "./ConsoleTerminal";
 import DebugTerminal from "./DebugTerminal";
 import MonoMIPS from "../../../../Hardware/Mono Mips/MonoMIPS";
-import { FaFolderOpen } from "react-icons/fa";
+import { FaDownload, FaFolderOpen } from "react-icons/fa";
 import LoadProgramModal from "./LoadProgramModal";
 import WorkerService from "../../../../Service/WorkerService";
 import Screen, { ScreenRenderer } from "./Screen";
@@ -388,6 +388,57 @@ export default function EditorView(props: {
               onClick={() => setLoadProgramModalOpen(true)}
             >
               Load
+            </IconButton>
+          </Tooltip>
+          <Tooltip label="Download Code">
+            <IconButton
+              icon={
+                <Icon
+                  as={FaDownload}
+                  style={{ transform: "scale(1.2)" }}
+                />
+              }
+              zIndex={10}
+              aria-label="Download Code"
+              backgroundColor={SharedData.theme.editorBackground}
+              color="white"
+              borderRadius={50}
+              size="sm"
+              onClick={() => {
+                function downloadFile() 
+                {
+                    
+                    const element = document.createElement("a");
+                    const file = new Blob([share.code], {type: 'text/plain'});
+                    element.href = URL.createObjectURL(file);
+                    element.download = share.programTitle+".txt";
+                    document.body.appendChild(element); // Required for this to work in FireFox
+                    element.click();
+                }
+
+                try{
+                  downloadFile()
+                  toast({
+                    title: "Code downloaded",
+                    description: "Your code has been downloaded",
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                  });
+                }
+                catch{
+                  toast({
+                    title: "Something went wrong...",
+                    description: "There was an error while trying to download the code",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                  });
+                }
+
+            }}
+            >
+              Download
             </IconButton>
           </Tooltip>
         </Stack>

@@ -77,7 +77,7 @@ export default function SimulatorView() {
     }
     if( typeof ascii == "number" && ascii < 128) {
         share.ibuffer.push(ascii); //todo: change to shift register
-        console.log(`ASCII code ${ascii} entered from keyboard`);
+        // console.log(`ASCII code ${ascii} entered from keyboard`);
     }
     
   }
