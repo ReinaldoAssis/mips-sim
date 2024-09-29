@@ -6,6 +6,7 @@ import SimulatorView from "./Components/pages/Simulator View/SimulatorView";
 import InstructionSetPage from "./Components/pages/InstructionSet/InstructionSet";
 import Logger from "./Service/Logger";
 import ExamplePage from "./Components/pages/Exemples/ExamplePage";
+import CreditsPage from "./Components/pages/Credits";
 
 export function App()
 {
@@ -70,6 +71,7 @@ export function App()
       <SimulatorView />
       <InstructionSetPage />
       <ExamplePage/>
+      <CreditsPage/>
     </SidebarWithHeader>
   </ChakraProvider>)
 }
