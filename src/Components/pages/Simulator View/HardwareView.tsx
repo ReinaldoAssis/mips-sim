@@ -503,7 +503,6 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
                 <InstructionDisplay n={0} i={inst}/>
             </Stack>
 
-            <MipsSVG style={{ width:"70%", zIndex:0, position:"absolute", left:300, top: -360 }} />
             <Flex style={{marginBottom:10}} fontFamily="monospace">
             <Badge colorScheme="green">T0 <br/> {share.currentProcessor?.regbank[5].toString(16)}</Badge>
             <Badge colorScheme="green">T1 <br/>{share.currentProcessor?.regbank[6].toString(16)}</Badge>
@@ -528,6 +527,24 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
             <Badge colorScheme="purple">V0 <br/>{share.currentProcessor?.regbank[1].toString(16)}</Badge>
             <Badge colorScheme="purple">V1 <br/>{share.currentProcessor?.regbank[2].toString(16)}</Badge>
             </Flex>
+
+            <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '90vh', // Full viewport height
+            width: '90vw',  // Full viewport width
+            position: 'relative', // Ensures it fills the screen
+            zIndex: 0, 
+            }}>
+                <MipsSVG style={{ 
+                    width: '70%', 
+                    maxHeight: '100%', 
+                    maxWidth: '100%', 
+                    position: 'relative', 
+                    left: -50
+                }} />
+            </div>
 
             {/* <Button onClick={() => {}}>Refreh</Button> */}
         </>
