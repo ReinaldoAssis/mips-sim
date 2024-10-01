@@ -101,6 +101,51 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
         })
     }
 
+    function paintJ(color:string){
+        const svgPath = Array<HTMLElement|null>()
+        svgPath.push(document.getElementById("pc-out-im"));
+        svgPath.push(document.getElementById("arr-pc-out-im"));
+        
+        svgPath.push(document.getElementById("pc-in"));
+        svgPath.push(document.getElementById("arr-pc-in"));
+        svgPath.push(document.getElementById("im-out-ctrl-1"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-1"));
+        svgPath.push(document.getElementById("im-out-ctrl-2"));
+        svgPath.push(document.getElementById("arr-im-out-ctrl-2"));
+        // svgPath.push(document.getElementById("writereg"));
+        // svgPath.push(document.getElementById("arr-mux-pc4-beq-out"));
+        // svgPath.push(document.getElementById("mux-pc4-beq-out"));
+        // svgPath.push(document.getElementById("arr-ra"));
+        // svgPath.push(document.getElementById("ra"));
+        // svgPath.push(document.getElementById("writedata"));
+        // svgPath.push(document.getElementById("arr-writedata"));
+        // svgPath.push(document.getElementById("jal-ra"));
+        // svgPath.push(document.getElementById("arr-jal-ra"));
+        svgPath.push(document.getElementById("im-out-shift"));
+        svgPath.push(document.getElementById("arr-im-out-shift"));
+        svgPath.push(document.getElementById("shift-out-combine"));
+        svgPath.push(document.getElementById("arr-shift-out-combine"));
+        svgPath.push(document.getElementById("pc-out-add"));
+        svgPath.push(document.getElementById("arr-pc-out-add"));
+        svgPath.push(document.getElementById("4"));
+        svgPath.push(document.getElementById("arr-4"));
+        svgPath.push(document.getElementById("pc4"));
+        svgPath.push(document.getElementById("arr-pc4"));
+        svgPath.push(document.getElementById("Path 148")); // REVISAR
+        svgPath.push(document.getElementById("arr-pc4-out-combine"));
+        svgPath.push(document.getElementById("jumpaddr"));
+        svgPath.push(document.getElementById("arr-jumpaddr"));
+        
+
+        svgPath.forEach(x => {
+            if(x){
+                x.style.stroke = color;
+                if(x.id.startsWith("arr")) x.style.fill = color;
+                x.style.color = color;
+            }
+        })
+    }
+
     function paintTypeR(color:string){
         const svgPath = Array<HTMLElement|null>()
         svgPath.push(document.getElementById("pc-out-im"));
@@ -456,6 +501,11 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
         else if (token == "jal"){
             setState("typeJ")
             paintJal(color)
+        }
+
+        else if (token == "j"){
+            setState("typeJ")
+            paintJ(color)
         }
 
         else if (token == "sw"){
