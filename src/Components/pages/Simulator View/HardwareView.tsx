@@ -537,12 +537,12 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
             position: 'relative', // Ensures it fills the screen
             zIndex: 0, 
             }}>
-                <MipsSVG style={{ 
+                <MipsSVG title="MIPS" style={{ 
                     width: '70%', 
                     maxHeight: '100%', 
                     maxWidth: '100%', 
                     position: 'relative', 
-                    left: -50
+                    left: -50,
                 }} />
             </div>
 
