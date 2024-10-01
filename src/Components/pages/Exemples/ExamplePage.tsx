@@ -18,6 +18,7 @@ export default function ExamplePage(){
         function load_example(){
             SharedData.instance.code = code
             SharedData.instance.changePage(0)
+            SharedData.instance.programTitle = text;
         }
 
         return (<Card>
