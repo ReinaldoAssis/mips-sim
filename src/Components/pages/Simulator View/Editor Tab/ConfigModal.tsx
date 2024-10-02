@@ -18,6 +18,7 @@ import {
   Flex,
   Input,
   Switch,
+  useColorMode,
 } from "@chakra-ui/react";
 import SISMIPS from "../../../../Hardware/SIS Mips/SIS";
 import SharedData from "../../../../Service/SharedData";
@@ -37,6 +38,8 @@ export default function ConfigModal(props: {
   const simModelSelector = React.useRef<HTMLSelectElement>(null);
 
   const [model, setModel] = React.useState<string>("mono");
+
+  const { colorMode, toggleColorMode } = useColorMode()
 
   React.useEffect(() => {
     setClockSpeed(share.processorFrequency);
@@ -80,6 +83,10 @@ export default function ConfigModal(props: {
               setUseDebug(e.target.checked)
               share.debugInstructions = e.target.checked;
             }}/>
+
+<Button onClick={toggleColorMode}>
+        Toggle {colorMode === 'light' ? 'Dark Mode' : 'Light Mode'}
+      </Button>
 
           </Stack>
         </ModalBody>

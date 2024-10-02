@@ -5,6 +5,7 @@ import {
     CardHeader,
     Flex,
     Heading,
+    useColorModeValue,
   } from "@chakra-ui/react";
   import {
     Table,
@@ -62,7 +63,7 @@ export default function MonoTable()
             <Table
               variant="simple"
               style={{
-                backgroundColor: "white",
+                backgroundColor: useColorModeValue("white", "gray.900"),
                 borderRadius: 10,
                 boxShadow: "0px 0px 10px 0px rgba(0,0,0,0.1)",
               }}

@@ -4,6 +4,7 @@ import SharedData, { Instruction } from "../../../Service/SharedData";
 import WorkerService from "../../../Service/WorkerService";
 import { ReactComponent as MipsSVG } from "./mips32.svg";
 import { ArrowForwardIcon } from "@chakra-ui/icons";
+import {useColorModeValue, useColorMode} from "@chakra-ui/react"
 
 const typeR = ["add", "and", "or", "sll", "slt", "srl", "sub"]
 const typeI = ["addi","slti"]
@@ -26,6 +27,8 @@ function InstructionDisplay({n,i}:{n:number,i:Instruction}){
       marginLeft="0.5rem"
       _hover={{ bg: "#e0e0e0", cursor: "pointer" }}
       fontFamily="monospace"
+      backgroundColor={useColorModeValue("none", "gray.900")}
+      borderColor={useColorModeValue("#ccc", "gray.700")}
     >
         <Text color={"blue.500"} as="b">{n}</Text>
         <Text color={"pink.400"} as="b" marginLeft={10}>0x{i.memAddress.toString(16).padStart(8,"0")}</Text>
@@ -45,16 +48,19 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
     const [inst, setInst] = useState({humanCode:"",machineCode:0,index:0,memAddress:0})
     const [state,setState] = useState("typeR")
 
+  const { colorMode, toggleColorMode } = useColorMode()
+
+
     function resetPaint(){
-        paintTypeR("#000000")
-        paintJR("#000000")
-        paintMfhiMflo("#000000","mfhi")
-        paintMfhiMflo("#000000","mflo")
-        paintJal("#000000")
-        paintI("#000000")
-        paintSW("#000000")
-        paintLW("#000000")
-        paintBranch("#000000");
+        paintTypeR(colorMode == "light" ? "#000000" : "#ffffff")
+        paintJR(colorMode == "light" ? "#000000" : "#ffffff")
+        paintMfhiMflo(colorMode == "light" ? "#000000" : "#ffffff","mfhi")
+        paintMfhiMflo(colorMode == "light" ? "#000000" : "#ffffff","mflo")
+        paintJal(colorMode == "light" ? "#000000" : "#ffffff")
+        paintI(colorMode == "light" ? "#000000" : "#ffffff")
+        paintSW(colorMode == "light" ? "#000000" : "#ffffff")
+        paintLW(colorMode == "light" ? "#000000" : "#ffffff")
+        paintBranch(colorMode == "light" ? "#000000" : "#ffffff");
     }
 
     function paintJal(color:string){
@@ -112,15 +118,7 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
         svgPath.push(document.getElementById("arr-im-out-ctrl-1"));
         svgPath.push(document.getElementById("im-out-ctrl-2"));
         svgPath.push(document.getElementById("arr-im-out-ctrl-2"));
-        // svgPath.push(document.getElementById("writereg"));
-        // svgPath.push(document.getElementById("arr-mux-pc4-beq-out"));
-        // svgPath.push(document.getElementById("mux-pc4-beq-out"));
-        // svgPath.push(document.getElementById("arr-ra"));
-        // svgPath.push(document.getElementById("ra"));
-        // svgPath.push(document.getElementById("writedata"));
-        // svgPath.push(document.getElementById("arr-writedata"));
-        // svgPath.push(document.getElementById("jal-ra"));
-        // svgPath.push(document.getElementById("arr-jal-ra"));
+      
         svgPath.push(document.getElementById("im-out-shift"));
         svgPath.push(document.getElementById("arr-im-out-shift"));
         svgPath.push(document.getElementById("shift-out-combine"));
@@ -164,8 +162,6 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
         svgPath.push(document.getElementById("data2"));
         svgPath.push(document.getElementById("b"));
         svgPath.push(document.getElementById("arr-b"));
-        // svgPath.push(document.getElementById("alu-out"));
-        // svgPath.push(document.getElementById("arr-alu-out"));
         svgPath.push(document.getElementById("alu-out-mux"));
         svgPath.push(document.getElementById("arr-alu-out-mux"));
         svgPath.push(document.getElementById("writedata-mux1"));
@@ -475,6 +471,11 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
         let token = inst.humanCode.split(" ")[0]
         let color = "#5c21ff"
 
+        const elements = document.getElementsByClassName("s0");
+        Array.from(document.getElementsByClassName("s0")).forEach(element => {
+            (element as HTMLElement).style.color = "white";
+          });
+
         resetPaint()
         if (typeR.includes(token))
         {
@@ -534,7 +535,7 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
 
     return (
         <>
-            <Stack direction='row' spacing={4} align='center' position="fixed" bottom={4} zIndex={20}>
+            <Stack direction='row' backgroundColor={useColorModeValue("none", "gray.900")} spacing={4} align='center' position="fixed" bottom={4} zIndex={20}>
                 <Button
                     // bg="#dadee3"
                     // border="1px solid #ccc"
@@ -587,13 +588,21 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
             position: 'relative', // Ensures it fills the screen
             zIndex: 0, 
             }}>
-                <MipsSVG title="MIPS" style={{ 
+                <MipsSVG 
+                title="MIPS" 
+                style={{ 
                     width: '70%', 
                     maxHeight: '100%', 
                     maxWidth: '100%', 
                     position: 'relative', 
                     left: -50,
-                }} />
+                    fill: useColorModeValue("black", "white"), 
+                    // stroke: useColorModeValue("black", "white"),
+                    color: useColorModeValue("black", "white"),
+                    
+                }}
+                />
+
             </div>
 
             {/* <Button onClick={() => {}}>Refreh</Button> */}

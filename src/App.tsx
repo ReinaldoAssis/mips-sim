@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ChakraProvider, theme, useToast } from "@chakra-ui/react";
+import { ChakraProvider, ColorModeScript, useToast } from "@chakra-ui/react";
 
 import SidebarWithHeader from "./Components/Sidebar";
 import SimulatorView from "./Components/pages/Simulator View/SimulatorView";
@@ -7,6 +7,7 @@ import InstructionSetPage from "./Components/pages/InstructionSet/InstructionSet
 import Logger from "./Service/Logger";
 import ExamplePage from "./Components/pages/Exemples/ExamplePage";
 import CreditsPage from "./Components/pages/Credits";
+import theme from "./Components/utils/theme";
 
 export function App()
 {
