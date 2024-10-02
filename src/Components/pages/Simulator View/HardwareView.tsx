@@ -48,7 +48,31 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
     const [inst, setInst] = useState({humanCode:"",machineCode:0,index:0,memAddress:0})
     const [state,setState] = useState("typeR")
 
-  const { colorMode, toggleColorMode } = useColorMode()
+    const { colorMode } = useColorMode();
+  const strokeColor = useColorModeValue("#000000", "#ffffff");
+  const fillColor = useColorModeValue("#000000", "#ffffff");
+
+  useEffect(() => {
+    // Aplicar stroke para as classes s0, s2, s3, s5
+    const strokeClasses = document.querySelectorAll<SVGElement>(".s0, .s2, .s3, .s5");
+    strokeClasses.forEach((element) => {
+      element.style.stroke = strokeColor;
+    });
+
+    // Aplicar fill para as classes s1, s4
+    const fillClasses = document.querySelectorAll<SVGElement>(".s1, .s4");
+    fillClasses.forEach((element) => {
+      element.style.fill = fillColor;
+    });
+
+    const imgElement = document.getElementById("img1");
+    if (imgElement) {
+        if (colorMode == "dark") imgElement.style.filter = "invert(100%) sepia(100%) saturate(0%) hue-rotate(200deg)";
+        else imgElement.style.filter = "invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg)";
+    }
+        
+
+  }, [colorMode, strokeColor, fillColor]);
 
 
     function resetPaint(){
@@ -471,11 +495,6 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
         let token = inst.humanCode.split(" ")[0]
         let color = "#5c21ff"
 
-        const elements = document.getElementsByClassName("s0");
-        Array.from(document.getElementsByClassName("s0")).forEach(element => {
-            (element as HTMLElement).style.color = "white";
-          });
-
         resetPaint()
         if (typeR.includes(token))
         {
@@ -596,9 +615,6 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
                     maxWidth: '100%', 
                     position: 'relative', 
                     left: -50,
-                    fill: useColorModeValue("black", "white"), 
-                    // stroke: useColorModeValue("black", "white"),
-                    color: useColorModeValue("black", "white"),
                     
                 }}
                 />
