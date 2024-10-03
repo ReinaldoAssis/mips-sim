@@ -28,16 +28,14 @@ A simulator based on the MIPS 32 architecture envisioned to help students learn 
 
 - Built-in code editor
 - Step by step execution and debugging
-- I/O Output (screen and keyboard) [WORK IN PROGRESS]
+- I/O Output (screen and keyboard)
 - Terminal Output
-- Schematics visualization [WORK IN PROGRESS]
+- Datapath visualization
 
 
 ## Documentation
 
-A documentation is yet to be made, as of now I would recommend checking the use instructions and reading the Instruction Set page.
-
-
+The simulator's documentation can be viewed at [WIMS Doc.](https://reinaldoassis.github.io/wims-doc/docs/intro)
 
 
 ## Usage/Examples
