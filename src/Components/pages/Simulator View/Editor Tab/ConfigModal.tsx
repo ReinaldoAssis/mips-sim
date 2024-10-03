@@ -19,6 +19,7 @@ import {
   Input,
   Switch,
   useColorMode,
+  useToast,
 } from "@chakra-ui/react";
 import SISMIPS from "../../../../Hardware/SIS Mips/SIS";
 import SharedData from "../../../../Service/SharedData";
@@ -31,6 +32,7 @@ export default function ConfigModal(props: {
 }) {
   const share: SharedData = SharedData.instance;
   const [clockSpeed, setClockSpeed] = React.useState<number>(0);
+  const toast = useToast();
   
   // controls whether the simulator should run in debug mode
   const [ useDebug, setUseDebug ] = React.useState<boolean>(false);
@@ -63,6 +65,17 @@ export default function ConfigModal(props: {
     share.processorFrequency = e.target.value;
     if(share.currentProcessor) share.currentProcessor.frequency = e.target.value;
     console.log(`Share set at ${share.processorFrequency}`)
+
+    if (e.target.value > 100){
+      toast({
+        title: "Warning",
+        description: "The maximum step allowed is 100, any value higher the processor will run without stepping.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+
   }
 
   return (
@@ -74,7 +87,7 @@ export default function ConfigModal(props: {
         <ModalBody>
           <Stack direction="column" spacing={2}>
             <Flex >
-            <Text>Clock speed</Text>
+            <Text>Step speed</Text>
             <Input onChange={clockSpeedChange} value={clockSpeed} style={{width:"80px", marginLeft:10, alignSelf:"center"}} placeholder="10" size="xs"/>
             </Flex>
 

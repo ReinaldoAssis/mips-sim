@@ -351,7 +351,7 @@ export default class TemplateProcessor implements IProcessor {
     let r = Math.random() * 100
 
 
-    if (this.frequency <= 300){
+    if (this.frequency <= 100){
       
       this.sleep(10000/this.frequency);
       this.halted = true;
