@@ -21,7 +21,7 @@
 
 # WIMS (Web-based Interactive MIPS Simulator)
 
-A simulator based on the MIPS 32 architecture envisioned to help students learn and explore the foundations of assembly language and circuit schematics.
+A simulator based on the MIPS 32 architecture envisioned to help students learn and explore the foundations of assembly language and architecture schematics.
 
 
 ## Features
