@@ -1,3 +1,4 @@
+import { useColorMode } from "@chakra-ui/react";
 import Editor from "@monaco-editor/react";
 import React, { useEffect } from "react";
 import { useRef } from "react";
@@ -7,6 +8,7 @@ function AssemblyEditor(props: {
   onEditorChange: (value: string | undefined, event: any) => void;
 }) {
   const monacoRef = useRef(null);
+  const { colorMode } = useColorMode()
 
   const share: SharedData = SharedData.instance;
 
@@ -123,6 +125,23 @@ function AssemblyEditor(props: {
       ],
     });
 
+    monaco.editor.defineTheme("mipslight", {
+      base: "vs", // Tema claro como base
+      inherit: true,
+      colors: {
+        "editor.foreground": "#000000", // Texto padrão preto
+        "editor.background": "#dfe7f0", // Cor de fundo clara
+      },
+    
+      rules: [
+        { token: "comment", foreground: "#757575", fontStyle: "italic" }, // Comentários em cinza e itálico
+        { token: "keyword", foreground: "#0000FF", fontStyle: "bold" }, // Palavras-chave em azul e negrito
+        { token: "identifier", foreground: "#007ACC" }, // Identificadores em um azul mais claro
+        { token: "number", foreground: "#098658" }, // Números em verde
+        { token: "string", foreground: "#D69D85" }, // Strings em uma cor de tom pêssego
+      ],
+    });
+
     //TODO: fix suggestions - suggesting instructions that are not in the instruction set
     let suggestions = keywords.map((k) => {
       return {
@@ -157,7 +176,7 @@ function AssemblyEditor(props: {
     share.monacoEditor = editor;
     share.monaco = monaco;
 
-    monaco.editor.setTheme("mipsdark");
+    monaco.editor.setTheme(colorMode == "dark" ? "mipsdark" : "mipslight");
 
     // makes sure the editor mounts with the right code
     if(share.code != "") {
@@ -174,7 +193,7 @@ function AssemblyEditor(props: {
       onChange={props.onEditorChange}
       height="80vh"
       defaultLanguage="mips"
-      theme="vs-dark"
+      theme={colorMode == "dark" ? "mipsdark" : "mipslight"}
       defaultValue={
         "# MIPS Assembly Sim. by Reinaldo Assis \n# Project supervisor: prof. Bruno Costa\n\n"
       }
