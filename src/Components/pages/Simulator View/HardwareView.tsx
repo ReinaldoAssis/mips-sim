@@ -54,7 +54,7 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
 
   useEffect(() => {
     // Aplicar stroke para as classes s0, s2, s3, s5
-    const strokeClasses = document.querySelectorAll<SVGElement>(".s0, .s2, .s3, .s5");
+    const strokeClasses = document.querySelectorAll<SVGElement>(".s0, .s2, .s3, .s5, .s7");
     strokeClasses.forEach((element) => {
       element.style.stroke = strokeColor;
     });

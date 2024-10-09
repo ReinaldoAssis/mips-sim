@@ -97,8 +97,8 @@ export default function ConfigModal(props: {
               share.debugInstructions = e.target.checked;
             }}/>
 
-<Button onClick={toggleColorMode}>
-        Toggle {colorMode === 'light' ? 'Dark Mode' : 'Light Mode'}
+<Button onClick={() => {toggleColorMode(); share.updateCached("theme-data",colorMode == "dark" ? "light" : "dark"); console.log(`THEM DATA ${share.getCached("theme-data")}`)}}>
+        Toggle {colorMode === 'light' ? 'Dark Mode' : 'Light Mode'} 
       </Button>
 
           </Stack>
