@@ -67,12 +67,17 @@ export default function HardwareView(props:{callExecutableStep:Function}) {
 
     const imgElement = document.getElementById("img1");
     if (imgElement) {
+        console.log("ACHEI A IMAGEM")
         if (colorMode == "dark") imgElement.style.filter = "invert(100%) sepia(100%) saturate(0%) hue-rotate(200deg)";
         else imgElement.style.filter = "invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg)";
     }
         
 
   }, [colorMode, strokeColor, fillColor]);
+
+//   useEffect(() => {
+  
+//   },[])
 
 
     function resetPaint(){

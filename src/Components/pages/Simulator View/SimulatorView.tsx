@@ -7,6 +7,7 @@ import { HiPlay } from "react-icons/hi";
 import { BsTerminalFill } from "react-icons/bs";
 import { RiRewindFill, RiSettings2Fill } from "react-icons/ri";
 import { MdDelete } from "react-icons/md";
+import { FaPlus } from "react-icons/fa"
 import * as React from "react";
 import {
   Stack,
@@ -24,6 +25,17 @@ import {
   IconButton,
   Tooltip,
   Input,
+  CloseButton,
+  Heading,
+  TabIndicator,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
 } from "@chakra-ui/react";
 import SimulatorService from "../../../Service/SimulatorService";
 import HardwareView from "./HardwareView";
@@ -35,6 +47,8 @@ import MonoMIPS from "../../../Hardware/Mono Mips/MonoMIPS";
 import WorkerService from "../../../Service/WorkerService";
 import { ScreenRenderer } from "./Editor Tab/Screen";
 import HexView from "./HexView";
+import { useState } from "react";
+import MultiWindowEditor from "./Editor Tab/MultiWindowEditor/MultiWindowEditor";
 
 // const cpuWorker = new Worker(new URL('./MonoMIPSWorker.ts', import.meta.url));
 
@@ -205,6 +219,7 @@ export default function SimulatorView() {
   /* DESCRIPTION */
   // View page that houses the assembly code editor, assembly hex, and hardware view
 
+
   return (
     <Tabs variant="soft-rounded" style={{zIndex:50}}>
       <TabList style={{zIndex:50}}>
@@ -216,11 +231,9 @@ export default function SimulatorView() {
       <TabPanels>
         <TabPanel>
           <Stack>
-            <Input placeholder="Recent" ref={txtProgramtitle} variant={"unstyled"} defaultValue={share.programTitle} onChange={(e) => {
-              // setProgramTitle(e.target.value);
-              share.programTitle = e.target.value;
-            }} />
-            <EditorView onEditorChange={onEditorChange} assembleBtn={assembleCode} runBtn={runCode} callExecuteStep={callExecuteStep} />
+
+            {/* <ProgramEditorItem /> */}
+            <MultiWindowEditor />
           </Stack>
         </TabPanel>
 
