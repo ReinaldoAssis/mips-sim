@@ -3,8 +3,8 @@ import { useState } from "react"
 import { FaPlus } from "react-icons/fa"
 import SingleWindow from "./SingleWindow"
 
-export default function MultiWindowEditor ()
-  {
+
+export default function MultiWindowEditor({ callExecuteStep }: { callExecuteStep: () => void }) {
     interface Item {
       id: string
       title: string
@@ -137,7 +137,7 @@ export default function MultiWindowEditor ()
             {/* <Heading size="xl" my="6">
               {item.content} {item.id}
             </Heading> */}
-            <SingleWindow />
+            <SingleWindow callExecuteStep={callExecuteStep}/>
           </TabPanel>
         ))}
       </TabPanels>
