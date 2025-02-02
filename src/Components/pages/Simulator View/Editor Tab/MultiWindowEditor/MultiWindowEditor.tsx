@@ -1,26 +1,30 @@
 import { Button, CloseButton, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Tab, TabList, TabPanel, TabPanels, Tabs } from "@chakra-ui/react"
 import { useState } from "react"
 import { FaPlus } from "react-icons/fa"
+import { useTabs } from "./MultiWindowContext";
 import SingleWindow from "./SingleWindow"
 
 
 export default function MultiWindowEditor({ callExecuteStep }: { callExecuteStep: () => void }) {
-    interface Item {
-      id: string
-      title: string
-      content: React.ReactNode
-    }
+    
+  const { tabs, selectedTab, addTab, removeTab, selectTab } = useTabs();
+  
+  // interface Item {
+  //     id: string
+  //     title: string
+  //     content: React.ReactNode
+  //   }
 
     // placeholder items
-    const items: Item[] = [
-      { id: "1", title: "Tab", content: "Tab Content" },
-      { id: "2", title: "Tab", content: "Tab Content" },
-      { id: "3", title: "Tab", content: "Tab Content" },
-      { id: "4", title: "Tab", content: "Tab Content" },
-    ]
+    // const items: Item[] = [
+    //   { id: "1", title: "Tab", content: "Tab Content" },
+    //   { id: "2", title: "Tab", content: "Tab Content" },
+    //   { id: "3", title: "Tab", content: "Tab Content" },
+    //   { id: "4", title: "Tab", content: "Tab Content" },
+    // ]
 
-    const [tabs, setTabs] = useState<Item[]>(items)
-    const [selectedTab, setSelectedTab] = useState<string | null>(items[0].id)
+    // const [tabs, setTabs] = useState<Item[]>(items)
+    // const [selectedTab, setSelectedTab] = useState<string | null>(items[0].id)
     const [isRenamingTab, setIsRenamingTab] = useState(false)
     const [tabToEdit, setTabToEdit] = useState<string | null>(null)
     const [newTitle, setNewTitle] = useState("")
@@ -29,27 +33,27 @@ export default function MultiWindowEditor({ callExecuteStep }: { callExecuteStep
       return Math.random().toString(36).substring(2, 15)
     }
 
-    const addTab = () => {
-      const newTabs = [...tabs]
+    // const addTab = () => {
+    //   const newTabs = [...tabs]
   
-      const uid = uuid()
+    //   const uid = uuid()
   
-      newTabs.push({
-        id: uid,
-        title: `Tab`,
-        content: `Tab Body`,
-      })
+    //   newTabs.push({
+    //     id: uid,
+    //     title: `Tab`,
+    //     content: `Tab Body`,
+    //   })
   
-      setTabs(newTabs)
-      setSelectedTab(newTabs[newTabs.length - 1].id)
-    }
+    //   setTabs(newTabs)
+    //   setSelectedTab(newTabs[newTabs.length - 1].id)
+    // }
   
-    const removeTab = (id: string) => {
-      if (tabs.length > 1) {
-        const newTabs = [...tabs].filter((tab) => tab.id !== id)
-        setTabs(newTabs)
-      }
-    }
+    // const removeTab = (id: string) => {
+    //   if (tabs.length > 1) {
+    //     const newTabs = [...tabs].filter((tab) => tab.id !== id)
+    //     setTabs(newTabs)
+    //   }
+    // }
 
     function openRenameModal(id: string, currentTitle: string) {
       setTabToEdit(id)
@@ -64,10 +68,10 @@ export default function MultiWindowEditor({ callExecuteStep }: { callExecuteStep
     }
     
     function saveNewTitle() {
-      setTabs((prev) =>
-        prev.map((t) => (t.id === tabToEdit ? { ...t, title: newTitle } : t))
-      )
-      closeRenameModal()
+      // setTabs((prev) =>
+      //   prev.map((t) => (t.id === tabToEdit ? { ...t, title: newTitle } : t))
+      // )
+      // closeRenameModal()
     }
 
     function ChangeTabTitleModal (id: string)
@@ -96,7 +100,7 @@ export default function MultiWindowEditor({ callExecuteStep }: { callExecuteStep
       index={tabs.findIndex(tab => tab.id === selectedTab)}
       variant="enclosed"
       size="sm"
-      onChange={(index) => setSelectedTab(tabs[index].id)}
+      onChange={(index) => selectTab(tabs[index].id)}
     >
       <TabList flex="1 1 auto">
         

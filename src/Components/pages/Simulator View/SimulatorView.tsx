@@ -1,54 +1,21 @@
-import { ColorModeSwitcher } from "../../../ColorModeSwitcher";
-import { Logo } from "../../../Logo";
-import Editor from "@monaco-editor/react";
-import AssemblyEditor from "../../AssemblyEditor";
-import { ArrowForwardIcon } from "@chakra-ui/icons";
-import { HiPlay } from "react-icons/hi";
-import { BsTerminalFill } from "react-icons/bs";
-import { RiRewindFill, RiSettings2Fill } from "react-icons/ri";
-import { MdDelete } from "react-icons/md";
-import { FaPlus } from "react-icons/fa"
 import * as React from "react";
 import {
   Stack,
-  Button,
-  Icon,
   Tabs,
   TabList,
   Tab,
   TabPanels,
   TabPanel,
-  Textarea,
   useToast,
-  Slide,
-  Box,
-  IconButton,
-  Tooltip,
-  Input,
-  CloseButton,
-  Heading,
-  TabIndicator,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
 } from "@chakra-ui/react";
 import SimulatorService from "../../../Service/SimulatorService";
 import HardwareView from "./HardwareView";
-import SISMIPS from "../../../Hardware/SIS Mips/SIS";
-import Logger from "../../../Service/Logger";
 import SharedData, { Instruction } from "../../../Service/SharedData";
-import EditorView from "./Editor Tab/EditorTab";
 import MonoMIPS from "../../../Hardware/Mono Mips/MonoMIPS";
 import WorkerService from "../../../Service/WorkerService";
-import { ScreenRenderer } from "./Editor Tab/Screen";
 import HexView from "./HexView";
-import { useState } from "react";
 import MultiWindowEditor from "./Editor Tab/MultiWindowEditor/MultiWindowEditor";
+import { TabsProvider } from "./Editor Tab/MultiWindowEditor/MultiWindowContext";
 
 // const cpuWorker = new Worker(new URL('./MonoMIPSWorker.ts', import.meta.url));
 
@@ -65,9 +32,6 @@ export default function SimulatorView() {
   // SimulatorService instance that handles the assembly of the code
   let simservice: SimulatorService = SimulatorService.getInstance();
 
-  // Notification toast
-  const toast = useToast();
-
   // Holds the shared state of the application
   let share: SharedData = SharedData.instance;
 
@@ -75,7 +39,7 @@ export default function SimulatorView() {
 
   const txtProgramtitle = React.useRef<HTMLInputElement>(null);
 
-  const hardwareRef = React.useRef();
+  // const hardwareRef = React.useRef();
 
   function handleKeyPress(e : KeyboardEvent) 
   {
@@ -104,11 +68,6 @@ export default function SimulatorView() {
     if (txtProgramtitle.current) txtProgramtitle.current.value = share.programTitle;
   }, [share.programTitle, program, currentInstruction])
 
-
-
-  
-
-  
 
   function callExecuteStep()
   {
@@ -151,7 +110,9 @@ export default function SimulatorView() {
           <Stack>
 
             {/* <ProgramEditorItem /> */}
-            <MultiWindowEditor callExecuteStep={callExecuteStep} />
+            <TabsProvider>
+              <MultiWindowEditor callExecuteStep={callExecuteStep} />
+            </TabsProvider>
           </Stack>
         </TabPanel>
 
