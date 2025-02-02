@@ -85,7 +85,7 @@ export default function MultiWindowEditor({ callExecuteStep }: { callExecuteStep
           size="2xs"
           variant="ghost"
           
-          onClick={addTab}
+          onClick={() => addTab(null, "New Tab")}
         >
           <FaPlus style={{ marginRight: "7px"}} /> Add Tab
         </Button>

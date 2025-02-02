@@ -5,6 +5,7 @@ import SharedData from "../../../Service/SharedData";
 import SimulatorService from "../../../Service/SimulatorService";
 import AssemblyEditor from "../../AssemblyEditor";
 import SidebarWithHeader from "../../Sidebar";
+import { useTabs } from "../Simulator View/Editor Tab/MultiWindowEditor/MultiWindowContext";
 
 
 const HiPlayIcon = () => (
@@ -13,12 +14,19 @@ const HiPlayIcon = () => (
 
 export default function ExamplePage(){
 
+    const { addTab, setEditorCode, selectTab } = useTabs();
+    
     function example(text:string,code:string, fsize: number){
 
         function load_example(){
             SharedData.instance.code = code
             SharedData.instance.changePage(0)
             SharedData.instance.programTitle = text;
+            const newTabID = addTab(null,text);
+            setEditorCode(newTabID, code);
+            selectTab(newTabID);
+
+
         }
 
         return (<Card>

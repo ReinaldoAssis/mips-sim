@@ -108,11 +108,7 @@ export default function SimulatorView() {
       <TabPanels>
         <TabPanel>
           <Stack>
-
-            {/* <ProgramEditorItem /> */}
-            <TabsProvider>
-              <MultiWindowEditor callExecuteStep={callExecuteStep} />
-            </TabsProvider>
+            <MultiWindowEditor callExecuteStep={callExecuteStep} />
           </Stack>
         </TabPanel>
 

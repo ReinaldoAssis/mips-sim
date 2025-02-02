@@ -8,6 +8,7 @@ import Logger from "./Service/Logger";
 import ExamplePage from "./Components/pages/Exemples/ExamplePage";
 import CreditsPage from "./Components/pages/Credits";
 import theme from "./Components/utils/theme";
+import { TabsProvider } from "./Components/pages/Simulator View/Editor Tab/MultiWindowEditor/MultiWindowContext";
 
 export function App()
 {
@@ -68,11 +69,15 @@ export function App()
   }, []);
 
   return (<ChakraProvider theme={theme}>
-    <SidebarWithHeader>
-      <SimulatorView />
-      <InstructionSetPage />
-      <ExamplePage/>
-      <CreditsPage/>
-    </SidebarWithHeader>
+    <TabsProvider>
+
+      <SidebarWithHeader>
+        <SimulatorView />
+        <InstructionSetPage />
+        <ExamplePage/>
+        <CreditsPage/>
+      </SidebarWithHeader>
+
+    </TabsProvider>
   </ChakraProvider>)
 }

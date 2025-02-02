@@ -5,31 +5,34 @@ interface TabItem {
   id: string;
   title: string;
   content: React.ReactNode;
+  editorCode?: string;
 }
 
 interface TabsContextType {
   tabs: TabItem[];
   selectedTab: string | null;
-  addTab: () => void;
+  addTab: (uid?:string|null, title?:string) => string;
   removeTab: (id: string) => void;
   selectTab: (id: string) => void;
   renameTab: (id: string, newTitle: string) => void;
+  setEditorCode: (id: string, newCode: string) => void;
 }
 
 const TabsContext = createContext<TabsContextType | undefined>(undefined);
+export const uuid = () => Math.random().toString(36).substring(2, 15);
 
 export const TabsProvider: React.FC<{children: JSX.Element}> = ({ children }) => {
   const [tabs, setTabs] = useState<TabItem[]>([]);
   const [selectedTab, setSelectedTab] = useState<string | null>(null);
 
-  const uuid = () => Math.random().toString(36).substring(2, 15);
 
-  const addTab = () => {
+  const addTab = (uid? : string |  null, title : string = "") => {
     const newTabs = [...tabs];
-    const uid = uuid();
-    newTabs.push({ id: uid, title: `Tab ${newTabs.length + 1}`, content: `Tab Content ${newTabs.length + 1}` });
+    if (!uid) uid = uuid();
+    newTabs.push({ id: uid, title: title ? title : `Tab ${newTabs.length + 1}`, content: `Tab Content ${newTabs.length + 1}` });
     setTabs(newTabs);
     setSelectedTab(uid);
+    return uid;
   };
 
   const removeTab = (id: string) => {
@@ -52,8 +55,16 @@ export const TabsProvider: React.FC<{children: JSX.Element}> = ({ children }) =>
     );
   };
 
+  const setEditorCode = (id: string, newCode: string) => {
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === id ? { ...tab, editorCode: newCode } : tab
+      )
+    );
+  }
+
   return (
-    <TabsContext.Provider value={{ tabs, selectedTab, addTab, removeTab, selectTab, renameTab }}>
+    <TabsContext.Provider value={{ tabs, selectedTab, addTab, removeTab, selectTab, renameTab, setEditorCode }}>
       {children}
     </TabsContext.Provider>
   );
