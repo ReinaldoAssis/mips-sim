@@ -13,6 +13,7 @@ interface TabsContextType {
   addTab: () => void;
   removeTab: (id: string) => void;
   selectTab: (id: string) => void;
+  renameTab: (id: string, newTitle: string) => void;
 }
 
 const TabsContext = createContext<TabsContextType | undefined>(undefined);
@@ -43,8 +44,16 @@ export const TabsProvider: React.FC<{children: JSX.Element}> = ({ children }) =>
     setSelectedTab(id);
   };
 
+  const renameTab = (id: string, newTitle: string) => {
+    setTabs((prevTabs) =>
+      prevTabs.map((tab) =>
+        tab.id === id ? { ...tab, title: newTitle } : tab
+      )
+    );
+  };
+
   return (
-    <TabsContext.Provider value={{ tabs, selectedTab, addTab, removeTab, selectTab }}>
+    <TabsContext.Provider value={{ tabs, selectedTab, addTab, removeTab, selectTab, renameTab }}>
       {children}
     </TabsContext.Provider>
   );

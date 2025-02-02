@@ -7,53 +7,11 @@ import SingleWindow from "./SingleWindow"
 
 export default function MultiWindowEditor({ callExecuteStep }: { callExecuteStep: () => void }) {
     
-  const { tabs, selectedTab, addTab, removeTab, selectTab } = useTabs();
+  const { tabs, selectedTab, addTab, removeTab, selectTab, renameTab } = useTabs();
   
-  // interface Item {
-  //     id: string
-  //     title: string
-  //     content: React.ReactNode
-  //   }
-
-    // placeholder items
-    // const items: Item[] = [
-    //   { id: "1", title: "Tab", content: "Tab Content" },
-    //   { id: "2", title: "Tab", content: "Tab Content" },
-    //   { id: "3", title: "Tab", content: "Tab Content" },
-    //   { id: "4", title: "Tab", content: "Tab Content" },
-    // ]
-
-    // const [tabs, setTabs] = useState<Item[]>(items)
-    // const [selectedTab, setSelectedTab] = useState<string | null>(items[0].id)
     const [isRenamingTab, setIsRenamingTab] = useState(false)
     const [tabToEdit, setTabToEdit] = useState<string | null>(null)
     const [newTitle, setNewTitle] = useState("")
-
-    const uuid = () => {
-      return Math.random().toString(36).substring(2, 15)
-    }
-
-    // const addTab = () => {
-    //   const newTabs = [...tabs]
-  
-    //   const uid = uuid()
-  
-    //   newTabs.push({
-    //     id: uid,
-    //     title: `Tab`,
-    //     content: `Tab Body`,
-    //   })
-  
-    //   setTabs(newTabs)
-    //   setSelectedTab(newTabs[newTabs.length - 1].id)
-    // }
-  
-    // const removeTab = (id: string) => {
-    //   if (tabs.length > 1) {
-    //     const newTabs = [...tabs].filter((tab) => tab.id !== id)
-    //     setTabs(newTabs)
-    //   }
-    // }
 
     function openRenameModal(id: string, currentTitle: string) {
       setTabToEdit(id)
@@ -68,10 +26,8 @@ export default function MultiWindowEditor({ callExecuteStep }: { callExecuteStep
     }
     
     function saveNewTitle() {
-      // setTabs((prev) =>
-      //   prev.map((t) => (t.id === tabToEdit ? { ...t, title: newTitle } : t))
-      // )
-      // closeRenameModal()
+      renameTab(tabToEdit!, newTitle)
+      closeRenameModal()
     }
 
     function ChangeTabTitleModal (id: string)
