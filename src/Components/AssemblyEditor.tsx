@@ -198,7 +198,7 @@ function AssemblyEditor(props: {
   return (
     <Editor
       onChange={props.onEditorChange}
-      key={props.tabID+"-"+Math.random()*1000}
+      key={props.tabID+"-editor"}
       height="80vh"
       defaultLanguage="mips"
       theme={colorMode == "dark" ? "mipsdark" : "mipslight"}
