@@ -120,7 +120,7 @@ export default function SingleWindow ({ callExecuteStep }: { callExecuteStep: ()
 
       {/* }} /> */}
       {/* <AssemblyEditor onEditorChange={() => {}} /> */}
-      <EditorView onEditorChange={() => {}} assembleBtn={assembleCode} runBtn={runCode} callExecuteStep={callExecuteStep} />
+      <EditorView onEditorChange={onEditorChange} assembleBtn={assembleCode} runBtn={runCode} callExecuteStep={callExecuteStep} />
       </>
     )
   }

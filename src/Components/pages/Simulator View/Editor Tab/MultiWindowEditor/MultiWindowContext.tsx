@@ -11,7 +11,7 @@ interface TabItem {
 interface TabsContextType {
   tabs: TabItem[];
   selectedTab: string | null;
-  addTab: (uid?:string|null, title?:string) => string;
+  addTab: (uid?: string | null, title?: string) => string;
   removeTab: (id: string) => void;
   selectTab: (id: string) => void;
   renameTab: (id: string, newTitle: string) => void;
@@ -19,20 +19,21 @@ interface TabsContextType {
 }
 
 const TabsContext = createContext<TabsContextType | undefined>(undefined);
+
 export const uuid = () => Math.random().toString(36).substring(2, 15);
 
-export const TabsProvider: React.FC<{children: JSX.Element}> = ({ children }) => {
+export const TabsProvider: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const [tabs, setTabs] = useState<TabItem[]>([]);
   const [selectedTab, setSelectedTab] = useState<string | null>(null);
 
-
-  const addTab = (uid? : string |  null, title : string = "") => {
+  const addTab = (uid?: string | null, title: string = ""): string => {
     const newTabs = [...tabs];
-    // if (!uid) uid = uuid();
     uid = uuid();
-    newTabs.push({ id: uid, title: title ? title : `Tab ${newTabs.length + 1}`, content: `Tab Content ${newTabs.length + 1}` });
+    newTabs.push({ id: uid, title: title ? title : `Tab ${newTabs.length + 1}`, content: `Tab Content ${newTabs.length + 1}`, editorCode: "" });
     setTabs(newTabs);
     setSelectedTab(uid);
+
+    console.log('Added Tab:', newTabs.find(tab => tab.id === uid));
     return uid;
   };
 
@@ -45,6 +46,8 @@ export const TabsProvider: React.FC<{children: JSX.Element}> = ({ children }) =>
   };
 
   const selectTab = (id: string) => {
+    // const editorCode = tabs.find(tab => tab.id === id)?.editorCode ?? "";
+    // if (editorCode !== "" ) setEditorCode(id, tabs.find(tab => tab.id === id)?.editorCode ?? "");
     setSelectedTab(id);
   };
 
@@ -57,12 +60,14 @@ export const TabsProvider: React.FC<{children: JSX.Element}> = ({ children }) =>
   };
 
   const setEditorCode = (id: string, newCode: string) => {
-    setTabs((prevTabs) =>
-      prevTabs.map((tab) =>
+    setTabs((prevTabs) => {
+      const updatedTabs = prevTabs.map((tab) =>
         tab.id === id ? { ...tab, editorCode: newCode } : tab
-      )
-    );
-  }
+      );
+      console.log('Updated Tabs:', updatedTabs);
+      return updatedTabs;
+    });
+  };
 
   return (
     <TabsContext.Provider value={{ tabs, selectedTab, addTab, removeTab, selectTab, renameTab, setEditorCode }}>

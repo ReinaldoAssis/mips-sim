@@ -85,8 +85,9 @@ export default function EditorView(props: {
 
   const toast = useToast();
 
-  const {tabs, selectedTab} = useTabs();
-  const currentTab = tabs.find(tab => tab.id === selectedTab);
+  const {selectedTab} = useTabs();
+  // const currentTab = tabs.find(tab => tab.id === selectedTab);
+  // console.log("currentTab", currentTab);
 
   function setScreenRendererCanva(){
     try{
@@ -122,7 +123,7 @@ export default function EditorView(props: {
   return (
     <Stack direction={"row"}>
       
-      <AssemblyEditor defaultCode={currentTab?.editorCode ?? share.defaultCode} onEditorChange={props.onEditorChange} />
+      <AssemblyEditor tabID={selectedTab} onEditorChange={props.onEditorChange} />
       {screenModalOpen ? <Screen /> : <></>}
       <Slide
         direction="bottom"

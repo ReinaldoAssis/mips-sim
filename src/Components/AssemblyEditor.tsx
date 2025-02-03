@@ -3,15 +3,19 @@ import Editor from "@monaco-editor/react";
 import React, { useEffect } from "react";
 import { useRef } from "react";
 import SharedData, { IProcessor } from "../Service/SharedData";
+import { useTabs } from "./pages/Simulator View/Editor Tab/MultiWindowEditor/MultiWindowContext";
 
 function AssemblyEditor(props: {
   onEditorChange: (value: string | undefined, event: any) => void;
-  defaultCode : string | undefined;
+  tabID : string|null;
 }) {
   const monacoRef = useRef(null);
   const { colorMode } = useColorMode()
 
   const share: SharedData = SharedData.instance;
+
+  const {tabs} = useTabs();
+  const currentTab = tabs.find(tab => tab.id === props.tabID);
 
   let keywords = [
     "add",
@@ -180,11 +184,13 @@ function AssemblyEditor(props: {
     monaco.editor.setTheme(colorMode == "dark" ? "mipsdark" : "mipslight");
 
     // makes sure the editor mounts with the right code
-    if(share.code != "") {
-      editor.setValue(share.code);
-    }
-    else editor.setValue(props.defaultCode);
+    // if(share.code != "") {
+    //   editor.setValue(share.code);
+    // }
+    // else editor.setValue(props.defaultCode);
     
+    // editor.setValue(currentTab?.editorCode ?? share.defaultCode);
+    // console.log("Editor mounted with code: ", props.defaultCode);
   }
 
   // const defaultcode = share.defaultCode
@@ -192,11 +198,12 @@ function AssemblyEditor(props: {
   return (
     <Editor
       onChange={props.onEditorChange}
+      key={props.tabID+"-"+Math.random()*1000}
       height="80vh"
       defaultLanguage="mips"
       theme={colorMode == "dark" ? "mipsdark" : "mipslight"}
       defaultValue={
-        "# MIPS Assembly Sim. by Reinaldo Assis \n# Project supervisor: prof. Bruno Costa\n\n"
+        currentTab?.editorCode ?? share.defaultCode
       }
       options={{
         scrollBeyondLastLine: false,
