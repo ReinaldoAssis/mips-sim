@@ -19,7 +19,7 @@ export default function ExamplePage(){
     function example(text:string,code:string, fsize: number){
 
         function load_example(){
-            SharedData.instance.code = code
+            // SharedData.instance.code = code
             SharedData.instance.changePage(0)
             SharedData.instance.programTitle = text;
             const newTabID = addTab(null,text);

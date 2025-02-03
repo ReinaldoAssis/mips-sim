@@ -8,6 +8,7 @@ import WorkerService from "../../../../../Service/WorkerService";
 import AssemblyEditor from "../../../../AssemblyEditor";
 import EditorView from "../EditorTab";
 import { ScreenRenderer } from "../Screen";
+import { useTabs } from "./MultiWindowContext";
 
 export default function SingleWindow ({ callExecuteStep }: { callExecuteStep: () => void })
   {
@@ -119,7 +120,7 @@ export default function SingleWindow ({ callExecuteStep }: { callExecuteStep: ()
 
       {/* }} /> */}
       {/* <AssemblyEditor onEditorChange={() => {}} /> */}
-      <EditorView onEditorChange={onEditorChange} assembleBtn={assembleCode} runBtn={runCode} callExecuteStep={callExecuteStep} />
+      <EditorView onEditorChange={() => {}} assembleBtn={assembleCode} runBtn={runCode} callExecuteStep={callExecuteStep} />
       </>
     )
   }

@@ -39,6 +39,7 @@ import LoadProgramModal from "./LoadProgramModal";
 import WorkerService from "../../../../Service/WorkerService";
 import Screen, { ScreenRenderer } from "./Screen";
 import MemoryTerminal from "./MemoryTerminal";
+import { useTabs } from "./MultiWindowEditor/MultiWindowContext";
 
 export default function EditorView(props: {
   runBtn: Function;
@@ -80,9 +81,12 @@ export default function EditorView(props: {
   let log: Logger = Logger.instance;
 
   // SimulatorService instance that handles the assembly of the code
-  let simservice: SimulatorService = SimulatorService.getInstance();
+  // let simservice: SimulatorService = SimulatorService.getInstance();
 
   const toast = useToast();
+
+  const {tabs, selectedTab} = useTabs();
+  const currentTab = tabs.find(tab => tab.id === selectedTab);
 
   function setScreenRendererCanva(){
     try{
@@ -95,7 +99,6 @@ export default function EditorView(props: {
   }
 
   
-
   // Updates the console and debug terminal when the log changes
   React.useEffect(() => {
     Logger.instance.onLogChange(() => {
@@ -119,7 +122,7 @@ export default function EditorView(props: {
   return (
     <Stack direction={"row"}>
       
-      <AssemblyEditor onEditorChange={props.onEditorChange} />
+      <AssemblyEditor defaultCode={currentTab?.editorCode ?? share.defaultCode} onEditorChange={props.onEditorChange} />
       {screenModalOpen ? <Screen /> : <></>}
       <Slide
         direction="bottom"

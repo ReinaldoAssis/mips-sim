@@ -28,7 +28,8 @@ export const TabsProvider: React.FC<{children: JSX.Element}> = ({ children }) =>
 
   const addTab = (uid? : string |  null, title : string = "") => {
     const newTabs = [...tabs];
-    if (!uid) uid = uuid();
+    // if (!uid) uid = uuid();
+    uid = uuid();
     newTabs.push({ id: uid, title: title ? title : `Tab ${newTabs.length + 1}`, content: `Tab Content ${newTabs.length + 1}` });
     setTabs(newTabs);
     setSelectedTab(uid);

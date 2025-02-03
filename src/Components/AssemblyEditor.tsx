@@ -6,6 +6,7 @@ import SharedData, { IProcessor } from "../Service/SharedData";
 
 function AssemblyEditor(props: {
   onEditorChange: (value: string | undefined, event: any) => void;
+  defaultCode : string | undefined;
 }) {
   const monacoRef = useRef(null);
   const { colorMode } = useColorMode()
@@ -182,11 +183,11 @@ function AssemblyEditor(props: {
     if(share.code != "") {
       editor.setValue(share.code);
     }
-    else editor.setValue(defaultcode);
+    else editor.setValue(props.defaultCode);
     
   }
 
-  const defaultcode = share.defaultCode
+  // const defaultcode = share.defaultCode
 
   return (
     <Editor
