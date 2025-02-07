@@ -391,6 +391,8 @@ export default class SimulatorService {
             // Return whatever you want to replace it with
             return "";
           });
+
+          code = this.handleDirectives(code);
         }
     }
 
