@@ -1,9 +1,10 @@
-import { Button, Grid, GridItem, Icon, Text } from "@chakra-ui/react";
+import { Button, Grid, GridItem, Icon, Text, useTab } from "@chakra-ui/react";
 import React from "react";
-import { useEffect } from "react";
 import { IoIosDownload } from "react-icons/io";
 import SharedData, { Instruction } from "../../../Service/SharedData";
 import SimulatorService from "../../../Service/SimulatorService";
+import { useTabs } from "./Editor Tab/MultiWindowEditor/MultiWindowContext";
+import { useProgramStore } from "./SimulatorStore";
 
 export function HexDisplay({n,i}:{n:number,i:Instruction}){
     return (<>
@@ -17,9 +18,9 @@ export function HexDisplay({n,i}:{n:number,i:Instruction}){
     </>)
 }
 
-function HexView({program} : {program : Array<Instruction>}){
-    // const simservice = SimulatorService.getInstance();
-    let shared  : SharedData = SharedData.instance;
+function HexView(){
+    // let shared  : SharedData = SharedData.instance;
+    const { program } = useProgramStore();
 
     function downloadHex() 
     {
@@ -42,7 +43,7 @@ function HexView({program} : {program : Array<Instruction>}){
          return <HexDisplay key={n} n={n} i={i} />
        })}
     </Grid>
-    {shared.program.length == 0 ? <Text>Your assembled program will show up here.</Text> : <></>}
+    {program.length === 0 ? <Text>Your assembled program will show up here.</Text> : <></>}
     </>
 }
 

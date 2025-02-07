@@ -1,3 +1,4 @@
+/* eslint-disable no-loop-func */
 import { addr, INPUT_BUFFER_ADDR, SCREEN_MEM_END, SCREEN_MEM_START } from "../Hardware/TemplatePorcessor";
 import Logger, { ErrorType } from "./Logger";
 import SharedData, { Instruction } from "./SharedData";
@@ -299,7 +300,7 @@ export default class SimulatorService {
 
         }
 
-        if (directive == "def")
+        if (directive === "def")
         {
           // TODO: Validate arguments
           if (args.length !== 2) {
@@ -342,6 +343,31 @@ export default class SimulatorService {
 
           })
 
+        }
+
+        else if (directive === "macro"){
+          const current_macro = args[0];
+
+          // find the macro definition
+          const macro_start = lines.findIndex(line => line.startsWith(`.macro ${current_macro}`));
+          const macro_end = lines.slice(macro_start + 1).findIndex(line => line.startsWith("}")) + macro_start + 1;
+          const macro_code = lines.slice(macro_start, macro_end + 1).join("\n").replace("{","").replace("}","");
+
+          // find the macro call
+          code.split("\n").forEach((line, index) => {
+            
+            if (line.includes(`${current_macro}`) && !line.startsWith(".macro"))
+            {
+              const args = line.replace(`${current_macro} `, "").replace("(","").replace(")","").split(" ");
+              // const macro_call_args = args.join(" ");
+
+              console.log(`found macro call ${current_macro} with args ${args} [${args.length}]`)
+              // replace the macro call with the macro code
+            }
+
+          })
+
+          code = code.replace(lines.slice(macro_start, macro_end + 1).join("\n"), "")
         }
     }
 
@@ -449,6 +475,7 @@ export default class SimulatorService {
         if (_tk == ".org" && tokens.length == 2)
         {
           const newPC = Number.parseInt(tokens[1])
+          console.log(`changing PC (${this.currentAddr}) to ${newPC}`)
           this.currentAddr = newPC;
         }
 

@@ -59,6 +59,14 @@ function AssemblyEditor(props: {
     "include"
   ]
 
+  const constants = [
+    "PC_START",
+    "SCREEN_MEM_START",
+    "SCREEN_MEM_END",
+    "INPUT_BUFFER_ADDR",
+    "STACK_START"
+  ]
+
   keywords.push(...keywords.map(x => x.toUpperCase()))
 
   // React.useEffect(() => {
@@ -93,7 +101,7 @@ function AssemblyEditor(props: {
     monaco.languages.register({ id: "mips" });
     // register a tokens provider for the language
     monaco.languages.setMonarchTokensProvider("mips", {
-      keywords: keywords.concat(directives),
+      keywords: keywords.concat(directives).concat(constants),
       tokenizer: {
         root: [
           [

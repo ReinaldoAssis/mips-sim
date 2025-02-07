@@ -1,11 +1,13 @@
 // src/contexts/TabsContext.tsx
 import React, { createContext, useContext, useState } from 'react';
+import { Instruction } from '../../../../../Service/SharedData';
 
 interface TabItem {
   id: string;
   title: string;
   content: React.ReactNode;
   editorCode?: string;
+  program?: Array<Instruction>;
 }
 
 interface TabsContextType {
@@ -16,6 +18,9 @@ interface TabsContextType {
   selectTab: (id: string) => void;
   renameTab: (id: string, newTitle: string) => void;
   setEditorCode: (id: string, newCode: string) => void;
+  getEditorCode: (id: string) => string;
+  setProgram: (id:string, program: Array<Instruction>) => void;  
+  getProgram: () => Array<Instruction>;
 }
 
 const TabsContext = createContext<TabsContextType | undefined>(undefined);
@@ -69,8 +74,29 @@ export const TabsProvider: React.FC<{ children: JSX.Element }> = ({ children }) 
     });
   };
 
+  const getEditorCode = (id?: string) => {
+    if (id === undefined) return tabs.find(tab => tab.id === selectedTab)?.editorCode ?? "";
+    return tabs.find(tab => tab.id === id)?.editorCode ?? "";
+  }
+
+  const setProgram = (id:string, program : Array<Instruction>) => {
+    setTabs((prevTabs) => {
+      const updatedTabs = prevTabs.map((tab) =>
+        tab.id === id ? { ...tab, program: program } : tab
+      );
+      
+      return updatedTabs;
+    });
+  }
+
+  const getProgram = (id?: string) => {
+    if (id === undefined) return tabs.find(tab => tab.id === selectedTab)?.program ?? [];
+    return tabs.find(tab => tab.id === id)?.program ?? [];
+  }
+
+
   return (
-    <TabsContext.Provider value={{ tabs, selectedTab, addTab, removeTab, selectTab, renameTab, setEditorCode }}>
+    <TabsContext.Provider value={{ tabs, selectedTab, addTab, removeTab, selectTab, renameTab, setEditorCode, getEditorCode, setProgram, getProgram }}>
       {children}
     </TabsContext.Provider>
   );

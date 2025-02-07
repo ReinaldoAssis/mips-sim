@@ -119,7 +119,7 @@ export default function SimulatorView() {
               simservice.program.map(i => "0x"+i.machineCode.toString(16)).join(" ")  
             }
           /> */}
-          <HexView program={program ?? []}/>
+          <HexView />
         </TabPanel>
 
         <TabPanel>

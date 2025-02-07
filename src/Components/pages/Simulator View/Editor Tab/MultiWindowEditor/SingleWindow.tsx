@@ -6,6 +6,7 @@ import SharedData, { Instruction } from "../../../../../Service/SharedData";
 import SimulatorService from "../../../../../Service/SimulatorService";
 import WorkerService from "../../../../../Service/WorkerService";
 import AssemblyEditor from "../../../../AssemblyEditor";
+import { useProgramStore } from "../../SimulatorStore";
 import EditorView from "../EditorTab";
 import { ScreenRenderer } from "../Screen";
 import { useTabs } from "./MultiWindowContext";
@@ -14,6 +15,7 @@ export default function SingleWindow ({ callExecuteStep }: { callExecuteStep: ()
   {
 
     const [program, setProgram] = React.useState<Array<Instruction>>();
+    const { setProgram: setProgramStore } = useProgramStore.getState();
     
      // Handles the assembly code present in the editor
     const [code, setCode] = React.useState<string>("");
@@ -76,6 +78,10 @@ export default function SingleWindow ({ callExecuteStep }: { callExecuteStep: ()
         // share._debugMemory();
     
         setProgram(simservice.program);
+        share.program = simservice.program;
+        
+        setProgramStore(simservice.program);
+
 
         if (log.getErrors().length == 0 && log.appErrors.length == 0) {
         toast({

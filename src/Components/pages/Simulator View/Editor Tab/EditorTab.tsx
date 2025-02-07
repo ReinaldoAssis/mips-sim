@@ -85,8 +85,8 @@ export default function EditorView(props: {
 
   const toast = useToast();
 
-  const {selectedTab} = useTabs();
-  // const currentTab = tabs.find(tab => tab.id === selectedTab);
+  const {tabs, selectedTab} = useTabs();
+  const currentTab = tabs.find(tab => tab.id === selectedTab);
   // console.log("currentTab", currentTab);
 
   function setScreenRendererCanva(){
@@ -362,7 +362,7 @@ export default function EditorView(props: {
               borderRadius={50}
               size="sm"
               onClick={() => {
-                share.saveProgram(share.programTitle.toLowerCase(), share.code);
+                share.saveProgram(currentTab?.title ?? "recent", share.code);
                 toast({
                   title: "Code saved",
                   description: "Your code has been saved",
