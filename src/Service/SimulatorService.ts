@@ -180,6 +180,11 @@ export default class SimulatorService {
       // if the line is empty, skip it
       if (tokens[0] === "") continue;
 
+      if (tokens[0] === ".org"){
+        PC = Number(tokens[1]);
+        continue;
+      }
+
       // if it's an instruction, add 4 to the PC
       if (this.instruction_set.includes(tokens[0].toLowerCase())) {
         let tk = tokens[0].toLowerCase();
@@ -349,25 +354,43 @@ export default class SimulatorService {
           const current_macro = args[0];
 
           // find the macro definition
-          const macro_start = lines.findIndex(line => line.startsWith(`.macro ${current_macro}`));
+          const macro_def = lines.findIndex(line => line.startsWith(`.macro ${current_macro}`));
+          const macro_start = lines.slice(macro_def).findIndex(line => line.startsWith("{")) + macro_def;
           const macro_end = lines.slice(macro_start + 1).findIndex(line => line.startsWith("}")) + macro_start + 1;
-          const macro_code = lines.slice(macro_start, macro_end + 1).join("\n").replace("{","").replace("}","");
+          const macro_code = lines.slice(macro_start + 1, macro_end).join("\n").replaceAll("  ","").replaceAll("\t","");
+
+          console.log(`found macro def ${current_macro} with code ${macro_code}`)
 
           // find the macro call
+          // then again, there's most certainly a more efficient way of doing this
           code.split("\n").forEach((line, index) => {
             
             if (line.includes(`${current_macro}`) && !line.startsWith(".macro"))
             {
-              const args = line.replace(`${current_macro} `, "").replace("(","").replace(")","").split(" ");
+              const args = line.replace(`${current_macro} `, "").replaceAll("  ","").replace("(","").replace(")","").split(" ");
               // const macro_call_args = args.join(" ");
 
               console.log(`found macro call ${current_macro} with args ${args} [${args.length}]`)
               // replace the macro call with the macro code
+
+              let this_macro_code = macro_code;
+
+              args.forEach((arg, i) => {
+                this_macro_code = macro_code.replaceAll(`[${i}]`, arg)
+              })
+
+              code = code.replace(line, this_macro_code)
             }
 
           })
 
-          code = code.replace(lines.slice(macro_start, macro_end + 1).join("\n"), "")
+          const macroRegex = /\.macro\s+(\S+)\s*\{([\s\S]*?)\}/g;
+          code = code.replace(macroRegex, (match, macroName, macroBody) => {
+            // macroName will be the string after .macro
+            // macroBody will be everything inside { ... }
+            // Return whatever you want to replace it with
+            return "";
+          });
         }
     }
 

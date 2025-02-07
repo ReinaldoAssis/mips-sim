@@ -45,8 +45,9 @@ export default function SingleWindow ({ callExecuteStep }: { callExecuteStep: ()
           return;
         }
     
-        console.log("monaco editor value ", share.monacoEditor.getValue());
-        console.log("code ", code);
+        // console.log("monaco editor value ", share.monacoEditor.getValue());
+        // console.log("code ", code);
+        
         if (code == "" && share.monacoEditor != null) {
           let monacoCode = share.monacoEditor.getValue();
           setCode(monacoCode);
