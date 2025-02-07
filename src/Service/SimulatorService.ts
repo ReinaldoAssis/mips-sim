@@ -475,7 +475,6 @@ export default class SimulatorService {
         if (_tk == ".org" && tokens.length == 2)
         {
           const newPC = Number.parseInt(tokens[1])
-          console.log(`changing PC (${this.currentAddr}) to ${newPC}`)
           this.currentAddr = newPC;
         }
 
