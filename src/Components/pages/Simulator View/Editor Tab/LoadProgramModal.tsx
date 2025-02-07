@@ -27,6 +27,7 @@ import {
 import DeleteProgramAlert from "./DeleteProgramAlert";
 import { ReactIcon } from "@chakra-ui/icons";
 import { MdDelete } from "react-icons/md";
+import { useTabs } from "./MultiWindowEditor/MultiWindowContext";
   
 export default function LoadProgramModal(props: {
     isOpen: boolean;
@@ -35,6 +36,7 @@ export default function LoadProgramModal(props: {
 
     const share: SharedData = SharedData.instance;
     const [cachedPrograms, setCachedPrograms] = React.useState<string[]>([]);
+    const {addTab, setEditorCode, selectTab} = useTabs();
 
     function loadFromFile()
     {
@@ -54,6 +56,11 @@ export default function LoadProgramModal(props: {
           reader.onload = (e) => {
             const content = e.target?.result as string;
             share.code = content
+            const uuid = addTab(undefined, "New Program");
+            selectTab(uuid);
+            setEditorCode(uuid, share.code);
+            share.updateMonacoCode();
+            share.programTitle = "New Program";
             share.updateMonacoCode();
             props.close()
           };
@@ -64,6 +71,15 @@ export default function LoadProgramModal(props: {
 
       // Abre o diálogo para selecionar o arquivo
       input.click();
+    }
+
+    function loadProgram(program: string){
+      share.code = share.loadProgram(program);
+      const uuid = addTab(undefined, program);
+      selectTab(uuid);
+      setEditorCode(uuid, share.code);
+      share.updateMonacoCode();
+      share.programTitle = program.toLocaleUpperCase();
     }
 
     React.useEffect(() => {
@@ -92,9 +108,7 @@ export default function LoadProgramModal(props: {
                         return (
                             <Flex key={index} style={{verticalAlign:"center"}}>
                               <Button key={index} width="80%" onClick={() => {
-                                share.code = share.loadProgram(program);
-                                share.updateMonacoCode();
-                                share.programTitle = program.toLocaleUpperCase();
+                                loadProgram(program);
                             }}>{program}</Button>
                              <IconButton aria-label="Delete" borderRadius={30} style={{backgroundColor:"black", marginLeft:"20px"}} icon={<MdDelete color={"white"}/>} onClick={() => {
                               setDeletePromptOpen(true);
