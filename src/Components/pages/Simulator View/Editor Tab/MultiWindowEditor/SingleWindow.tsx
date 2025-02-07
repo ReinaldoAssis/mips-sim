@@ -16,6 +16,7 @@ export default function SingleWindow ({ callExecuteStep }: { callExecuteStep: ()
 
     const [program, setProgram] = React.useState<Array<Instruction>>();
     const { setProgram: setProgramStore } = useProgramStore.getState();
+    const {selectedTab, setEditorCode} = useTabs();
     
      // Handles the assembly code present in the editor
     const [code, setCode] = React.useState<string>("");
@@ -35,6 +36,7 @@ export default function SingleWindow ({ callExecuteStep }: { callExecuteStep: ()
      // Updates the assembly code when the code changes
     function onEditorChange(value: string | undefined, event: any) {
         setCode(value!);
+        setEditorCode(selectedTab!, value!);
         share.code = value ?? code;
     }
 
@@ -47,7 +49,7 @@ export default function SingleWindow ({ callExecuteStep }: { callExecuteStep: ()
     
         // console.log("monaco editor value ", share.monacoEditor.getValue());
         // console.log("code ", code);
-        
+
         if (code == "" && share.monacoEditor != null) {
           let monacoCode = share.monacoEditor.getValue();
           setCode(monacoCode);
