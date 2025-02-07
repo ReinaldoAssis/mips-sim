@@ -392,6 +392,8 @@ export default class SimulatorService {
             return "";
           });
 
+          // this is a very simple way of making sure that .def will replace
+          // after the macro has been expanded
           code = this.handleDirectives(code);
         }
     }
